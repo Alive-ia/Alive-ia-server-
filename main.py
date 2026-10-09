@@ -2,41 +2,41 @@ from fastapi import FastAPI
 
 app = FastAPI()
 
-# Home page
+# Page d'accueil
 @app.get("/")
 def home():
-    return {"message": "Welcome to ALIVE AI server", "status": "Server is running"}
+    return {"message": "Bienvenue sur ALIVE AI", "status": "Le serveur fonctionne"}
 
-# Ask a general question
+# Poser une question générale
 @app.get("/question")
-def question(q: str = "Hello"):
+def question(q: str = "Bonjour"):
     return {
         "question": q,
-        "answer": "I am ALIVE AI. I can help you learn, create, find a job, take care of your health and handle administrative tasks."
+        "answer": "Je suis ALIVE AI. Je peux vous aider à apprendre, créer, trouver un emploi, prendre soin de votre santé et gérer vos démarches administratives."
     }
 
-# 1. Learn
+# 1. Apprendre
 @app.get("/learn")
 def learn(q: str = ""):
     return {
-        "service": "Learn",
-        "answer": f"You want to learn: {q}. I will explain simply, with examples and exercises."
+        "service": "Apprendre",
+        "answer": f"Vous voulez apprendre : {q}. Je vais vous expliquer simplement, avec des exemples et des exercices."
     }
 
-# 2. Job & Entrepreneurship
+# 2. Emploi et Entrepreneuriat
 @app.get("/job")
 def job(q: str = ""):
     return {
-        "service": "Job & Entrepreneurship",
-        "answer": f"For your project: {q}. I can help you write a CV, a motivation letter, or a business plan."
+        "service": "Emploi et Entrepreneuriat",
+        "answer": f"Pour votre projet : {q}. Je peux vous aider à écrire un CV, une lettre de motivation ou un plan d'affaires."
     }
 
-# 3. Health
+# 3. Santé
 @app.get("/health")
 def health(q: str = ""):
     return {
-        "service": "Health",
-        "answer": f"Health question: {q}. I provide general information. For a diagnosis, please see a doctor."
+        "service": "Santé",
+        "answer": f"Question santé : {q}. Voici des informations générales. Pour un diagnostic, veuillez consulter un médecin."
     }
 
 # 4. Administration
@@ -44,13 +44,13 @@ def health(q: str = ""):
 def admin(q: str = ""):
     return {
         "service": "Administration",
-        "answer": f"Administrative process: {q}. I will explain the steps, the documents needed and where to go."
+        "answer": f"Démarche administrative : {q}. Je vous explique les étapes, les documents nécessaires et où aller."
     }
 
-# 5. Create a video
+# 5. Créer une vidéo
 @app.get("/video")
 def video(q: str = ""):
     return {
-        "service": "Create a video",
-        "answer": f"Video idea: {q}. Tell me the topic and duration, and I will prepare the script and scenes."
+        "service": "Créer une vidéo",
+        "answer": f"Idée de vidéo : {q}. Dites-moi le sujet et la durée, et je prépare le script et les scènes."
     }
