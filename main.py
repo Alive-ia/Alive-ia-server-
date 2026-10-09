@@ -1,11 +1,15 @@
 from fastapi import FastAPI
-
+from fastapi.responses import FileResponse
+from pydantic import BaseModel
 app = FastAPI()
+
+class ChatRequest(BaseModel):
+        message: str
 
 # Page d'accueil
 @app.get("/")
 def home():
-    return {"message": "Bienvenue sur ALIVE AI", "status": "Le serveur fonctionne"}
+    return FileResponse("static/index.html")
 
 # Poser une question générale
 @app.get("/question")
@@ -54,3 +58,9 @@ def video(q: str = ""):
         "service": "Créer une vidéo",
         "answer": f"Idée de vidéo : {q}. Dites-moi le sujet et la durée, et je prépare le script et les scènes."
     }
+
+
+# Chat
+@app.post("/chat")
+def chat(req: ChatRequest):
+    return {"reply": "Tu as dit : " + req.message}
