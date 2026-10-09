@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bope IA</title>
+<style>
+body{font-family:sans-serif;background:#111;color:#fff;margin:0;padding:20px}
+h1{color:#4CAF50;text-align:center}
+#chat{max-width:600px;margin:0 auto;height:400px;overflow-y:auto;background:#222;padding:15px;border-radius:10px}
+.msg{margin:10px 0;padding:10px;border-radius:8px}
+.user{background:#0b6fa4;text-align:right}
+.ai{background:#333}
+#box{max-width:600px;margin:15px auto;display:flex;gap:10px}
+input{flex:1;padding:12px;border-radius:8px;border:none}
+button{padding:12px 20px;background:#4CAF50;color:#fff;border:none;border-radius:8px}
+</style>
+</head>
+<body>
+<h1>🤖 Bope IA</h1>
+<div id="chat"><div class="msg ai">Bonjour, pose-moi une question !</div></div>
+<div id="box">
+<input id="q" placeholder="Écris ici..." onkeydown="if(event.key==='Enter')send()">
+<button onclick="send()">Envoyer</button>
+</div>
+<script>
+async function send(){
+  const q=document.getElementById('q'); const text=q.value; if(!text) return;
+  document.getElementById('chat').innerHTML+=`<div class="msg user">${text}</div>`;
+  q.value='';
+  const res=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text})});
+  const data=await res.json();
+  const reply=data.response||data.reply||data.message||JSON.stringify(data);
+  document.getElementById('chat').innerHTML+=`<div class="msg ai">${reply}</div>`;
+}
+</script>
+</body>
+  </html>
