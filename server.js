@@ -20,12 +20,11 @@ app.post('/chat', async (req, res) => {
       })
     });
     const data = await resp.json();
-    const reply = data.choices?.[0]?.message?.content || "Erreur Groq: " + JSON.stringify(data).slice(0,300);
+    const reply = data.choices?.[0]?.message?.content || "Erreur: " + JSON.stringify(data).slice(0,300);
     res.json({ reply });
   } catch (e) {
     res.json({ reply: "Erreur: " + e.message });
   }
 });
 
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log("BOPE OK on " + PORT));
+app.listen(process.env.PORT || 10000, () => console.log("BOPE OK"));
