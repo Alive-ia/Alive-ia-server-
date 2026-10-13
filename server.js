@@ -57,7 +57,7 @@ app.post('/chat', async (req, res) => {
       method: "POST",
       headers: { "Authorization": "Bearer " + process.env.GROQ_API_KEY, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+        model: "openai/gpt-oss-120b"
         messages: [{ role: "system", content: "Tu es BOPE IA, assistant congolais pour Kinshasa. Aide en video, emploi, santé, admin RDC." },{ role: "user", content: req.body.message }]
       })
     });
