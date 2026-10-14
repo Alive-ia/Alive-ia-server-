@@ -1,28 +1,38 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
+
 app.use(cors());
 app.use(express.json());
 
+// PAGE D'ACCUEIL BOPE
 app.get('/', (req, res) => {
-  res.send(`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BOPE IA</title>
+  res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-body{margin:0;font-family:sans-serif;background:#0a0a0a;color:white;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:20px}
-.logo{width:100px;height:100px;border-radius:50%;background:conic-gradient(from 0deg,#3b82f6,#10b981,#facc15,#f97316,#3b82f6);display:flex;align-items:center;justify-content:center;font-size:50px;font-weight:bold;margin-top:40px;box-shadow:0 0 30px rgba(59,130,246,0.5)}
-h1{margin:15px 0 5px}
-.sub{color:#aaa;text-align:center;font-size:14px;margin-bottom:20px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:360px}
-.btn{background:#1e1e1e;border:1px solid #2e2e2e;border-radius:16px;padding:18px 10px;text-align:center;cursor:pointer}
-.btn span{font-size:22px;display:block}
-#chat{width:100%;max-width:360px;height:250px;overflow-y:auto;margin:15px 0}
-.msg{margin:6px 0;padding:8px 10px;border-radius:10px;font-size:14px}.user{background:#128C7E;text-align:right}.bot{background:#1e1e1e}
-.inputBox{display:flex;width:100%;max-width:360px;background:#1e1e1e;border-radius:25px;padding:5px;border:1px solid #2e2e2e}
-.inputBox input{flex:1;background:transparent;border:none;color:white;padding:10px;outline:none}
-.inputBox button{background:#128C7E;border:none;color:white;border-radius:20px;padding:8px 15px}
-</style></head><body>
+body{margin:0;font-family:sans-serif;background:#000;color:#fff;display:flex;flex-direction:column;align-items:center;padding:20px}
+.logo{width:90px;height:90px;border-radius:50%;background:conic-gradient(#0072ff,#ffea00,#00ff88,#0072ff);display:flex;align-items:center;justify-content:center;font-size:50px;font-weight:bold}
+h1{margin:10px 0 5px}
+.sub{color:#aaa;font-size:13px;margin-bottom:15px;text-align:center}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:360px}
+.btn{background:#1a1a1a;border:1px solid #333;padding:15px;border-radius:14px;text-align:center;cursor:pointer}
+.btn span{font-size:20px;display:block}
+#chat{width:100%;max-width:360px;height:280px;overflow-y:auto;margin:15px 0;background:#111;border-radius:10px;padding:10px;display:flex;flex-direction:column}
+.msg{margin:5px 0;padding:8px 10px;border-radius:10px;font-size:14px;max-width:80%}
+.user{background:#128C7E;align-self:flex-end}
+.bot{background:#222;align-self:flex-start}
+.box{display:flex;width:100%;max-width:360px;gap:6px}
+.box input{flex:1;background:#222;border:1px solid #333;color:#fff;padding:12px;border-radius:20px;outline:none}
+.box button{background:#128C7E;border:none;color:#fff;padding:12px 18px;border-radius:20px}
+</style>
+</head>
+<body>
 <div class="logo">B</div>
 <h1>BOPE IA 🇨🇩</h1>
-<div class="sub">IA Générale Kinshasa - Video • Apprendre •<br>Emploi • Sante • Admin RDC</div>
+<div class="sub">IA Kinshasa - Video • Apprendre • Emploi • Sante • Admin RDC</div>
 <div class="grid">
 <div class="btn" onclick="ask('Create video')"><span>🎬</span>Create video</div>
 <div class="btn" onclick="ask('Apprendre')"><span>📚</span>Apprendre</div>
@@ -32,37 +42,58 @@ h1{margin:15px 0 5px}
 <div class="btn" onclick="ask('General')"><span>🌍</span>General</div>
 </div>
 <div id="chat"></div>
-<div class="inputBox"><input id="input" placeholder="Parle à BOPE..."><button onclick="send()">↑</button></div>
+<div class="box"><input id="input" placeholder="Pose ta question..."><button onclick="send()">Envoyer</button></div>
 <script>
-function ask(t){document.getElementById('input').value=t; send();}
+function ask(t){document.getElementById('input').value=t;send()}
 async function send(){
-  const input=document.getElementById('input'); const txt=input.value.trim(); if(!txt) return;
+  const input=document.getElementById('input');
   const chat=document.getElementById('chat');
-  chat.innerHTML+='<div class=msg user>'+txt+'</div>'; input.value='';
-  chat.innerHTML+='<div class=msg bot id=loading>BOPE écrit...</div>'; chat.scrollTop=chat.scrollHeight;
+  if(!input.value) return;
+  chat.innerHTML+='<div class=msg user>'+input.value+'</div>';
+  chat.innerHTML+='<div class=msg bot id=ld>BOPE écrit...</div>';
+  const txt=input.value;
+  input.value='';
   try{
     const r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:txt})});
     const d=await r.json();
-    document.getElementById('loading').remove();
+    document.getElementById('ld').remove();
     chat.innerHTML+='<div class=msg bot>'+d.reply+'</div>';
-  }catch(e){ document.getElementById('loading').remove(); chat.innerHTML+='<div class=msg bot>Erreur</div>';}
+  }catch(e){
+    document.getElementById('ld').remove();
+    chat.innerHTML+='<div class=msg bot>Erreur: '+e.message+'</div>';
+  }
   chat.scrollTop=chat.scrollHeight;
 }
-</script></body></html>`);
+</script>
+</body>
+</html>
+  `);
 });
 
+// IA BOPE - GROQ
 app.post('/chat', async (req, res) => {
   try {
-    const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
-      headers: { "Authorization": "Bearer " + process.env.GROQ_API_KEY, "Content-Type": "application/json" },
+      headers: {
+        "Authorization": "Bearer " + process.env.GROQ_API_KEY,
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({
-        model: "openai/gpt-oss-120b"
-        messages: [{ role: "system", content: "Tu es BOPE IA, assistant congolais pour Kinshasa. Aide en video, emploi, santé, admin RDC." },{ role: "user", content: req.body.message }]
+        model: "openai/gpt-oss-120b",
+        messages: [
+          { role: "system", content: "Tu es BOPE IA, assistant congolais de Kinshasa. Tu es utile, amical, et tu parles en français simple. Tu aides pour Video, Apprendre, Emploi, Santé, Admin RDC." },
+          { role: "user", content: req.body.message }
+        ]
       })
     });
-    const data = await r.json();
-    res.json({ reply: data.choices?.[0]?.message?.content || "Erreur: " + JSON.stringify(data).slice(0,300) });
-  } catch (e) { res.json({ reply: "Erreur: " + e.message }); }
+    const data = await response.json();
+    const reply = data.choices?.[0]?.message?.content || "Erreur Groq: " + JSON.stringify(data);
+    res.json({ reply });
+  } catch (err) {
+    res.json({ reply: "Erreur serveur: " + err.message });
+  }
 });
-app.listen(process.env.PORT || 10000, () => console.log("OK"));
+
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log("BOPE OK sur port " + PORT));
