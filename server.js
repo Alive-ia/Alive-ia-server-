@@ -47,7 +47,7 @@ h1{margin:10px 0 5px;font-size:28px}
 <div class="btn" onclick="ask('General')"><span>🌍</span>General</div>
 </div>
 <div id="chat"></div>
-<div class="box"><div class="in"><span style="font-size:22px">＋</span><input id="input" placeholder="Répondre à ChatGPT"><span>🎤</span><button onclick="send()">▲</button></div></div>
+<div class="box"><div class="in"><span style="font-size:22px">＋</span><input id="input" placeholder="Répondre à BOPE IA"><span>🎤</span><button onclick="send()">▲</button></div></div>
 <script>
 function ask(t){document.getElementById('input').value=t;send()}
 async function send(){
