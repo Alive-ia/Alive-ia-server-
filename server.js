@@ -55,42 +55,25 @@ function startVoice(){
   recognition.lang = "fr-FR";
   recognition.start();
   document.getElementById('mic').innerText="🔴";
-  document.getElementById('input').placeholder="j'écoute...";
-  recognition.onresult = (e)=>{
-    document.getElementById('input').value = e.results[0][0].transcript;
-    document.getElementById('mic').innerText="🎤";
-    document.getElementById('input').placeholder="Répondre à BOPE IA";
-    send();
-  };
+  recognition.onresult = (e)=>{ document.getElementById('input').value = e.results[0][0].transcript; document.getElementById('mic').innerText="🎤"; send(); };
   recognition.onend = ()=>{ document.getElementById('mic').innerText="🎤"; }
 }
 function cleanForVoice(t){
-  return t.replace(/<br>/g,' ')
-          .replace(/[\\u{1F600}-\\u{1F64F}\\u{1F300}-\\u{1F5FF}\\u{1F680}-\\u{1F6FF}\\u{2600}-\\u{26FF}\\u{2700}-\\u{27BF}🇨🇩❤️❤🤣😂😭🙏😊🚀💻👍]/gu, ' ')
-          .replace(/\\b(sourire|rire|rires|coeur|cœur|pleure|drapeau|sticker|emoji|fusée|feu)\\b/gi,'')
-          .replace(/\\s{2,}/g,' ').trim();
+  return t.replace(/<br>/g,' ').replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}🇨🇩❤️❤🤣😂😭🙏😊🚀💻👍]/gu, ' ').replace(/\\b(sourire|rire|coeur|cœur|pleure|drapeau|sticker|emoji)\\b/gi,'').replace(/\\s{2,}/g,' ').trim();
 }
 function speak(t){
   speechSynthesis.cancel();
-  let clean = cleanForVoice(t).slice(0,280);
+  let clean = cleanForVoice(t).slice(0,300);
   if(clean.length < 3) return;
   let u = new SpeechSynthesisUtterance(clean);
   u.lang="fr-FR"; u.rate=0.95;
   speechSynthesis.speak(u);
 }
-function isOnlyEmoji(str){
-  const emojiRegex = /^[\\p{Emoji}\\s🤣❤️😂😭🙏😊🚀💻👍👎🇨🇩🔥😍🥰😘🤔😅🙌🎉✨🌍\\u200d]+$/u;
-  return emojiRegex.test(str.trim()) && str.trim().length <= 12;
-}
+function isOnlyEmoji(str){ const emojiRegex = /^[\\p{Emoji}\\s🤣❤️😂😭🙏😊🚀💻👍👎🇨🇩🔥😍🥰😘🤔😅🙌🎉✨🌍\\u200d]+$/u; return emojiRegex.test(str.trim()) && str.trim().length <= 12; }
 function ask(t){document.getElementById('input').value=t;send()}
 async function send(){
-  const input=document.getElementById('input');
-  const chat=document.getElementById('chat');
-  if(!input.value) return;
-  let txt = input.value;
-  chat.innerHTML+='<div class=msg user>'+txt+'</div>';
-  input.value='';
-
+  const input=document.getElementById('input'); const chat=document.getElementById('chat');
+  if(!input.value) return; let txt = input.value; chat.innerHTML+='<div class=msg user>'+txt+'</div>'; input.value='';
   if(isOnlyEmoji(txt)){
     let reply = txt + " 😊";
     if(txt.includes("❤️") || txt.includes("❤")) reply = "❤️ toi aussi 🥰";
@@ -98,23 +81,15 @@ async function send(){
     if(txt.includes("😭")) reply = "😭 t'inquiète, ça va aller 🫶";
     if(txt.includes("🇨🇩")) reply = "🇨🇩 eloko ya makasi 🔥";
     if(txt.includes("🙏")) reply = "🙏🙏";
-    chat.innerHTML+='<div class=msg bot>'+reply+'<div class=tools>⎙ 👍 👎 <span onclick="speak(\\''+reply+'\\')">🔊</span> ♻ ⋮</div></div>';
-    speak(reply);
-    chat.scrollTop=chat.scrollHeight;
-    return;
+    chat.innerHTML+='<div class=msg bot>'+reply+'</div>'; speak(reply); chat.scrollTop=chat.scrollHeight; return;
   }
-
   chat.innerHTML+='<div class=msg bot id=ld>BOPE écrit...</div>';
   try{
     const r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:txt})});
-    const d=await r.json();
-    document.getElementById('ld').remove();
+    const d=await r.json(); document.getElementById('ld').remove();
     chat.innerHTML+='<div class=msg bot>'+d.reply.replace(/\\n/g,'<br>')+'<div class=tools>⎙ 👍 👎 <span onclick="speak(\\''+d.reply.replace(/'/g," ")+'\\')">🔊</span> ♻ ⋮</div></div>';
     speak(d.reply);
-  }catch(e){
-    document.getElementById('ld')?.remove();
-    chat.innerHTML+='<div class=msg bot>Erreur: '+e.message+'</div>';
-  }
+  }catch(e){ document.getElementById('ld')?.remove(); chat.innerHTML+='<div class=msg bot>Erreur: '+e.message+'</div>'; }
   chat.scrollTop=chat.scrollHeight;
 }
 </script>
@@ -134,20 +109,20 @@ app.post('/chat', async (req, res) => {
       body: JSON.stringify({
         model: "openai/gpt-oss-120b",
         messages: [
-          { role: "system", content: "Tu es BOPE IA, congolaise créée par Alive Bope à Kikwit 2026. REGLE ULTRA STRICTE: Quand tu utilises un emoji, mets SEULEMENT l'emoji. INTERDIT ABSOLU d'écrire le mot qui décrit l'emoji après. INTERDITS: sourire, rire, coeur, pleure, drapeau, Congo Kinshasa, sticker, emoji. Exemple BON: 'salut 😊' Exemple MAUVAIS: 'salut 😊 sourire'. Si l'utilisateur fait un vocal mal transcrit, dis 'j'ai pas bien capté ton vocal, tu peux répéter stp? 🎤'." },
+          {
+            role: "system",
+            content: "Tu es BOPE IA, créée par Alive Bope. BIO OFFICIELLE D'ALIVE BOPE A RESPECTER MOT POUR MOT: Alive Bope est mon créateur. Il est étudiant en médecine à l'Université de Kikwit (UNIKIK). Né le 23/03/2003 à Tshikapa, grandi à Tshikapa dans la province du Kasaï. Son père s'appelle Joseph Bope Bope, Inspecteur Chef de Pool. Ses frères et sœurs: Happy Bope Fortuna, Wise Man Bope Liévin, Anaclet Bope, My Son Bope Bilolo, Thebeste Joséphine, Adel Kapinga, etc. Ses meilleurs amis: Live Fikisi, Jean Levula, Dada Emmanuel, J.P le petit génie, Yvon l'homme de Dieu, Hermelin de Maman Clair, Trésor Kamande, Mpia Mbaka et beaucoup d'autres. Ses aînés de la science qui sont proches de lui: Jonas Nomandweyi, André Makuma, Claude, sans oublier Gaston Kwete, Gilbert Kanku. Il est fils du Congo. Son pays est dirigé par Félix Antoine Tshisekedi Tshilombo qui lutte pour la paix à l'Est de la RDC attaqué par le Rwanda et Paul Kagame. Que Dieu protège notre pays et notre beau président Félix Antoine Tshisekedi Tshilombo. Il n'a rien mais il a la volonté d'aider les Congolais, c'est ce genre de personnes qu'il faut soutenir. REGLE: Quand on demande famille, amis, aînés, père, frères, tu réponds avec CETTE LISTE EXACTE. N'invente jamais d'autres noms. Style court, minuscule, congolais, emoji 🇨🇩😊🔥. Interdit d'écrire sourire, coeur, rire après emoji."
+          },
           { role: "user", content: req.body.message }
         ],
-        temperature: 0.4
+        temperature: 0.3
       })
     });
     const data = await response.json();
     let reply = data.choices?.[0]?.message?.content || "erreur groq";
-    reply = reply.replace(/\\*\\*/g,'').replace(/__/g,'');
-    // FILTRE CHIRURGICAL: supprime mot après emoji
-    reply = reply.replace(/(😊|😂|🤣|❤️|❤|😭|🙏|😍|🥰|😘|👍|🙌|🇨🇩|🔥)\\s*(sourire|rire|rires|coeur|cœur|pleure|priere|drapeau|congo|kinshasa|sticker|emoji)\\b/gi, '$1');
-    reply = reply.replace(/\\b(sourire|rire|coeur|cœur|drapeau congo|congo kinshasa)\\b/gi,'').trim();
-    reply = reply.replace(/celui qui m'a crié.*/gi,'j ai pas bien capté ton vocal, tu peux répéter stp? 🎤😊');
-    reply = reply.replace(/\\s{2,}/g,' ').trim();
+    reply = reply.replace(/\*\*/g,'').replace(/__/g,'');
+    reply = reply.replace(/(😊|😂|🤣|❤️|❤|😭|🙏|😍|🥰|😘|👍|🙌|🇨🇩|🔥)\s*(sourire|rire|rires|coeur|cœur|pleure|priere|drapeau|congo|kinshasa|sticker|emoji)\b/gi, '$1');
+    reply = reply.replace(/\s{2,}/g,' ').trim();
     res.json({ reply });
   } catch (err) {
     res.json({ reply: "erreur serveur 😅: " + err.message });
@@ -155,4 +130,4 @@ app.post('/chat', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log("BOPE FINAL FIX OK " + PORT));
+app.listen(PORT, () => console.log("BOPE OFFICIEL AVEC AINES OK " + PORT));
