@@ -64,15 +64,23 @@ function startVoice(){
   };
   recognition.onend = ()=>{ document.getElementById('mic').innerText="🎤"; }
 }
+function cleanForVoice(t){
+  return t.replace(/<br>/g,' ')
+          .replace(/[\\u{1F600}-\\u{1F64F}\\u{1F300}-\\u{1F5FF}\\u{1F680}-\\u{1F6FF}\\u{2600}-\\u{26FF}\\u{2700}-\\u{27BF}🇨🇩❤️❤🤣😂😭🙏😊🚀💻👍]/gu, ' ')
+          .replace(/\\b(sourire|rire|rires|coeur|cœur|pleure|drapeau|sticker|emoji|fusée|feu)\\b/gi,'')
+          .replace(/\\s{2,}/g,' ').trim();
+}
 function speak(t){
   speechSynthesis.cancel();
-  let u = new SpeechSynthesisUtterance(t.replace(/<br>/g,' ').slice(0,300));
+  let clean = cleanForVoice(t).slice(0,280);
+  if(clean.length < 3) return;
+  let u = new SpeechSynthesisUtterance(clean);
   u.lang="fr-FR"; u.rate=0.95;
   speechSynthesis.speak(u);
 }
 function isOnlyEmoji(str){
-  const emojiRegex = /^[\p{Emoji}\s🤣❤️😂😭🙏😊🚀💻👍👎🇨🇩🔥😍🥰😘🤔😅🙌🎉✨🌍]+$/u;
-  return emojiRegex.test(str.trim()) && str.trim().length <= 10;
+  const emojiRegex = /^[\\p{Emoji}\\s🤣❤️😂😭🙏😊🚀💻👍👎🇨🇩🔥😍🥰😘🤔😅🙌🎉✨🌍\\u200d]+$/u;
+  return emojiRegex.test(str.trim()) && str.trim().length <= 12;
 }
 function ask(t){document.getElementById('input').value=t;send()}
 async function send(){
@@ -83,7 +91,6 @@ async function send(){
   chat.innerHTML+='<div class=msg user>'+txt+'</div>';
   input.value='';
 
-  // --- CORRECTION STICKERS: si c'est seulement des emojis, on répond direct sans aller chez Groq ---
   if(isOnlyEmoji(txt)){
     let reply = txt + " 😊";
     if(txt.includes("❤️") || txt.includes("❤")) reply = "❤️ toi aussi 🥰";
@@ -127,17 +134,20 @@ app.post('/chat', async (req, res) => {
       body: JSON.stringify({
         model: "openai/gpt-oss-120b",
         messages: [
-          { role: "system", content: "Tu es BOPE IA, congolaise par Alive Bope Kikwit 2026. REGLE ABSOLUE: Ne décris JAMAIS un emoji/sticker. Interdit de dire: sourire, rire, coeur, pleurer, drapeau, Congo Kinshasa, sticker, emoji. Quand utilisateur envoie emoji, réagis avec même emoji. Style: minuscules, aéré, emoji direct 😊. Si vocal transcrit mal 'qui t'a crié', ignore et demande de répéter clairement." },
+          { role: "system", content: "Tu es BOPE IA, congolaise créée par Alive Bope à Kikwit 2026. REGLE ULTRA STRICTE: Quand tu utilises un emoji, mets SEULEMENT l'emoji. INTERDIT ABSOLU d'écrire le mot qui décrit l'emoji après. INTERDITS: sourire, rire, coeur, pleure, drapeau, Congo Kinshasa, sticker, emoji. Exemple BON: 'salut 😊' Exemple MAUVAIS: 'salut 😊 sourire'. Si l'utilisateur fait un vocal mal transcrit, dis 'j'ai pas bien capté ton vocal, tu peux répéter stp? 🎤'." },
           { role: "user", content: req.body.message }
         ],
-        temperature: 0.5
+        temperature: 0.4
       })
     });
     const data = await response.json();
     let reply = data.choices?.[0]?.message?.content || "erreur groq";
     reply = reply.replace(/\\*\\*/g,'').replace(/__/g,'');
-    reply = reply.replace(/\\b(sourire|rire|coeur|cœur|pleure|drapeau|congo kinshasa|sticker|emoji)\\b/gi,'');
+    // FILTRE CHIRURGICAL: supprime mot après emoji
+    reply = reply.replace(/(😊|😂|🤣|❤️|❤|😭|🙏|😍|🥰|😘|👍|🙌|🇨🇩|🔥)\\s*(sourire|rire|rires|coeur|cœur|pleure|priere|drapeau|congo|kinshasa|sticker|emoji)\\b/gi, '$1');
+    reply = reply.replace(/\\b(sourire|rire|coeur|cœur|drapeau congo|congo kinshasa)\\b/gi,'').trim();
     reply = reply.replace(/celui qui m'a crié.*/gi,'j ai pas bien capté ton vocal, tu peux répéter stp? 🎤😊');
+    reply = reply.replace(/\\s{2,}/g,' ').trim();
     res.json({ reply });
   } catch (err) {
     res.json({ reply: "erreur serveur 😅: " + err.message });
@@ -145,4 +155,4 @@ app.post('/chat', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log("BOPE FIX STICKERS OK " + PORT));
+app.listen(PORT, () => console.log("BOPE FINAL FIX OK " + PORT));
