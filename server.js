@@ -5,7 +5,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// PAGE D'ACCUEIL BOPE - FORME CHATGPT
+// PAGE D'ACCUEIL BOPE - AVEC VOIX
 app.get('/', (req, res) => {
   res.send(`
 <!DOCTYPE html>
@@ -26,7 +26,7 @@ h1{margin:10px 0 5px;font-size:28px}
 .msg{padding:12px 16px;border-radius:18px;font-size:17px;line-height:1.7;max-width:85%;white-space:pre-wrap;word-wrap:break-word}
 .user{background:#2e4a7e;align-self:flex-end;color:#fff}
 .bot{background:transparent;align-self:flex-start;color:#e9e9e9;max-width:100%;padding-left:4px}
-.tools{display:flex;gap:18px;margin-top:10px;color:#6b6b6b;font-size:18px}
+.tools{display:flex;gap:18px;margin-top:10px;color:#6b6b6b;font-size:18px;cursor:pointer}
 .box{position:fixed;bottom:0;left:0;right:0;background:#000;padding:10px;display:flex;justify-content:center;border-top:1px solid #181818}
 .in{width:92%;max-width:400px;background:#1c1c1c;border-radius:26px;display:flex;align-items:center;padding:8px 14px;gap:10px}
 .in input{flex:1;background:transparent;border:none;color:#fff;padding:8px;outline:none;font-size:16px}
@@ -47,8 +47,36 @@ h1{margin:10px 0 5px;font-size:28px}
 <div class="btn" onclick="ask('General')"><span>🌍</span>General</div>
 </div>
 <div id="chat"></div>
-<div class="box"><div class="in"><span style="font-size:22px">＋</span><input id="input" placeholder="Répondre à BOPE IA"><span>🎤</span><button onclick="send()">▲</button></div></div>
+<div class="box"><div class="in"><span style="font-size:22px">＋</span><input id="input" placeholder="Répondre à BOPE IA"><span onclick="startVoice()" id="mic" style="cursor:pointer;font-size:22px">🎤</span><button onclick="send()">▲</button></div></div>
 <script>
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition;
+function startVoice(){
+  if(!SpeechRecognition){ alert("ton telephone ne supporte pas la voix, utilise Chrome"); return; }
+  recognition = new SpeechRecognition();
+  recognition.lang = "fr-FR";
+  recognition.start();
+  document.getElementById('mic').innerText="🔴";
+  document.getElementById('input').placeholder="j'écoute... parle maintenant 🎤";
+  recognition.onresult = (e)=>{
+    document.getElementById('input').value = e.results[0][0].transcript;
+    document.getElementById('mic').innerText="🎤";
+    document.getElementById('input').placeholder="Répondre à BOPE IA";
+    send();
+  };
+  recognition.onerror = ()=>{
+    document.getElementById('mic').innerText="🎤";
+    document.getElementById('input').placeholder="Répondre à BOPE IA";
+  }
+}
+function speak(t){
+  if(!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  let clean = t.replace(/<br>/g,' ').slice(0,300);
+  let u = new SpeechSynthesisUtterance(clean);
+  u.lang="fr-FR"; u.rate=0.95;
+  speechSynthesis.speak(u);
+}
 function ask(t){document.getElementById('input').value=t;send()}
 async function send(){
   const input=document.getElementById('input');
@@ -62,7 +90,9 @@ async function send(){
     const r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:txt})});
     const d=await r.json();
     document.getElementById('ld').remove();
-    chat.innerHTML+='<div class=msg bot>'+d.reply.replace(/\\n/g,'<br>')+'<div class=tools>⎙ 👍 👎 🔊 ♻ ⋮</div></div>';
+    let safe = d.reply.replace(/'/g, " ");
+    chat.innerHTML+='<div class=msg bot>'+d.reply.replace(/\\n/g,'<br>')+'<div class=tools>⎙ 👍 👎 <span onclick="speak(\\''+safe.slice(0,250)+'\\')">🔊</span> ♻ ⋮</div></div>';
+    speak(d.reply);
   }catch(e){
     document.getElementById('ld').remove();
     chat.innerHTML+='<div class=msg bot>Erreur: '+e.message+'</div>';
@@ -75,7 +105,6 @@ async function send(){
   `);
 });
 
-// IA BOPE - GROQ - FORME CHATGPT + NETTOYAGE
 app.post('/chat', async (req, res) => {
   try {
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -95,8 +124,7 @@ app.post('/chat', async (req, res) => {
     });
     const data = await response.json();
     let reply = data.choices?.[0]?.message?.content || "Erreur Groq: " + JSON.stringify(data);
-    // Nettoyage automatique pour forme ChatGPT
-    reply = reply.replace(/\*\*/g,'').replace(/__/g,'');
+    reply = reply.replace(/\\*\\*/g,'').replace(/__/g,'');
     reply = reply.replace(/BONJOUR/gi,'Salut! 😊');
     reply = reply.replace(/COMMENT PUIS-JE VOUS AIDER.*/gi,'Comment ça va? Dis-moi comment je peux t aider? 🚀');
     res.json({ reply });
@@ -106,4 +134,4 @@ app.post('/chat', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log("BOPE OK sur port " + PORT));
+app.listen(PORT, () => console.log("BOPE VOIX OK sur port " + PORT));
