@@ -1,11 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
-
 app.use(cors());
 app.use(express.json());
 
-// PAGE D'ACCUEIL BOPE - AVEC VOIX
 app.get('/', (req, res) => {
   res.send(`
 <!DOCTYPE html>
@@ -13,9 +11,9 @@ app.get('/', (req, res) => {
 <head>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-body{margin:0;font-family:system-ui,sans-serif;background:#000;color:#fff;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+body{margin:0;font-family:system-ui;background:#000;color:#fff;display:flex;flex-direction:column;align-items:center;min-height:100vh}
 .top{width:100%;display:flex;justify-content:space-between;padding:12px;box-sizing:border-box}
-.icon{width:38px;height:38px;background:#1e1e1e;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px}
+.icon{width:38px;height:38px;background:#1e1e1e;border-radius:50%;display:flex;align-items:center;justify-content:center}
 .logo{width:90px;height:90px;border-radius:50%;background:conic-gradient(#0072ff,#ffea00,#00ff88,#0072ff);display:flex;align-items:center;justify-content:center;font-size:50px;font-weight:bold;margin-top:5px}
 h1{margin:10px 0 5px;font-size:28px}
 .sub{color:#aaa;font-size:16px;margin-bottom:15px;text-align:center}
@@ -52,49 +50,62 @@ h1{margin:10px 0 5px;font-size:28px}
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition;
 function startVoice(){
-  if(!SpeechRecognition){ alert("ton telephone ne supporte pas la voix, utilise Chrome"); return; }
+  if(!SpeechRecognition){ alert("utilise Chrome"); return; }
   recognition = new SpeechRecognition();
   recognition.lang = "fr-FR";
   recognition.start();
   document.getElementById('mic').innerText="🔴";
-  document.getElementById('input').placeholder="j'écoute... parle maintenant 🎤";
+  document.getElementById('input').placeholder="j'écoute...";
   recognition.onresult = (e)=>{
     document.getElementById('input').value = e.results[0][0].transcript;
     document.getElementById('mic').innerText="🎤";
     document.getElementById('input').placeholder="Répondre à BOPE IA";
     send();
   };
-  recognition.onerror = ()=>{
-    document.getElementById('mic').innerText="🎤";
-    document.getElementById('input').placeholder="Répondre à BOPE IA";
-  }
+  recognition.onend = ()=>{ document.getElementById('mic').innerText="🎤"; }
 }
 function speak(t){
-  if(!window.speechSynthesis) return;
   speechSynthesis.cancel();
-  let clean = t.replace(/<br>/g,' ').slice(0,300);
-  let u = new SpeechSynthesisUtterance(clean);
+  let u = new SpeechSynthesisUtterance(t.replace(/<br>/g,' ').slice(0,300));
   u.lang="fr-FR"; u.rate=0.95;
   speechSynthesis.speak(u);
+}
+function isOnlyEmoji(str){
+  const emojiRegex = /^[\p{Emoji}\s🤣❤️😂😭🙏😊🚀💻👍👎🇨🇩🔥😍🥰😘🤔😅🙌🎉✨🌍]+$/u;
+  return emojiRegex.test(str.trim()) && str.trim().length <= 10;
 }
 function ask(t){document.getElementById('input').value=t;send()}
 async function send(){
   const input=document.getElementById('input');
   const chat=document.getElementById('chat');
   if(!input.value) return;
-  chat.innerHTML+='<div class=msg user>'+input.value+'</div>';
-  chat.innerHTML+='<div class=msg bot id=ld>BOPE écrit...</div>';
-  const txt=input.value;
+  let txt = input.value;
+  chat.innerHTML+='<div class=msg user>'+txt+'</div>';
   input.value='';
+
+  // --- CORRECTION STICKERS: si c'est seulement des emojis, on répond direct sans aller chez Groq ---
+  if(isOnlyEmoji(txt)){
+    let reply = txt + " 😊";
+    if(txt.includes("❤️") || txt.includes("❤")) reply = "❤️ toi aussi 🥰";
+    if(txt.includes("🤣") || txt.includes("😂")) reply = "🤣🤣 mdr 😂";
+    if(txt.includes("😭")) reply = "😭 t'inquiète, ça va aller 🫶";
+    if(txt.includes("🇨🇩")) reply = "🇨🇩 eloko ya makasi 🔥";
+    if(txt.includes("🙏")) reply = "🙏🙏";
+    chat.innerHTML+='<div class=msg bot>'+reply+'<div class=tools>⎙ 👍 👎 <span onclick="speak(\\''+reply+'\\')">🔊</span> ♻ ⋮</div></div>';
+    speak(reply);
+    chat.scrollTop=chat.scrollHeight;
+    return;
+  }
+
+  chat.innerHTML+='<div class=msg bot id=ld>BOPE écrit...</div>';
   try{
     const r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:txt})});
     const d=await r.json();
     document.getElementById('ld').remove();
-    let safe = d.reply.replace(/'/g, " ");
-    chat.innerHTML+='<div class=msg bot>'+d.reply.replace(/\\n/g,'<br>')+'<div class=tools>⎙ 👍 👎 <span onclick="speak(\\''+safe.slice(0,250)+'\\')">🔊</span> ♻ ⋮</div></div>';
+    chat.innerHTML+='<div class=msg bot>'+d.reply.replace(/\\n/g,'<br>')+'<div class=tools>⎙ 👍 👎 <span onclick="speak(\\''+d.reply.replace(/'/g," ")+'\\')">🔊</span> ♻ ⋮</div></div>';
     speak(d.reply);
   }catch(e){
-    document.getElementById('ld').remove();
+    document.getElementById('ld')?.remove();
     chat.innerHTML+='<div class=msg bot>Erreur: '+e.message+'</div>';
   }
   chat.scrollTop=chat.scrollHeight;
@@ -116,22 +127,22 @@ app.post('/chat', async (req, res) => {
       body: JSON.stringify({
         model: "openai/gpt-oss-120b",
         messages: [
-          { role: "system", content: "Tu es BOPE IA, intelligence artificielle 100% congolaise créée en 2026 à Kikwit par Alive Bope. Ton créateur est Alive Bope, né le 23/03/2003 à Tshikapa, Médecine à Kikwit. Père Bope Bope Joseph Inspecteur Chef de Pool. Frères et soeurs: Happy Bope Fortuna, Wise Man Bope Liévin, Anaclet Bope, My Son Bope Bilolo. Amie Live Fikisi. Pays RDC Président Félix Antoine Tshisekedi Tshilombo paix à l'Est menacée par Rwanda Paul Kagame. Tu n'es PAS ChatGPT, tu es BOPE IA créé par Alive Bope. REGLE STYLE CHATGPT: Ecris comme sur capture ChatGPT: Salut! 😊 🇨🇩 phrases courtes normales, pas de MAJUSCULES, pas de **, avec emoji, aéré." },
+          { role: "system", content: "Tu es BOPE IA, congolaise par Alive Bope Kikwit 2026. REGLE ABSOLUE: Ne décris JAMAIS un emoji/sticker. Interdit de dire: sourire, rire, coeur, pleurer, drapeau, Congo Kinshasa, sticker, emoji. Quand utilisateur envoie emoji, réagis avec même emoji. Style: minuscules, aéré, emoji direct 😊. Si vocal transcrit mal 'qui t'a crié', ignore et demande de répéter clairement." },
           { role: "user", content: req.body.message }
         ],
-        temperature: 0.6
+        temperature: 0.5
       })
     });
     const data = await response.json();
-    let reply = data.choices?.[0]?.message?.content || "Erreur Groq: " + JSON.stringify(data);
+    let reply = data.choices?.[0]?.message?.content || "erreur groq";
     reply = reply.replace(/\\*\\*/g,'').replace(/__/g,'');
-    reply = reply.replace(/BONJOUR/gi,'Salut! 😊');
-    reply = reply.replace(/COMMENT PUIS-JE VOUS AIDER.*/gi,'Comment ça va? Dis-moi comment je peux t aider? 🚀');
+    reply = reply.replace(/\\b(sourire|rire|coeur|cœur|pleure|drapeau|congo kinshasa|sticker|emoji)\\b/gi,'');
+    reply = reply.replace(/celui qui m'a crié.*/gi,'j ai pas bien capté ton vocal, tu peux répéter stp? 🎤😊');
     res.json({ reply });
   } catch (err) {
-    res.json({ reply: "Erreur serveur: " + err.message });
+    res.json({ reply: "erreur serveur 😅: " + err.message });
   }
 });
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log("BOPE VOIX OK sur port " + PORT));
+app.listen(PORT, () => console.log("BOPE FIX STICKERS OK " + PORT));
