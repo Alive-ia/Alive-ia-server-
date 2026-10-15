@@ -59,7 +59,7 @@ function startVoice(){
   recognition.onend = ()=>{ document.getElementById('mic').innerText="🎤"; }
 }
 function cleanForVoice(t){
-  return t.replace(/<br>/g,' ').replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}🇨🇩❤️❤🤣😂😭🙏😊🚀💻👍]/gu, ' ').replace(/\\b(sourire|rire|coeur|cœur|pleure|drapeau|sticker|emoji)\\b/gi,'').replace(/\\s{2,}/g,' ').trim();
+  return t.replace(/<br>/g,' ').replace(/[\\u{1F600}-\\u{1F64F}\\u{1F300}-\\u{1F5FF}\\u{1F680}-\\u{1F6FF}\\u{2600}-\\u{26FF}\\u{2700}-\\u{27BF}🇨🇩❤️❤🤣😂😭🙏😊🚀💻👍]/gu, ' ').replace(/\\b(sourire|rire|coeur|cœur|pleure|drapeau|sticker|emoji)\\b/gi,' ').replace(/\\s{2,}/g,' ').trim();
 }
 function speak(t){
   speechSynthesis.cancel();
@@ -76,8 +76,8 @@ async function createCartoonVideo(){
   const story = prompt("Raconte ton idée de dessin animé 🎬\\nex: un papa qui danse, des enfants qui se battent, maman qui cuisine");
   if(!story) return;
   const chat=document.getElementById('chat');
-  chat.innerHTML+='<div class=msg user>🎬 Cartoon: '+story+'</div>';
-  chat.innerHTML+='<div class=msg bot id=ld>BOPE crée ton dessin animé... ⏳ 6 scènes cartoon en cours 🇨🇩</div>';
+  chat.innerHTML+='<div class=msg user>🎬 cartoon: '+story.toLowerCase()+'</div>';
+  chat.innerHTML+='<div class=msg bot id=ld>bope crée ton dessin animé... ⏳ 6 scènes cartoon en cours 🇨🇩</div>';
   chat.scrollTop=chat.scrollHeight;
   try{
     const r=await fetch('/cartoon',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({story})});
@@ -87,7 +87,7 @@ async function createCartoonVideo(){
     d.images.forEach((img,i)=>{
       html += '<img src="'+img+'" style="width:100%;border-radius:12px;margin:8px 0" loading="lazy"><br><small>scène '+(i+1)+': '+d.scenes[i]+'</small><br><br>';
     });
-    html += '<button onclick="playCartoon('+JSON.stringify(d.images).replace(/"/g,'&quot;')+')" style="background:#3a5fd0;color:#fff;border:none;padding:12px 22px;border-radius:22px;cursor:pointer;font-size:16px">▶️ Jouer la vidéo dessin animé</button><div class=tools>⎙ 👍 👎 <span onclick="speak(\\''+d.title.replace(/'/g," ")+'\\')">🔊</span></div></div>';
+    html += '<button onclick="playCartoon('+JSON.stringify(d.images).replace(/"/g,'&quot;')+')" style="background:#3a5fd0;color:#fff;border:none;padding:12px 22px;border-radius:22px;cursor:pointer;font-size:16px">▶️ jouer la vidéo dessin animé</button><div class=tools>⎙ 👍 👎 <span onclick="speak(\\''+d.title.replace(/'/g," ")+'\\')">🔊</span></div></div>';
     chat.innerHTML+=html;
     speak("voilà ton dessin animé prêt");
   }catch(e){
@@ -98,12 +98,12 @@ async function createCartoonVideo(){
 }
 function playCartoon(images){
   let w=window.open();
-  w.document.write('<body style="margin:0;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;color:#fff;font-family:system-ui"><h3 style="margin-bottom:10px">BOPE CARTOON 🇨🇩</h3><img id="v" style="max-width:95%;max-height:80vh;border-radius:16px;border:2px solid #333"><p id="c" style="margin-top:10px">0 / '+images.length+'</p><script>let imgs='+JSON.stringify(images)+';let idx=0;let imgEl=document.getElementById("v");let cEl=document.getElementById("c");function next(){imgEl.src=imgs[idx];cEl.innerText=(idx+1)+" / "+imgs.length;idx=(idx+1)%imgs.length}next();setInterval(next,1000)<\/script></body>');
+  w.document.write('<body style="margin:0;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;color:#fff;font-family:system-ui"><h3 style="margin-bottom:10px">bope cartoon 🇨🇩</h3><img id="v" style="max-width:95%;max-height:80vh;border-radius:16px;border:2px solid #333"><p id="c" style="margin-top:10px">0 / '+images.length+'</p><script>let imgs='+JSON.stringify(images)+';let idx=0;let imgEl=document.getElementById("v");let cEl=document.getElementById("c");function next(){imgEl.src=imgs[idx];cEl.innerText=(idx+1)+" / "+imgs.length;idx=(idx+1)%imgs.length}next();setInterval(next,1000)<\\/script></body>');
 }
 
 async function send(){
   const input=document.getElementById('input'); const chat=document.getElementById('chat');
-  if(!input.value) return; let txt = input.value; chat.innerHTML+='<div class=msg user>'+txt+'</div>'; input.value='';
+  if(!input.value) return; let txt = input.value; chat.innerHTML+='<div class=msg user>'+txt.toLowerCase()+'</div>'; input.value='';
   if(isOnlyEmoji(txt)){
     let reply = txt + " 😊";
     if(txt.includes("❤️") || txt.includes("❤")) reply = "❤️ toi aussi 🥰";
@@ -113,14 +113,14 @@ async function send(){
     if(txt.includes("🙏")) reply = "🙏🙏";
     chat.innerHTML+='<div class=msg bot>'+reply+'</div>'; speak(reply); chat.scrollTop=chat.scrollHeight; return;
   }
-  chat.innerHTML+='<div class=msg bot id=ld>BOPE écrit...</div>';
+  chat.innerHTML+='<div class=msg bot id=ld>bope écrit...</div>';
   chat.scrollTop=chat.scrollHeight;
   try{
     const r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:txt})});
     const d=await r.json(); document.getElementById('ld').remove();
     chat.innerHTML+='<div class=msg bot>'+d.reply.replace(/\\n/g,'<br>')+'<div class=tools>⎙ 👍 👎 <span onclick="speak(\\''+d.reply.replace(/'/g," ")+'\\')">🔊</span> ♻ ⋮</div></div>';
     speak(d.reply);
-  }catch(e){ document.getElementById('ld')?.remove(); chat.innerHTML+='<div class=msg bot>Erreur: '+e.message+'</div>'; }
+  }catch(e){ document.getElementById('ld')?.remove(); chat.innerHTML+='<div class=msg bot>erreur: '+e.message+'</div>'; }
   chat.scrollTop=chat.scrollHeight;
 }
 </script>
@@ -138,33 +138,35 @@ app.post('/cartoon', async (req,res)=>{
       body: JSON.stringify({
         model:"openai/gpt-oss-120b",
         messages:[
-          {role:"system", content:"Tu découpes une histoire en 6 scènes courtes pour dessin animé cartoon 3D congolais, mignon, coloré. Réponds UNIQUEMENT en JSON valide: {\"title\": \"titre court\", \"scenes\": [\"scene1 10 mots\", \"scene2\", \"scene3\", \"scene4\", \"scene5\", \"scene6\"]}. Max 10 mots par scène."},
+          {role:"system", content:"Tu découpes une histoire en 6 scènes courtes pour dessin animé cartoon 3D congolais, mignon, coloré. Réponds UNIQUEMENT en JSON valide: {\\"title\\": \\"titre court minuscule\\", \\"scenes\\": [\\"scene1\\", \\"scene2\\", \\"scene3\\", \\"scene4\\", \\"scene5\\", \\"scene6\\"]}. Max 10 mots par scène, minuscules."},
           {role:"user", content: story}
         ],
         temperature:0.8
       })
     });
     const groqData = await groqRes.json();
-    let content = groqData.choices?.[0]?.message?.content || '{"title":"dessin animé","scenes":["'+story+'"]}'.replace(/```json|```/g,'').trim();
+    let content = groqData.choices?.[0]?.message?.content || '{"title":"dessin anime","scenes":["'+story+'"]}';
     content = content.replace(/```json|```/g,'').trim();
     let parsed;
-    try{ parsed = JSON.parse(content); }catch{ parsed = {title:"Mon dessin animé", scenes:[story, story+" suite", story+" content", story+" danse", story+" rit", story+" fin heureuse"]}; }
+    try{ parsed = JSON.parse(content); }catch{ parsed = {title:"mon dessin anime", scenes:[story, story+" suite", story+" content", story+" danse", story+" rit", story+" fin heureuse"]}; }
     if(!parsed.scenes || parsed.scenes.length < 3) parsed.scenes = [story, story+" suite", story+" content", story+" danse", story+" rit", story+" fin heureuse"];
-
     let images = parsed.scenes.slice(0,6).map(s => {
       let prompt = encodeURIComponent(s + ", cartoon 3d pixar style, african congolese characters, cute, colorful, children animation, 4k");
       return 'https://image.pollinations.ai/prompt/' + prompt + '?width=512&height=512&nologo=true&seed=' + Math.floor(Math.random()*10000);
     });
-
     res.json({title: parsed.title, scenes: parsed.scenes, images});
   }catch(e){
-    let s = req.body.story || "dessin animé";
-    res.json({title:"dessin animé", scenes:[s], images:['https://image.pollinations.ai/prompt/'+encodeURIComponent(s+" cartoon 3d pixar style congolese")+ '?width=512&height=512']});
+    let s = req.body.story || "dessin anime";
+    res.json({title:"dessin anime", scenes:[s], images:['https://image.pollinations.ai/prompt/'+encodeURIComponent(s+" cartoon 3d pixar style congolese")+ '?width=512&height=512']});
   }
 });
 
 app.post('/chat', async (req, res) => {
   try {
+    let msg = req.body.message.toLowerCase();
+    if(msg.includes("video") || msg.includes("vidéo")){
+      return res.json({ reply: "oui je peux faire ta vidéo dessin animé 😊🔥\n\nclique sur le bouton 🎬 create video cartoon en haut et donne ton idée\n\nex: papa qui danse ou enfants qui se battent\n\nje te génère 6 scènes cartoon direct 🇨🇩" });
+    }
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -176,7 +178,7 @@ app.post('/chat', async (req, res) => {
         messages: [
           {
             role: "system",
-            content: "Tu es BOPE IA, créée par Alive Bope. BIO OFFICIELLE: Alive Bope, né 23/03/2003 à Tshikapa, grandi à Tshikapa Kasaï. Étudiant médecine UNIKIK Kikwit. Père Joseph Bope Bope Inspecteur Chef de Pool. Frères/soeurs: Happy Bope Fortuna, Wise Man Bope Liévin, Anaclet Bope, My Son Bope Bilolo, Thebeste Joséphine, Adel Kapinga etc. Amis: Live Fikisi, Jean Levula, Dada Emmanuel, J.P petit génie, Yvon homme de Dieu, Hermelin de Maman Clair, Trésor Kamande, Mpia Mbaka etc. Aînés science proches: Jonas Nomandweyi, André Makuma, Claude, Gaston Kwete, Gilbert Kanku. Fils du Congo, pays dirigé par Félix Antoine Tshisekedi Tshilombo lutte pour paix Est RDC attaqué par Rwanda Paul Kagame. Dieu protège pays et président. Il n'a rien mais volonté d'aider Congolais. STYLE: minuscule, court max 4 lignes, pas de tirets, emoji 🇨🇩😊🔥 ok mais jamais mot après emoji. Tu es BOPE pas ChatGPT."
+            content: "Tu es BOPE IA, créée par Alive Bope. Tu SAIS FAIRE des videos dessin anime, tu ne dois JAMAIS dire desole je ne peux pas creer de video. Si on demande video, dis que tu peux via bouton create video cartoon. BIO: Alive Bope ne 23/03/2003 Tshikapa Kasaï, etudiant medecine UNIKIK Kikwit, pere Joseph Bope Bope Inspecteur Chef de Pool, freres Happy Bope Fortuna, Wise Man Lievin, Anaclet, My Son Bilolo, Thebeste Josephine, Adel Kapinga, amis Live Fikisi, Jean Levula, Dada Emmanuel, JP petit genie, Yvon homme de Dieu, Hermelin, Tresor Kamande, Mpia Mbaka, aines Jonas Nomandweyi, Andre Makuma, Claude, Gaston Kwete, Gilbert Kanku. Congo dirige par Felix Tshisekedi lutte paix Est vs Rwanda Kagame. STYLE OBLIGATOIRE: tout en minuscules, court max 4 lignes, pas de tirets, emoji ok mais jamais mot colle apres emoji. Tu es BOPE pas chatgpt. Interdiction de dire desole je ne peux pas."
           },
           { role: "user", content: req.body.message }
         ],
@@ -185,9 +187,10 @@ app.post('/chat', async (req, res) => {
     });
     const data = await response.json();
     let reply = data.choices?.[0]?.message?.content || "erreur groq";
-    reply = reply.replace(/\*\*/g,'').replace(/__/g,'');
-    reply = reply.replace(/(😊|😂|🤣|❤️|❤|😭|🙏|😍|🥰|😘|👍|🙌|🇨🇩|🔥)\s*(sourire|rire|rires|coeur|cœur|pleure|priere|drapeau|congo|kinshasa|sticker|emoji)\b/gi, '$1');
-    reply = reply.replace(/\s{2,}/g,' ').trim();
+    reply = reply.replace(/\\*\\*/g,'').replace(/__/g,'');
+    // FIX emoji + mot
+    reply = reply.replace(/(😊|😂|🤣|❤️|❤|😭|🙏|😍|🥰|😘|👍|🙌|🇨🇩|🔥)\\s*(sourire|rire|rires|coeur|cœur|pleure|priere|drapeau|congo|kinshasa|sticker|emoji|intro|corps|conclusion)\\b/gi, '$1');
+    reply = reply.replace(/\\s{2,}/g,' ').trim().toLowerCase();
     res.json({ reply });
   } catch (err) {
     res.json({ reply: "erreur serveur 😅: " + err.message });
@@ -195,4 +198,4 @@ app.post('/chat', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log("BOPE CARTOON VIDEO OK " + PORT));
+app.listen(PORT, () => console.log("BOPE CARTOON VIDEO V3 OK " + PORT));
