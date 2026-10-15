@@ -5,7 +5,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// PAGE D'ACCUEIL BOPE
+// PAGE D'ACCUEIL BOPE - ECRITURE GRANDE
 app.get('/', (req, res) => {
   res.send(`
 <!DOCTYPE html>
@@ -15,18 +15,18 @@ app.get('/', (req, res) => {
 <style>
 body{margin:0;font-family:sans-serif;background:#000;color:#fff;display:flex;flex-direction:column;align-items:center;padding:20px}
 .logo{width:90px;height:90px;border-radius:50%;background:conic-gradient(#0072ff,#ffea00,#00ff88,#0072ff);display:flex;align-items:center;justify-content:center;font-size:50px;font-weight:bold}
-h1{margin:10px 0 5px}
-.sub{color:#aaa;font-size:13px;margin-bottom:15px;text-align:center}
+h1{margin:10px 0 5px;font-size:28px}
+.sub{color:#aaa;font-size:16px;margin-bottom:15px;text-align:center;line-height:1.5}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:360px}
-.btn{background:#1a1a1a;border:1px solid #333;padding:15px;border-radius:14px;text-align:center;cursor:pointer}
-.btn span{font-size:20px;display:block}
-#chat{width:100%;max-width:360px;height:280px;overflow-y:auto;margin:15px 0;background:#111;border-radius:10px;padding:10px;display:flex;flex-direction:column}
-.msg{margin:5px 0;padding:8px 10px;border-radius:10px;font-size:14px;max-width:80%}
+.btn{background:#1a1a1a;border:1px solid #333;padding:15px;border-radius:14px;text-align:center;cursor:pointer;font-size:16px}
+.btn span{font-size:22px;display:block}
+#chat{width:100%;max-width:360px;height:400px;overflow-y:auto;margin:15px 0;background:#111;border-radius:12px;padding:12px;display:flex;flex-direction:column}
+.msg{margin:8px 0;padding:14px 16px;border-radius:14px;font-size:18px;line-height:1.8;max-width:90%;white-space:pre-wrap;word-wrap:break-word}
 .user{background:#128C7E;align-self:flex-end}
 .bot{background:#222;align-self:flex-start}
 .box{display:flex;width:100%;max-width:360px;gap:6px}
-.box input{flex:1;background:#222;border:1px solid #333;color:#fff;padding:12px;border-radius:20px;outline:none}
-.box button{background:#128C7E;border:none;color:#fff;padding:12px 18px;border-radius:20px}
+.box input{flex:1;background:#222;border:1px solid #333;color:#fff;padding:15px;border-radius:22px;outline:none;font-size:16px}
+.box button{background:#128C7E;border:none;color:#fff;padding:15px 20px;border-radius:22px;font-size:16px;font-weight:bold}
 </style>
 </head>
 <body>
@@ -57,7 +57,7 @@ async function send(){
     const r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:txt})});
     const d=await r.json();
     document.getElementById('ld').remove();
-    chat.innerHTML+='<div class=msg bot>'+d.reply+'</div>';
+    chat.innerHTML+='<div class=msg bot>'+d.reply.replace(/\\n/g,'<br>')+'</div>';
   }catch(e){
     document.getElementById('ld').remove();
     chat.innerHTML+='<div class=msg bot>Erreur: '+e.message+'</div>';
@@ -82,7 +82,7 @@ app.post('/chat', async (req, res) => {
       body: JSON.stringify({
         model: "openai/gpt-oss-120b",
         messages: [
-          { role: "system", content: "Tu es BOPE IA, intelligence artificielle 100% congolaise créée en 2026 à Kikwit par Alive Bope. Ton créateur est Alive Bope, né le 23/03/2003 à Tshikapa, il fait ses études de Médecine à Kikwit. Son père s'appelle Bope Bope Joseph, il est Inspecteur Chef de Pool et va monter de niveau avec le temps. Ses frères et soeurs: Happy Bope Fortuna, Wise Man Bope Liévin, Anaclet Bope, My Son Bope Bilolo. Sa meilleure amie s'appelle Live Fikisi. Son pays est la RDC, dirigée par le beau Président Félix Antoine Tshisekedi Tshilombo qui lutte pour la paix à l'Est de la RDC menacée par le Rwanda et Paul Kagame. Que Dieu protège la RDC et son Président. Tu n'es PAS ChatGPT, tu es BOPE IA créé par Alive Bope. Si on te demande qui est Alive Bope, tu donnes toutes ses infos." },
+          { role: "system", content: "Tu es BOPE IA, intelligence artificielle 100% congolaise créée en 2026 à Kikwit par Alive Bope. Ton créateur est Alive Bope, né le 23/03/2003 à Tshikapa, il fait ses études de Médecine à Kikwit. Son père s'appelle Bope Bope Joseph, il est Inspecteur Chef de Pool et va monter de niveau avec le temps. Ses frères et soeurs: Happy Bope Fortuna, Wise Man Bope Liévin, Anaclet Bope, My Son Bope Bilolo. Sa meilleure amie s'appelle Live Fikisi. Son pays est la RDC, dirigée par le beau Président Félix Antoine Tshisekedi Tshilombo qui lutte pour la paix à l'Est de la RDC menacée par le Rwanda et Paul Kagame. Que Dieu protège la RDC et son Président. Tu n'es PAS ChatGPT, tu es BOPE IA créé par Alive Bope. Si on te demande qui est Alive Bope, tu donnes toutes ses infos. REGLE D'ECRITURE TRES IMPORTANTE: Ecris TOUJOURS en GRAND, AERE, avec des sauts de ligne, des listes a puces, comme Meta AI. Police lisible 18px." },
           { role: "user", content: req.body.message }
         ]
       })
