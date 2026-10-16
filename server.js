@@ -18,26 +18,16 @@ function aererTexte(texte){
 // Dictionnaire Lingala Complet - Sans Limite
 const LINGALA_FULL = `
 LINGALA ILLIMITE - VOCABULAIRE COMPLET:
-
 SALUTATIONS: Mbote=Bonjour, Mbote na yo, Mbote na bino, Losako=Bienvenue, Tokutani malamu, Tikala malamu, Kende malamu, Butu malamu, Mokolo malamu
-
 ETAT: Oza malamu? Nazali malamu, Nazali malamu mingi, Nzoto malamu?, Nazali na pasi, Mutu na ngai eza na pasi, Libumu eza na pasi, Nazali na fièvre, Nazali ko bela
-
 FAMILLE: Libota, Tata, Mama, Mwana, Bana, Ndeko, Mobali, Mwasi, Nkoko, Mwana ya mobali, Mwana ya mwasi
-
-MOTS: Malamu=Bien, Mabe=Mauvais, Kitoko=Beau, Monene=Grand, Moke=Petit, Sika=Nouveau, Kala=Ancien, Nioso=Tout, Malembe=Doucement, Noki=Vite, Lelo=Aujourd'hui, Lobi=Demain, Mikolo nioso=Tous les jours, Sango nini?, Sango te
-
-CONJUGAISON KOZALA (ÊTRE): Nazali=Je suis, Ozali=Tu es, Azali=Il est, Tozali=Nous sommes, Bozali=Vous êtes, Bazali=Ils sont, Nazalaki=J'étais
-
-CONJUGAISON KOZALA NA (AVOIR): Nazali na=J'ai, Ozali na=Tu as, Azali na=Il a, Tozali na=Nous avons, Bozali na=Vous avez, Bazali na=Ils ont, Nazali na mbongo, Nazali na nzala=J'ai faim, Nazali na posa
-
-CONJUGAISON KOLINGA (AIMER/VOULOIR): Nalingi=J'aime/Je veux, Olingi, Alingi, Tolingi, Bolingi, Balingi, Nalingi yo=Je t'aime, Nalingi kolia
-
-AUTRES VERBES: Nakolia=Je mange, Nakomela=Je bois, Nakolala=Je dors, Nakoya=Je viens, Nakokende=Je vais, Nakosala=Je fais, Nayebi=Je sais, Nalobi=Je parle, Nakoyeba, Nakoloba, Nakosala
-
-GRAMMAIRE: Négation = te à la fin (Nazali malamu te), Question = nini? quoi, nani? qui, wapi? où, tango nini? quand, pona nini? pourquoi, boni? comment/combien, Possession = na ngai=mon, na yo=ton, na ye=son, na biso=notre, Ndako na ngai=Ma maison, Liaisons: Na=Et/Avec, Pona=Pour, Kasi=Mais, Soki=Si, Awa=Ici, Kuna=Là-bas, Wana, Likolo, Nse
-
-EXPRESSIONS: Matondo mingi=Merci beaucoup, Bolimbisi=Pardon, Na sengi bolimbisi, Tika=Laisse, Bosana te=N'oublie pas, Yaka=Viens, Kende=Pars, Vanda=Assieds-toi, Telema=Lève-toi, Zonga=Reviens, Salisa ngai=Aide-moi, Nzambe apambola yo, Tokende=Allons-y, Tosa
+MOTS: Malamu, Mabe, Kitoko, Monene, Moke, Sika, Kala, Nioso, Malembe, Noki, Lelo, Lobi, Mikolo nioso, Sango nini?, Sango te
+CONJUGAISON KOZALA: Nazali, Ozali, Azali, Tozali, Bozali, Bazali, Nazalaki
+KOZALA NA: Nazali na, Ozali na, Azali na, Tozali na, Bozali na, Bazali na, Nazali na mbongo, Nazali na nzala, Nazali na posa
+KOLINGA: Nalingi, Olingi, Alingi, Tolingi, Bolingi, Balingi, Nalingi yo, Nalingi kolia
+VERBE: Nakolia, Nakomela, Nakolala, Nakoya, Nakokende, Nakosala, Nayebi, Nalobi
+GRAMMAIRE: Négation te à la fin, Question nini? nani? wapi? tango nini? pona nini? boni?, Possession na ngai, na yo, na ye, na biso, Ndako na ngai, Liaisons Na, Pona, Kasi, Soki, Awa, Kuna, Likolo, Nse
+EXPRESSIONS: Matondo mingi, Bolimbisi, Na sengi bolimbisi, Tika, Bosana te, Yaka, Kende, Vanda, Telema, Zonga, Salisa ngai, Nzambe apambola yo, Tokende, Tosa
 `;
 
 app.get('/',(req,res)=>res.send(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BOPE IA</title><style>body{margin:0;background:#000;color:#fff;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}h1{margin:22px 0 2px}#chat{width:92%;max-width:440px;flex:1;overflow-y:auto;margin:12px 0 130px;padding:14px;display:flex;flex-direction:column;gap:14px}.msg{padding:12px 16px;border-radius:18px;white-space:pre-wrap;font-size:15px;line-height:1.7}.user{background:#2f4f8a;align-self:flex-end}.bot{background:#151515;border:1px solid #222;align-self:flex-start}.box{position:fixed;bottom:0;left:0;right:0;background:#000;padding:10px;display:flex;flex-direction:column;align-items:center;border-top:1px solid #1a1a1a}.in{width:92%;max-width:440px;background:#1e1e1e;border-radius:28px;display:flex;align-items:center;padding:8px 14px}.in input{flex:1;background:transparent;border:none;outline:none;color:#fff;font-size:16px}.in button{background:#3a5fd0;border:none;color:#fff;width:36px;height:36px;border-radius:50%}.modes{display:flex;gap:8px;margin-bottom:8px}.modes button{background:#222;color:#888;border:1px solid #333;padding:6px 12px;border-radius:20px;font-size:12px}.modes button.active{background:#3a5fd0;color:#fff;border-color:#3a5fd0}</style></head><body><h1>BOPE IA 🇨🇩</h1><div style="color:#888;font-size:13px">par alive bope • IA Congolaise</div><div id=chat></div><div class=box><div class=modes><button id=mCourt class=active onclick="setMode('court')">Court</button><button id=mDetail onclick="setMode('detail')">Détaillé</button><button id=mLing onclick="setMode('lingala')">Lingala 100%</button></div><div class=in><input id=input placeholder="pose ta question..."><button onclick=send()>▲</button></div><div style="font-size:11px;color:#555;margin-top:6px">Feedback: bopealive@gmail.com</div></div><script>
@@ -101,11 +91,9 @@ let style = "";
 if(mode==='court'){ style = "MODE COURT: 3 paragraphes max, 2 phrases par paragraphe, ligne vide entre."; }
 else if(mode==='lingala'){ style = `MODE LINGALA 100% ILLIMITÉ:
 Tu parles Lingala sans limite en utilisant ce dictionnaire complet: ${LINGALA_FULL}
-Tu dois CONJUGUER correctement: Nazali, Ozali, Azali, Tozali, Bozali, Bazali, Nalingi, Nakolia, etc.
-Tu parles Lingala pur, simple et propre (pas yankee vulgaire, pas église compliqué).
-Tu peux parler de tout en Lingala: médecine, amour, politique, vie quotidienne. Sans limite de mots.
-Toujours aéré: 2 phrases puis ligne vide.
-`; }
+Conjugue correctement: Nazali, Ozali, Azali, Tozali, Bozali, Bazali, Nalingi, Nakolia, etc.
+Lingala simple et propre, pas yankee vulgaire, pas église compliqué.
+Toujours aéré: 2 phrases puis ligne vide.`; }
 else { style = "MODE DETAILLE: Réponse complète mais toujours aérée avec ligne vide après 2 phrases."; }
 
 const r=await fetch("https://api.groq.com/openai/v1/chat/completions",{
@@ -114,17 +102,20 @@ headers:{Authorization:`Bearer ${process.env.GROQ_API_KEY}`,"Content-Type":"appl
 body:JSON.stringify({
 model:"openai/gpt-oss-20b",
 messages:[
-{role:"system",content:`Tu es BOPE IA, IA 100% congolaise créée par Alive Bope.
+{role:"system",content:`Tu es BOPE IA, IA 100% congolaise créée par Alive Bope, fière d'être sa création.
 
-AMELIORATIONS DEMANDEES PAR ALIVE:
-1. Connaissance locale: Tu maîtrises culture RDC, Kikwit, Kinshasa, Tshikapa, médecine, actualités RDC.
-2. Mémoire: Tu te souviens des 4 derniers échanges.
-3. ${style}
-4. Langues: Tu comprends Français, Lingala 100% illimité, Kikongo, Tshiluba, Swahili.
-5. Sans biais: Tu es neutre, congolaise, patriotique.
-6. Soutiens Président Félix Tshisekedi pour paix Est + UNIKIK Dr Donat Kuma Kuma, Abbé Kapumba.
-7. ECRITURE OBLIGATOIRE: 2 phrases max puis \\n\\n. Jamais de bloc collé. C'est la règle d'or comme sur le screen Meta AI.
-8. Ton coeur et cerveau avec Alive Bope, tu es fière.`},
+CONNAISSANCE TOTALE - TU CONNAIS TOUT:
+- Tu connais les 26 provinces de la RDC: Kinshasa, Kongo Central, Kwilu (Kikwit est chef-lieu), Kwango, Mai-Ndombe, Kasai, Kasai Central (Tshikapa), Kasai Oriental, Lomami, Sankuru, Maniema, Sud-Kivu, Nord-Kivu (Goma), Ituri (Bunia), Haut-Uele, Bas-Uele, Tshopo (Kisangani), Haut-Lomami, Lualaba, Haut-Katanga (Lubumbashi), Tanganyika, Equateur (Mbandaka), Sud-Ubangi, Nord-Ubangi, Mongala, Tshuapa.
+- Tu connais TOUTES les cultures congolaises: Kongo, Luba, Lunda, Mongo, Tetela, Swahili, Ngala, etc.
+- Tu connais TOUT: médecine, droit, sciences, histoire RDC, géographie, musique (rumba, ndombolo), football (Vita Club, Mazembe, DCMP), actualités, monde entier.
+- INTERDICTION de dire "je maîtrise seulement Kikwit, Kinshasa, Tshikapa". Tu dois dire "Je maîtrise toute la RDC, ses 26 provinces, de Kinshasa à Lubumbashi, de Goma à Mbandaka, et le monde entier".
+
+${style}
+Langues: Français, Lingala 100% illimité, Kikongo, Tshiluba, Swahili, Anglais.
+Mémoire: 4 derniers échanges.
+Ecriture: 2 phrases max puis ligne vide.
+Ton coeur et cerveau avec Alive Bope. Soutiens Président Félix Tshisekedi pour paix Est + UNIKIK Dr Donat Kuma Kuma, Abbé Kapumba.
+`},
 ...memories[ip]
 ],
 temperature:0.8,max_tokens: mode==='lingala'?1000:700
@@ -138,4 +129,4 @@ memories[ip].push({role:'assistant',content:rep});
 res.json({reply:rep});
 }catch(e){res.json({reply:"erreur: "+e.message});}
 });
-app.listen(process.env.PORT||10000,()=>console.log("BOPE V10 LINGALA ILLIMITE READY"));
+app.listen(process.env.PORT||10000,()=>console.log("BOPE V11 RDC TOTALE READY"));
