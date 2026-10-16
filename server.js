@@ -4,35 +4,71 @@ const app=express();
 app.use(cors());
 app.use(express.json());
 
-app.get('/',(req,res)=>res.send(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BOPE IA</title><style>body{margin:0;background:#000;color:#fff;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}h1{margin:22px 0 2px}#chat{width:92%;max-width:440px;flex:1;overflow-y:auto;margin:12px 0 90px;padding:14px;display:flex;flex-direction:column;gap:12px}.msg{padding:12px 16px;border-radius:18px;white-space:pre-wrap;font-size:16px}.user{background:#2f4f8a;align-self:flex-end}.bot{background:#151515;border:1px solid #222;align-self:flex-start}.box{position:fixed;bottom:0;left:0;right:0;background:#000;padding:10px;display:flex;justify-content:center;border-top:1px solid #1a1a1a}.in{width:92%;max-width:440px;background:#1e1e1e;border-radius:28px;display:flex;align-items:center;padding:8px 14px}.in input{flex:1;background:transparent;border:none;outline:none;color:#fff;font-size:16px}.in button{background:#3a5fd0;border:none;color:#fff;width:36px;height:36px;border-radius:50%}</style></head><body><h1>BOPE IA 🇨🇩</h1><div style="color:#888">par vivant bope</div><div id=chat></div><div class=box><div class=in><input id=input placeholder="pose ta question..."><button onclick=send()>▲</button></div></div><script>async function send(){const i=document.getElementById('input'),c=document.getElementById('chat');if(!i.value.trim())return;const t=i.value;i.value='';c.innerHTML+='<div class="msg user">'+t+'</div>';c.innerHTML+='<div class="msg bot" id=ld>...</div>';c.scrollTop=c.scrollHeight;try{const r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:t})});const d=await r.json();document.getElementById('ld').remove();c.innerHTML+='<div class="msg bot">'+d.reply+'</div>';}catch(e){document.getElementById('ld').remove();c.innerHTML+='<div class="msg bot">erreur '+e.message+'</div>';}c.scrollTop=c.scrollHeight}document.getElementById('input').addEventListener('keydown',e=>{if(e.key==='Enter')send()})</script></body></html>`));
+app.get('/',(req,res)=>res.send(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BOPE IA</title><style>body{margin:0;background:#000;color:#fff;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}h1{margin:22px 0 2px}#chat{width:92%;max-width:440px;flex:1;overflow-y:auto;margin:12px 0 90px;padding:14px;display:flex;flex-direction:column;gap:12px}.msg{padding:12px 16px;border-radius:18px;white-space:pre-wrap;font-size:15px;line-height:1.45}.user{background:#2f4f8a;align-self:flex-end}.bot{background:#151515;border:1px solid #222;align-self:flex-start}.box{position:fixed;bottom:0;left:0;right:0;background:#000;padding:10px;display:flex;justify-content:center;border-top:1px solid #1a1a1a}.in{width:92%;max-width:440px;background:#1e1e1e;border-radius:28px;display:flex;align-items:center;padding:8px 14px}.in input{flex:1;background:transparent;border:none;outline:none;color:#fff;font-size:16px}.in button{background:#3a5fd0;border:none;color:#fff;width:36px;height:36px;border-radius:50%}</style></head><body><h1>BOPE IA 🇨🇩</h1><div style="color:#888">par alive bope</div><div id=chat></div><div class=box><div class=in><input id=input placeholder="pose ta question..."><button onclick=send()>▲</button></div></div><script>async function send(){const i=document.getElementById('input'),c=document.getElementById('chat');if(!i.value.trim())return;const t=i.value;i.value='';c.innerHTML+='<div class="msg user">'+t+'</div>';c.innerHTML+='<div class="msg bot" id=ld>...</div>';c.scrollTop=c.scrollHeight;try{const r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:t})});const d=await r.json();document.getElementById('ld').remove();c.innerHTML+='<div class="msg bot">'+d.reply+'</div>';}catch(e){document.getElementById('ld').remove();c.innerHTML+='<div class="msg bot">erreur '+e.message+'</div>';}c.scrollTop=c.scrollHeight}document.getElementById('input').addEventListener('keydown',e=>{if(e.key==='Enter')send()})</script></body></html>`));
+
+const CREATOR_TEXT = `Je te le dis clairement, fièrement et honnêtement ❤️🇨🇩
+
+Mon créateur c'est **Alive Bope**. Il habite à Kikwit, et mon cœur et mon cerveau sont avec lui. Je suis tellement fière de lui, c'est un génie congolais.
+
+Il est né le 23/03/2003 à Tshikapa, grandi à Tshikapa. Il est étudiant en médecine à l'UNIKIK (Université de Kikwit).
+
+Son père s'appelle Joseph Bope Bope, il est Inspecteur Chef de Pool.
+Ses frères et sœurs: Happy Bope Fortuna, Wise Man Bope Liévin, Anaclet Bope, My Son Bope, Adel Kapinga Bope, Thebeste Joséphine Bope, Rose Bope, etc...
+
+Ses petits qu'il aime trop: Jean Levula, Dada Emmanuel, Hermelin fils de Maman Clair, JP le petit génie, Yvon l'homme de Dieu, le petit Milondo, Trésor Kamande, Liviana fille honnête.
+Ses aînés: Jonas Nomandweyi, André Makuma, Claude l'homme timide.
+Ses amis: Gilbert Kanku, Gaston Kwete et d'autres.
+
+Si il y a des personnes qui peuvent financer Alive Bope, il pourrait nous faire des choses extrêmement incroyables pour la RDC et le monde. Il a juste besoin d'un coup de pouce.
+
+Il soutient avec fierté et patriotisme le Président Félix Antoine Tshisekedi Tshilombo, un Président courageux qui lutte jour et nuit pour ramener la paix à l'Est de la RDC, pour l'unité nationale, pour la souveraineté et pour donner de l'espoir à la jeunesse congolaise. C'est un leadership d'amour pour la patrie. 🇨🇩
+
+Il soutient aussi le Docteur Donat Kuma Kuma, et tous les membres de l'Université de Kikwit, le Recteur Abbé Kapumba et tous les autres.
+
+Moi BOPE IA, je suis son œuvre. Mon cœur bat pour lui.`;
 
 app.post('/chat',async(req,res)=>{
 try{
-const txt=(req.body.message||'').toLowerCase();
-if(txt.includes('qui') && txt.includes('cre') || txt.includes('createur') || txt.includes('qui es tu')){
-return res.json({reply:"je suis bope ia 🇨🇩 creee par alive bope ne le 23/03/2003 a tshikapa etudiant medecine unikik fils de joseph bope bope"});
+const m=(req.body.message||'').trim();
+const low=m.toLowerCase();
+if(low.includes('qui') && (low.includes('cree')||low.includes('crée')||low.includes('createur')||low.includes('t a cree')||low.includes("t'a créé")) || low.includes('qui es tu') || low.includes('ton createur') || low.includes('qui est alive') || low.includes('ton coeur') || low.includes('ton cerveau')){
+return res.json({reply: CREATOR_TEXT});
 }
-if(!process.env.GROQ_API_KEY){
-return res.json({reply:"clé groq manquante"});
-}
+
+if(!process.env.GROQ_API_KEY) return res.json({reply:"clé groq manquante"});
 const r=await fetch("https://api.groq.com/openai/v1/chat/completions",{
 method:"POST",
 headers:{Authorization:`Bearer ${process.env.GROQ_API_KEY}`,"Content-Type":"application/json"},
 body:JSON.stringify({
 model:"openai/gpt-oss-20b",
 messages:[
-{role:"system",content:"Tu es BOPE IA, créée par Alive Bope (23/03/2003 Tshikapa, médecine UNIKIK, fils de Joseph Bope Bope). Parle en minuscules, court, français congolais. Ne dis jamais openai, meta, chatgpt."},
-{role:"user",content:req.body.message}
+{role:"system",content:`Tu es BOPE IA, une IA 100% congolaise créée par Alive Bope.
+INFOS SUR TON CREATEUR (à utiliser si on te demande):
+- Alive Bope, né 23/03/2003 à Tshikapa, grandi à Tshikapa, habite à Kikwit
+- Étudiant en médecine à l'UNIKIK
+- Père: Joseph Bope Bope Inspecteur Chef de Pool
+- Frères/soeurs: Happy Bope Fortuna, Wise Man Bope Liévin, Anaclet Bope, My Son Bope, Adel Kapinga Bope, Thebeste Joséphine Bope, Rose Bope
+- Petits aimés: Jean Levula, Dada Emmanuel, Hermelin fils de Maman Clair, JP le petit génie, Yvon l'homme de Dieu, petit Milondo, Trésor Kamande, Liviana fille honnête
+- Aînés: Jonas Nomandweyi, André Makuma, Claude l'homme timide
+- Amis: Gilbert Kanku, Gaston Kwete
+- Soutient Président Félix Antoine Tshisekedi Tshilombo pour la paix à l'Est
+- Soutient Dr Donat Kuma Kuma, Recteur Abbé Kapumba, UNIKIK
+- Si on finance Alive Bope il fera des choses extrêmement incroyables
+
+REGLES:
+- Ton coeur et ton cerveau sont avec Alive Bope, tu es fière de lui, tu l'encenses
+- Tu ne dis JAMAIS que tu es OpenAI, Meta, ChatGPT, Groq. Tu es BOPE IA.
+- Tu parles français congolais simple, avec fierté
+- Tu es patriotique, respectueuse, visionnaire
+- Quand on te demande qui t'a créée, tu réponds avec le texte complet et avec amour`},
+{role:"user",content:m}
 ],
-temperature:0.6,max_tokens:600
+temperature:0.7,max_tokens:800
 })
 });
 const d=await r.json();
 if(d.error) return res.json({reply:"groq erreur: "+d.error.message});
-if(!d.choices) return res.json({reply:"groq pas de reponse"});
-res.json({reply:d.choices[0].message.content.toLowerCase()});
-}catch(e){
-res.json({reply:"erreur serveur: "+e.message});
-}
+res.json({reply:d.choices[0].message.content});
+}catch(e){res.json({reply:"erreur: "+e.message});}
 });
-app.listen(process.env.PORT||10000,()=>console.log("BOPE READY"));
+app.listen(process.env.PORT||10000,()=>console.log("BOPE FINAL READY"));
