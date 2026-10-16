@@ -18,6 +18,7 @@ h1{margin:10px 0 5px}.sub{color:#aaa;margin-bottom:15px;text-align:center}
 .in{width:92%;max-width:400px;background:#1c1c1c;border-radius:26px;display:flex;align-items:center;padding:8px 14px;gap:10px}
 .in input{flex:1;background:transparent;border:none;color:#fff;padding:8px;outline:none;font-size:16px}
 .in button{background:#3a5fd0;border:none;color:#fff;width:34px;height:34px;border-radius:50%}
+img.cartoon{width:100%;border-radius:12px;margin:10px 0;min-height:200px;background:#222}
 </style></head><body>
 <div class="logo">B</div><h1>BOPE IA 🇨🇩</h1><div class="sub">IA Kinshasa - Video Dessin Animé</div>
 <div class="grid">
@@ -29,46 +30,59 @@ h1{margin:10px 0 5px}.sub{color:#aaa;margin-bottom:15px;text-align:center}
 <div class="box"><div class="in"><input id="input" placeholder="ecris papa qui danse"><button onclick="send()">▲</button></div></div>
 <script>
 async function createCartoonVideo(){
-  const s=prompt("ton idée de dessin animé 🎬 ex: papa qui danse");
+  const s=prompt("ton idée de dessin animé 🎬 ex: papa qui danse, maman cuisine");
   if(!s) return;
   doCartoon(s);
 }
 async function doCartoon(story){
   const chat=document.getElementById('chat');
   chat.innerHTML+='<div class=msg user>🎬 '+story.toLowerCase()+'</div>';
-  chat.innerHTML+='<div class=msg bot id=ld>bope génère ta vidéo... ⏳🇨🇩</div>';
+  chat.innerHTML+='<div class=msg bot id=ld>bope génère ta vidéo... 6 scènes, attends 20s 🇨🇩</div>';
   chat.scrollTop=chat.scrollHeight;
   try{
     const r=await fetch('/cartoon',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({story})});
     const d=await r.json();
     document.getElementById('ld').remove();
-    let html='<div class=msg bot>voilà 😊🔥 <b>'+d.title+'</b><br>';
-    d.images.forEach((img,i)=>{ html+='<img src="'+img+'" style="width:100%;border-radius:12px;margin:10px 0"><br><small>scène '+(i+1)+': '+d.scenes[i]+'</small><br><br>'; });
-    html+='<button onclick="playCartoon('+JSON.stringify(d.images).replace(/"/g,'&quot;')+')" style="background:#3a5fd0;color:#fff;border:none;padding:12px 22px;border-radius:22px;cursor:pointer">▶️ jouer la vidéo</button></div>';
+    let html='<div class=msg bot>voilà 😊🔥 <b>'+d.title+'</b><br><small>chargement 1 image toutes les 3 sec pour éviter limite gratuite</small><br>';
+    d.scenes.forEach((sc,i)=>{
+      html+='<div id="box'+i+'"><br><small>scène '+(i+1)+': '+sc+'</small><br><img id="img'+i+'" class="cartoon" style="display:none"><p id="txt'+i+'" style="color:#666">chargement scène '+(i+1)+'...</p></div>';
+    });
+    html+='<br><button onclick="playCartoon()" style="background:#3a5fd0;color:#fff;border:none;padding:12px 22px;border-radius:22px;cursor:pointer">▶️ jouer la vidéo</button></div>';
     chat.innerHTML+=html;
-  }catch(e){ document.getElementById('ld')?.remove(); chat.innerHTML+='<div class=msg bot>erreur: '+e.message+' - verifie ta connexion</div>'; }
+    window.cartoonImages=d.images;
+    // chargement lent 1 image / 4 sec pour éviter Free limit reached
+    d.images.forEach((url,i)=>{
+      setTimeout(()=>{
+        let el=document.getElementById('img'+i);
+        let t=document.getElementById('txt'+i);
+        if(el){ el.src=url; el.style.display='block'; if(t) t.style.display='none'; }
+      }, i*4000);
+    });
+  }catch(e){ document.getElementById('ld')?.remove(); chat.innerHTML+='<div class=msg bot>erreur: '+e.message+'</div>'; }
   chat.scrollTop=chat.scrollHeight;
 }
-function playCartoon(imgs){
+function playCartoon(){
+  let imgs=window.cartoonImages||[]; if(!imgs.length) return;
   let w=window.open();
-  w.document.write('<body style="margin:0;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;color:#fff"><img id="v" style="max-width:95%;border-radius:16px"><p id="c"></p><script>let a='+JSON.stringify(imgs)+';let i=0;let v=document.getElementById("v");let c=document.getElementById("c");function n(){v.src=a[i];c.innerText=(i+1)+"/"+a.length;i=(i+1)%a.length} n();setInterval(n,800)<\\/script></body>');
+  w.document.write('<body style="margin:0;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;color:#fff"><img id="v" style="max-width:95%;border-radius:16px"><p id="c"></p><script>let a='+JSON.stringify(imgs)+';let i=0;let v=document.getElementById("v");let c=document.getElementById("c");function n(){v.src=a[i];c.innerText=(i+1)+"/"+a.length;i=(i+1)%a.length} n();setInterval(n,1000)<\\/script></body>');
 }
 function ask(t){document.getElementById('input').value=t;send()}
 async function send(){
   const input=document.getElementById('input'); const chat=document.getElementById('chat');
-  if(!input.value) return; let txt=input.value.trim();
-  if(txt.toLowerCase().includes("video")||txt.toLowerCase().includes("vidéo")||txt.length>2){
-    if(txt.toLowerCase().includes("create video")) txt=txt.replace(/create video/gi,'').trim()||"papa qui danse";
-    input.value='';
-    // si c'est une histoire courte on fait video direct
-    if(txt.split(' ').length>=2){ doCartoon(txt); return; }
+  if(!input.value) return; let txt=input.value.trim(); input.value='';
+  let low=txt.toLowerCase();
+  // SEULEMENT si c'est vraiment une demande video
+  if(low.includes("papa qui danse")||low.includes("maman")||low.includes("create video")||(low.includes("video") && low.split(' ').length>2)||(low.includes("dessin")&&low.includes("animé"))){
+    let story=low.replace(/create video|fait une vidéo|fais une video|video/gi,'').trim()||"papa qui danse";
+    doCartoon(story);
+    return;
   }
-  let t=txt.toLowerCase(); chat.innerHTML+='<div class=msg user>'+t+'</div>'; input.value='';
+  chat.innerHTML+='<div class=msg user>'+low+'</div>';
   chat.innerHTML+='<div class=msg bot id=ld>bope écrit...</div>'; chat.scrollTop=chat.scrollHeight;
   try{
-    const r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:t})});
+    const r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:txt})});
     const d=await r.json(); document.getElementById('ld').remove();
-    chat.innerHTML+='<div class=msg bot>'+d.reply+'</div>';
+    chat.innerHTML+='<div class=msg bot>'+d.reply.replace(/\\n/g,'<br>')+'</div>';
   }catch(e){ document.getElementById('ld').remove(); chat.innerHTML+='<div class=msg bot>erreur: '+e.message+'</div>'; }
   chat.scrollTop=chat.scrollHeight;
 }
@@ -76,19 +90,18 @@ async function send(){
 });
 
 app.post('/cartoon', async (req,res)=>{
-  // VERSION SANS GROQ - 100% stable
-  let story=(req.body.story||"papa qui danse").toLowerCase();
+  let story=(req.body.story||"papa qui danse").toLowerCase().slice(0,100);
   let scenes=[
     story+" au debut",
     story+" qui commence a bouger",
     story+" qui danse fort",
-    story+" qui sourit",
+    story+" qui sourit joyeux",
     story+" avec ses amis",
-    story+" fin heureuse"
+    story+" fin heureuse congolaise"
   ];
   let images=scenes.map(s=>{
-    let p=encodeURIComponent(s+" cartoon 3d pixar style african congolese character cute colorful happy 4k");
-    return 'https://image.pollinations.ai/prompt/'+p+'?width=512&height=512&nologo=true&seed='+Math.floor(Math.random()*99999);
+    let p=encodeURIComponent(s+" 3d cartoon pixar style, african congolese character, cute, colorful, happy, 4k");
+    return 'https://image.pollinations.ai/prompt/'+p+'?width=512&height=512&nologo=true&model=flux&seed='+Math.floor(Math.random()*999999);
   });
   res.json({title:story, scenes:scenes, images:images});
 });
@@ -96,11 +109,12 @@ app.post('/cartoon', async (req,res)=>{
 app.post('/chat', async (req,res)=>{
   try{
     let m=(req.body.message||"").toLowerCase();
-    // anti-refus total
-    if(m.includes("video")||m.includes("vidéo")){
-      return res.json({reply:"oui je peux 😊🔥 écris juste ton idée ex: papa qui danse et je te génère 6 images cartoon direct, ou clique le bouton create video en haut 🇨🇩"});
+    if(m.includes("qui t'a créé")||m.includes("qui ta cree")||m.includes("qui t'a cree")){
+      return res.json({reply:"c'est alive bope qui m'a créé 🇨🇩😊\n\nné le 23/03/2003 à tshikapa, étudiant médecine unikik kikwit\n\nfils de joseph bope bope, il m'a créé pour aider les congolais 🔥"});
     }
-    // essaie groq sinon reponse simple
+    if(m.includes("video")||m.includes("vidéo")&&m.split(' ').length<4){
+      return res.json({reply:"oui je peux 😊🔥 clique sur 🎬 create video en haut ou écris ton idée ex: papa qui danse, je te génère 6 scènes cartoon direct 🇨🇩"});
+    }
     try{
       const r=await fetch("https://api.groq.com/openai/v1/chat/completions",{
         method:"POST",
@@ -108,7 +122,7 @@ app.post('/chat', async (req,res)=>{
         body:JSON.stringify({
           model:"openai/gpt-oss-120b",
           messages:[
-            {role:"system", content:"Tu es BOPE IA par Alive Bope né 23/03/2003 Tshikapa medecine UNIKIK. Style minuscules max 4 lignes."},
+            {role:"system", content:"Tu es BOPE IA, créée par Alive Bope né 23/03/2003 Tshikapa Kasaï, étudiant médecine UNIKIK Kikwit, père Joseph Bope Bope Inspecteur Chef de Pool, frères Happy Bope, Wise Man Liévin etc. Tu es congolais. Style minuscules, court max 4 lignes, emoji ok. Si on demande qui t'a créé, réponds Alive Bope. Jamais dire que tu es ChatGPT ou Meta AI."},
             {role:"user", content:req.body.message}
           ],
           temperature:0.3
@@ -116,12 +130,13 @@ app.post('/chat', async (req,res)=>{
       });
       const d=await r.json();
       let reply=(d.choices?.[0]?.message?.content||"ok").toLowerCase().trim();
+      if(reply.includes("openai")||reply.includes("chatgpt")||reply.includes("meta ai")) reply="je suis bope ia créée par alive bope 🇨🇩😊";
       return res.json({reply});
     }catch{
-      return res.json({reply:"je suis bope ia 🇨🇩 dis moi ton idée de dessin animé ex: papa qui danse 😊"});
+      return res.json({reply:"je suis bope ia créée par alive bope 🇨🇩😊 né 23/03/2003 tshikapa, comment je peux t'aider?"});
     }
   }catch(e){ res.json({reply:"erreur 😅 "+e.message}) }
 });
 
 const PORT=process.env.PORT||10000;
-app.listen(PORT, ()=>console.log("BOPE V5 STABLE "+PORT));
+app.listen(PORT, ()=>console.log("BOPE V6 FIX LIMIT "+PORT));
