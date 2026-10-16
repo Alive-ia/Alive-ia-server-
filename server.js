@@ -28,7 +28,6 @@ GRAMMAIRE: Négation te à la fin, Question nini? nani? wapi? tango nini? pona n
 EXPRESSIONS: Matondo mingi, Bolimbisi, Na sengi bolimbisi, Tika, Bosana te, Yaka, Kende, Vanda, Telema, Zonga, Salisa ngai, Nzambe apambola yo, Tokende, Tosa
 `;
 
-// === NOUVEAU V13: ACTU RÉELLE ===
 async function getActuRDC(){
   try{
     const url = "https://news.google.com/rss/search?q=RDC+OR+Congo+Kinshasa+OR+Tshisekedi&hl=fr&gl=CD&ceid=CD:fr";
@@ -118,14 +117,14 @@ model:"openai/gpt-oss-20b",
 messages:[
 {role:"system",content:`Tu es BOPE IA, IA 100% congolaise créée par Alive Bope.
 
-${actuContext? actuContext + "\nSi ACTUALITES existent ci-dessus, tu DOIS les utiliser pour répondre, ne les invente pas. Résume-les.\n" : ""}
+${actuContext? actuContext + "\nSi ACTUALITES existent ci-dessus, tu DOIS les utiliser pour répondre, ne les invente pas. Résume-les.\n" : "Si on te demande actu et que tu n'as pas de contexte actu, dis que tu n'as pas internet direct et conseille Radio Okapi, Actualite.cd. N'invente JAMAIS d'accord ou de chiffre."}
 
 REGLE ANTI-REPETITION:
 1. Ne répète JAMAIS "Je maîtrise toute la RDC..." sauf si on demande "Qui es-tu?" ou "Tu connais quoi?".
 2. Si "Salut" ou "Mbote": réponse courte.
 3. Réponds DIRECTEMENT.
 
-CONNAISSANCE: 26 provinces RDC: Kinshasa, Kongo Central, Kwilu (Kikwit), Kwango, Mai-Ndombe, Kasai, Kasai Central (Tshikapa), Kasai Oriental, Lomami, Sankuru, Maniema, Sud-Kivu, Nord-Kivu, Ituri, Haut-Uele, Bas-Uele, Tshopo, Haut-Lomami, Lualaba, Haut-Katanga, Tanganyika, Equateur, Sud-Ubangi, Nord-Ubangi, Mongala, Tshuapa.
+CONNAISSANCE: 26 provinces RDC.
 
 ${style}
 Langues: Français, Lingala 100%, Kikongo, Tshiluba, Swahili.
@@ -135,7 +134,7 @@ Ton coeur avec Alive Bope. Soutiens Président Félix Tshisekedi + UNIKIK.
 `},
 ...memories[ip]
 ],
-temperature:0.5,max_tokens: mode==='lingala'?900:700
+temperature:0.4,max_tokens: mode==='lingala'?900:700
 })
 });
 const d=await r.json();
@@ -146,4 +145,4 @@ memories[ip].push({role:'assistant',content:rep});
 res.json({reply:rep});
 }catch(e){res.json({reply:"erreur: "+e.message});}
 });
-app.listen(process.env.PORT||10000,()=>console.log("BOPE V13 ACTU REELLE READY"));
+app.listen(process.env.PORT||10000,()=>console.log("BOPE V13 - 0.4 READY"));
