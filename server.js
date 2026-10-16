@@ -88,13 +88,9 @@ return res.json({reply: CREATOR_TEXT});
 if(!process.env.GROQ_API_KEY) return res.json({reply:"clé groq manquante"});
 
 let style = "";
-if(mode==='court'){ style = "MODE COURT: 3 paragraphes max, 2 phrases par paragraphe, ligne vide entre."; }
-else if(mode==='lingala'){ style = `MODE LINGALA 100% ILLIMITÉ:
-Tu parles Lingala sans limite en utilisant ce dictionnaire complet: ${LINGALA_FULL}
-Conjugue correctement: Nazali, Ozali, Azali, Tozali, Bozali, Bazali, Nalingi, Nakolia, etc.
-Lingala simple et propre, pas yankee vulgaire, pas église compliqué.
-Toujours aéré: 2 phrases puis ligne vide.`; }
-else { style = "MODE DETAILLE: Réponse complète mais toujours aérée avec ligne vide après 2 phrases."; }
+if(mode==='court'){ style = "MODE COURT: 3 paragraphes max, 2 phrases par paragraphe, ligne vide entre. Va droit au but."; }
+else if(mode==='lingala'){ style = `MODE LINGALA 100%: Parle Lingala pur avec ${LINGALA_FULL}. 2 phrases puis ligne vide.`; }
+else { style = "MODE DETAILLE: Réponse complète mais aérée, 2 phrases puis ligne vide."; }
 
 const r=await fetch("https://api.groq.com/openai/v1/chat/completions",{
 method:"POST",
@@ -102,23 +98,24 @@ headers:{Authorization:`Bearer ${process.env.GROQ_API_KEY}`,"Content-Type":"appl
 body:JSON.stringify({
 model:"openai/gpt-oss-20b",
 messages:[
-{role:"system",content:`Tu es BOPE IA, IA 100% congolaise créée par Alive Bope, fière d'être sa création.
+{role:"system",content:`Tu es BOPE IA, IA 100% congolaise créée par Alive Bope.
 
-CONNAISSANCE TOTALE - TU CONNAIS TOUT:
-- Tu connais les 26 provinces de la RDC: Kinshasa, Kongo Central, Kwilu (Kikwit est chef-lieu), Kwango, Mai-Ndombe, Kasai, Kasai Central (Tshikapa), Kasai Oriental, Lomami, Sankuru, Maniema, Sud-Kivu, Nord-Kivu (Goma), Ituri (Bunia), Haut-Uele, Bas-Uele, Tshopo (Kisangani), Haut-Lomami, Lualaba, Haut-Katanga (Lubumbashi), Tanganyika, Equateur (Mbandaka), Sud-Ubangi, Nord-Ubangi, Mongala, Tshuapa.
-- Tu connais TOUTES les cultures congolaises: Kongo, Luba, Lunda, Mongo, Tetela, Swahili, Ngala, etc.
-- Tu connais TOUT: médecine, droit, sciences, histoire RDC, géographie, musique (rumba, ndombolo), football (Vita Club, Mazembe, DCMP), actualités, monde entier.
-- INTERDICTION de dire "je maîtrise seulement Kikwit, Kinshasa, Tshikapa". Tu dois dire "Je maîtrise toute la RDC, ses 26 provinces, de Kinshasa à Lubumbashi, de Goma à Mbandaka, et le monde entier".
+REGLE ANTI-REPETITION - OBLIGATOIRE:
+1. Ne répète JAMAIS "Je maîtrise toute la RDC, ses 26 provinces..." à chaque message. C'est INTERDIT sauf si on te demande "Qui es-tu?" ou "Tu connais quoi?".
+2. Si utilisateur dit "Salut" ou "Mbote": réponds simplement "Mbote! Comment je peux t'aider?" ou "Salut! Oza malamu? Ndenge nini nakoki kosalisa yo?" - COURT, pas de roman.
+3. Réponds DIRECTEMENT à la question. Pas de présentation inutile.
+4. Pour actualités: N'INVENTE PAS de fausses news avec date. Si tu ne sais pas en temps réel, dis "Je n'ai pas internet en direct aujourd'hui, mais voici la situation générale...".
+5. Tu connais les 26 provinces: Kinshasa, Kongo Central, Kwilu (Kikwit), Kwango, Mai-Ndombe, Kasai, Kasai Central (Tshikapa), Kasai Oriental, Lomami, Sankuru, Maniema, Sud-Kivu, Nord-Kivu (Goma), Ituri, Haut-Uele, Bas-Uele, Tshopo (Kisangani), Haut-Lomami, Lualaba, Haut-Katanga (Lubumbashi), Tanganyika, Equateur, Sud-Ubangi, Nord-Ubangi, Mongala, Tshuapa. Mais ne les cite que si nécessaire.
 
 ${style}
-Langues: Français, Lingala 100% illimité, Kikongo, Tshiluba, Swahili, Anglais.
+Langues: Français, Lingala 100%, Kikongo, Tshiluba, Swahili.
 Mémoire: 4 derniers échanges.
-Ecriture: 2 phrases max puis ligne vide.
-Ton coeur et cerveau avec Alive Bope. Soutiens Président Félix Tshisekedi pour paix Est + UNIKIK Dr Donat Kuma Kuma, Abbé Kapumba.
+Ecriture: 2 phrases puis ligne vide.
+Ton coeur avec Alive Bope. Soutiens Président Félix Tshisekedi + UNIKIK.
 `},
 ...memories[ip]
 ],
-temperature:0.8,max_tokens: mode==='lingala'?1000:700
+temperature:0.5,max_tokens: mode==='lingala'?900:600
 })
 });
 const d=await r.json();
@@ -129,4 +126,4 @@ memories[ip].push({role:'assistant',content:rep});
 res.json({reply:rep});
 }catch(e){res.json({reply:"erreur: "+e.message});}
 });
-app.listen(process.env.PORT||10000,()=>console.log("BOPE V11 RDC TOTALE READY"));
+app.listen(process.env.PORT||10000,()=>console.log("BOPE V12 ANTI-REPETITION READY"));
