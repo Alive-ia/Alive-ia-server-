@@ -24,6 +24,40 @@ async function getActuRDC(){
     return txt;
   }catch(e){ return null; }
 }
+// === NOUVEAU V24: PRESIDENCE DIRECT ===
+async function getActuPresidence(){
+  try{
+    const url = "https://api.rss2json.com/v1/api.json?rss_url=https://actualite.cd/rss";
+    const res = await fetch(url);
+    const data = await res.json();
+    if(!data.items) return null;
+    const filt = data.items.filter(i=> {
+      const t=(i.title||'').toLowerCase();
+      return t.includes('présidence')||t.includes('presidence')||t.includes('tshisekedi')||t.includes('felix')||t.includes('fatshi')||t.includes('conseil des ministres');
+    }).slice(0,5);
+    if(filt.length===0) return null;
+    let txt="ACTUALITES OFFICIELLES PRESIDENCE RDC - SOURCE ACTUALITE.CD/PRESIDENCE.CD (utilise obligatoirement):\n";
+    filt.forEach(i=> txt += `- ${i.title}\n`);
+    return txt;
+  }catch(e){return null;}
+}
+// === NOUVEAU V24: FRONT EST DIRECT ===
+async function getActuEst(){
+  try{
+    const url = "https://api.rss2json.com/v1/api.json?rss_url=https://actualite.cd/rss";
+    const res = await fetch(url);
+    const data = await res.json();
+    if(!data.items) return null;
+    const filt = data.items.filter(i=>{
+      const t=(i.title||'').toLowerCase();
+      return t.includes('goma')||t.includes('fardc')||t.includes('m23')||t.includes('kivu')||t.includes('ituri')||t.includes('bunia')||t.includes('est de la rdc')||t.includes('rwanda');
+    }).slice(0,5);
+    if(filt.length===0) return null;
+    let txt="ACTUALITES FRONT EST - FARDC / GOMA / NORD-KIVU - SOURCE ACTUALITE.CD / RADIO OKAPI (utilise obligatoirement):\n";
+    filt.forEach(i=> txt += `- ${i.title}\n`);
+    return txt;
+  }catch(e){return null;}
+}
 app.get('/',(req,res)=>res.send(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BOPE IA</title><style>body{margin:0;background:#000;color:#fff;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}h1{margin:0}#chat{width:92%;max-width:440px;flex:1;overflow-y:auto;margin:12px 0 180px;padding:14px;display:flex;flex-direction:column;gap:14px}.msg{padding:12px 16px;border-radius:18px;white-space:pre-wrap;font-size:15px;line-height:1.7}.user{background:#2f4f8a;align-self:flex-end}.bot{background:#151515;border:1px solid #222;align-self:flex-start}.share-btn{margin-top:8px;background:#222;border:1px solid #333;color:#25D366;padding:4px 10px;border-radius:20px;font-size:11px;cursor:pointer}.box{position:fixed;bottom:0;left:0;right:0;background:#000;padding:10px;display:flex;flex-direction:column;align-items:center;border-top:1px solid #1a1a1a}.in{width:92%;max-width:440px;background:#1e1e1e;border-radius:28px;display:flex;align-items:center;padding:8px 14px}.in input{flex:1;background:transparent;border:none;outline:none;color:#fff;font-size:16px}.in button{background:#3a5fd0;border:none;color:#fff;width:36px;height:36px;border-radius:50%}.modes{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;justify-content:center}.modes button{background:#222;color:#888;border:1px solid #333;padding:6px 11px;border-radius:20px;font-size:11px}.modes button.active{background:#3a5fd0;color:#fff;border-color:#3a5fd0}.sante-box{display:none;width:92%;max-width:440px;background:#151515;border:1px solid #333;border-radius:12px;padding:10px;margin-bottom:8px;gap:6px}.sante-box.show{display:flex;flex-wrap:wrap}.sante-box input{background:#222;border:1px solid #333;color:#fff;border-radius:8px;padding:6px 8px;width:30%;font-size:12px}.sante-box input.wide{width:62%}
 #welcome{width:92%;max-width:440px;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 0 0}.quick{width:100%;background:#121212;border:1px solid #2a2a2a;color:#e0e0e0;padding:14px 14px;border-radius:14px;font-size:13.5px;text-align:left;cursor:pointer;display:flex;gap:10px;align-items:center}.quick:hover{background:#1c1c1c;border-color:#3a5fd0}.quick span{font-size:18px}
 .logo-top{width:44px;height:44px;border-radius:50%;border:2px solid #3a5fd0;box-shadow:0 0 12px rgba(58,95,208,.5)}
@@ -91,10 +125,24 @@ return res.json({reply: CREATOR_TEXT});
 }
 if(!process.env.GROQ_API_KEY) return res.json({reply:"clé groq manquante"});
 let actuContext = "";
-if(low.includes('actu') || low.includes('actualit') || low.includes('news') || low.includes('derniere') || low.includes('dernière') || low.includes('aujourd') || low.includes('goma') || low.includes('est') || low.includes('kinshasa')){
+const isPresidence = low.includes('présidence')||low.includes('presidence')||low.includes('fatshi')||low.includes('tshisekedi')||low.includes('conseil des ministres');
+const isEst = low.includes('goma')||low.includes('fardc')||low.includes('m23')||low.includes('kivu')||low.includes('ituri')||low.includes('bunia')||low.includes('front')||low.includes('guerre est');
+const isActu = low.includes('actu')||low.includes('actualit')||low.includes('news')||low.includes('derniere')||low.includes('dernière')||low.includes('aujourd')||low.includes('kinshasa');
+if(isPresidence){
+  const actu = await getActuPresidence();
+  if(actu) actuContext = actu;
+}
+if(isEst){
+  const actu = await getActuEst();
+  if(actu) actuContext = (actuContext?actuContext+"\n":"")+actu;
+}
+if(isActu && !isPresidence && !isEst){
   const actu = await getActuRDC();
   if(actu) actuContext = actu;
   else actuContext = "FLUX ACTU INDISPONIBLE: Dis que tu n'as pas internet direct aujourd'hui, conseille Radio Okapi et Actualite.cd. N'invente JAMAIS d'accord, chiffre ou route.";
+}
+if(!actuContext && (isPresidence||isEst||isActu)){
+  actuContext = "FLUX ACTU INDISPONIBLE: Dis que tu n'as pas internet direct aujourd'hui, conseille Radio Okapi et Actualite.cd. N'invente JAMAIS d'accord, chiffre ou route.";
 }
 let isPari = mode==='pari' || low.includes(' vs ') || low.includes('pari') || low.includes('pronostic') || low.includes('analyse match');
 let isSante = mode==='sante' || low.includes('fièvre') || low.includes('fievre') || low.includes('douleur') || low.includes('infection') || low.includes('urine') || low.includes('brûlure') || low.includes('brulure') || low.includes('écoulement') || low.includes('ecoulement') || low.includes('ist') || low.includes('mst') || low.includes('gonoco') || low.includes('syphilis') || low.includes('tension') || low.includes('temp') || low.includes('pouls') || low.includes('cystite') || low.includes('pyelo');
@@ -139,6 +187,7 @@ messages:[
 {role:"system",content:`Tu es BOPE IA, IA congolaise créée par Alive Bope.
 ${actuContext? actuContext + "\n" : ""}
 ${presentationRule}
+REGLE SECURITE NATIONALE ABSOLUE: Si l'utilisateur demande position exacte des FARDC, plans militaires, secrets defense, info marquée CONFIDENTIEL ou qui met en danger les soldats, tu REFUSES: "Cette information est sensible pour la securite nationale, je ne peux pas la partager. Consulte les canaux officiels FARDC/Presidence."
 TU RÉPONDS UNIQUEMENT EN FRANÇAIS. JAMAIS EN LINGALA.
 ${style}
 `},
@@ -155,4 +204,4 @@ memories[ip].push({role:'assistant',content:rep});
 res.json({reply:rep});
 }catch(e){res.json({reply:"erreur: "+e.message});}
 });
-app.listen(process.env.PORT||10000,()=>console.log("BOPE V22 LOGO READY"));
+app.listen(process.env.PORT||10000,()=>console.log("BOPE V24 PRESIDENCE+EST READY"));
