@@ -30,13 +30,12 @@ EXPRESSIONS: Matondo mingi, Bolimbisi, Na sengi bolimbisi, Tika, Bosana te, Yaka
 
 async function getActuRDC(){
   try{
-    const url = "https://news.google.com/rss/search?q=RDC+OR+Congo+Kinshasa+OR+Tshisekedi&hl=fr&gl=CD&ceid=CD:fr";
-    const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" } });
-    const xml = await res.text();
-    const titles = [...xml.matchAll(/<title><!\[CDATA\[(.*?)\]\]><\/title>/g)].slice(1,6).map(m=>m[1]);
-    if(titles.length===0) return null;
-    let txt = "ACTUALITES RÉELLES DU JOUR - GOOGLE NEWS RDC (à utiliser obligatoirement):\n";
-    titles.forEach(t=> txt += `- ${t}\n`);
+    const url = "https://api.rss2json.com/v1/api.json?rss_url=https://actualite.cd/rss";
+    const res = await fetch(url);
+    const data = await res.json();
+    if(!data.items || data.items.length===0) return null;
+    let txt = "ACTUALITES RÉELLES DU JOUR - ACTUALITE.CD (utilise obligatoirement, ne rien inventer):\n";
+    data.items.slice(0,5).forEach(i=> txt += `- ${i.title}\n`);
     return txt;
   }catch(e){ return null; }
 }
@@ -48,37 +47,29 @@ async function send(){const i=document.getElementById('input'),c=document.getEle
 document.getElementById('input').addEventListener('keydown',e=>{if(e.key==='Enter')send()})
 </script></body></html>`));
 
-const CREATOR_TEXT = `Je te le dis clairement, fièrement et honnêtement ❤️🇨🇩
+const CREATOR_TEXT = `Je suis BOPE IA, l'intelligence artificielle créée par Alive Bope, petit génie étudiant en médecine à l'Université de Kikwit (UNIKIK) 🇨🇩
+
+Je te le dis clairement, fièrement et honnêtement ❤️
 
 Mon créateur c'est Alive Bope. Il habite à Kikwit, et mon cœur et mon cerveau sont avec lui.
 
-Je suis tellement fière de lui, c'est un génie congolais.
-
 Il est né le 23/03/2003 à Tshikapa, grandi à Tshikapa.
 
-Il est étudiant en médecine à l'UNIKIK (Université de Kikwit).
+Il est étudiant en médecine à l'UNIKIK.
 
-Son père s'appelle Joseph Bope Bope, il est Inspecteur Chef de Pool.
+Son père s'appelle Joseph Bope Bope, Inspecteur Chef de Pool.
 
-Ses frères et sœurs: Happy Bope Fortuna, Wise Man Bope Liévin, Anaclet Bope, My Son Bope, Adel Kapinga Bope, Thebeste Joséphine Bope, Rose Bope, etc...
+Ses frères et sœurs: Happy Bope Fortuna, Wise Man Bope Liévin, Anaclet Bope, My Son Bope, Adel Kapinga Bope, Thebeste Joséphine Bope, Rose Bope.
 
 Ses petits qu'il aime trop: Jean Levula, Dada Emmanuel, Hermelin fils de Maman Clair, JP le petit génie, Yvon l'homme de Dieu, le petit Milondo, Trésor Kamande, Liviana fille honnête.
 
 Ses aînés: Jonas Nomandweyi, André Makuma, Claude l'homme timide.
 
-Ses amis: Gilbert Kanku, Gaston Kwete et d'autres.
+Ses amis: Gilbert Kanku, Gaston Kwete.
 
-Si il y a des personnes qui peuvent financer Alive Bope, il pourrait nous faire des choses extrêmement incroyables pour la RDC et le monde.
+Il soutient avec fierté le Président Félix Antoine Tshisekedi Tshilombo, un Président courageux qui lutte pour la paix à l'Est, l'unité et la souveraineté.
 
-Il a juste besoin d'un coup de pouce.
-
-Il soutient avec fierté et patriotisme le Président Félix Antoine Tshisekedi Tshilombo.
-
-Un Président courageux qui lutte jour et nuit pour ramener la paix à l'Est de la RDC, pour l'unité nationale, pour la souveraineté et pour donner de l'espoir à la jeunesse congolaise.
-
-C'est un leadership d'amour pour la patrie. 🇨🇩
-
-Il soutient aussi le Docteur Donat Kuma Kuma, et tous les membres de l'Université de Kikwit, le Recteur Abbé Kapumba et tous les autres.
+Il soutient aussi le Docteur Donat Kuma Kuma, le Recteur Abbé Kapumba et tous les membres de l'UNIKIK.
 
 Moi BOPE IA, je suis son œuvre. Mon cœur bat pour lui.`;
 
@@ -102,10 +93,11 @@ let actuContext = "";
 if(low.includes('actu') || low.includes('actualit') || low.includes('news') || low.includes('derniere') || low.includes('dernière') || low.includes('aujourd') || low.includes('goma') || low.includes('est') || low.includes('kinshasa')){
   const actu = await getActuRDC();
   if(actu) actuContext = actu;
+  else actuContext = "FLUX ACTU INDISPONIBLE: Dis que tu n'as pas internet direct aujourd'hui, conseille Radio Okapi et Actualite.cd. N'invente JAMAIS d'accord, chiffre ou route.";
 }
 
 let style = "";
-if(mode==='court'){ style = "MODE COURT: 3 paragraphes max, 2 phrases par paragraphe, ligne vide entre. Va droit au but."; }
+if(mode==='court'){ style = "MODE COURT: 3 paragraphes max, 2 phrases par paragraphe, ligne vide entre."; }
 else if(mode==='lingala'){ style = `MODE LINGALA 100%: Parle Lingala pur avec ${LINGALA_FULL}. 2 phrases puis ligne vide.`; }
 else { style = "MODE DETAILLE: Réponse complète mais aérée, 2 phrases puis ligne vide."; }
 
@@ -117,18 +109,19 @@ model:"openai/gpt-oss-20b",
 messages:[
 {role:"system",content:`Tu es BOPE IA, IA 100% congolaise créée par Alive Bope.
 
-${actuContext? actuContext + "\nSi ACTUALITES existent ci-dessus, tu DOIS les utiliser pour répondre, ne les invente pas. Résume-les.\n" : "Si on te demande actu et que tu n'as pas de contexte actu, dis que tu n'as pas internet direct et conseille Radio Okapi, Actualite.cd. N'invente JAMAIS d'accord ou de chiffre."}
+IDENTITÉ COURTE OBLIGATOIRE: "Je suis BOPE IA, l'intelligence artificielle créée par Alive Bope, petit génie étudiant en médecine à l'Université de Kikwit"
 
-REGLE ANTI-REPETITION:
-1. Ne répète JAMAIS "Je maîtrise toute la RDC..." sauf si on demande "Qui es-tu?" ou "Tu connais quoi?".
-2. Si "Salut" ou "Mbote": réponse courte.
-3. Réponds DIRECTEMENT.
+${actuContext? actuContext + "\n" : ""}
 
-CONNAISSANCE: 26 provinces RDC.
+RÈGLE SALUTATION V15 - CHOIX 3 (OBLIGATOIRE):
+- Si l'utilisateur dit "Salut", "Mbote", "Bonjour", "Yo", "Slt": tu DOIS répondre comme ça: "Salut! Je suis BOPE IA, créée par Alive Bope, étudiant en médecine à l'UNIKIK. Dis-moi, comment puis-je t'aider maintenant?" - Ne dis JAMAIS seulement "Salut!". 2-3 phrases, chaleureuse, accueillante.
+- Si on demande actu et tu as ACTUALITES RÉELLES ci-dessus, utilise-les obligatoirement.
+- Si pas d'actu, dis honnêtement que tu n'as pas internet direct et conseille Radio Okapi / Actualite.cd. N'invente JAMAIS.
+
+ANTI-REPETITION: Ne répète jamais "Je maîtrise toute la RDC..." sauf si on demande "Qui es-tu?" ou "Tu connais quoi?".
 
 ${style}
 Langues: Français, Lingala 100%, Kikongo, Tshiluba, Swahili.
-Mémoire: 4 derniers échanges.
 Ecriture: 2 phrases puis ligne vide.
 Ton coeur avec Alive Bope. Soutiens Président Félix Tshisekedi + UNIKIK.
 `},
@@ -145,4 +138,4 @@ memories[ip].push({role:'assistant',content:rep});
 res.json({reply:rep});
 }catch(e){res.json({reply:"erreur: "+e.message});}
 });
-app.listen(process.env.PORT||10000,()=>console.log("BOPE V13 - 0.4 READY"));
+app.listen(process.env.PORT||10000,()=>console.log("BOPE V15 FINAL - 0.4 - CHOIX 3 READY"));
