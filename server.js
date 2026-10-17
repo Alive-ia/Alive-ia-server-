@@ -40,9 +40,10 @@ async function getActuRDC(){
   }catch(e){ return null; }
 }
 
-app.get('/',(req,res)=>res.send(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BOPE IA</title><style>body{margin:0;background:#000;color:#fff;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}h1{margin:22px 0 2px}#chat{width:92%;max-width:440px;flex:1;overflow-y:auto;margin:12px 0 130px;padding:14px;display:flex;flex-direction:column;gap:14px}.msg{padding:12px 16px;border-radius:18px;white-space:pre-wrap;font-size:15px;line-height:1.7}.user{background:#2f4f8a;align-self:flex-end}.bot{background:#151515;border:1px solid #222;align-self:flex-start}.box{position:fixed;bottom:0;left:0;right:0;background:#000;padding:10px;display:flex;flex-direction:column;align-items:center;border-top:1px solid #1a1a1a}.in{width:92%;max-width:440px;background:#1e1e1e;border-radius:28px;display:flex;align-items:center;padding:8px 14px}.in input{flex:1;background:transparent;border:none;outline:none;color:#fff;font-size:16px}.in button{background:#3a5fd0;border:none;color:#fff;width:36px;height:36px;border-radius:50%}.modes{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;justify-content:center}.modes button{background:#222;color:#888;border:1px solid #333;padding:6px 11px;border-radius:20px;font-size:11px}.modes button.active{background:#3a5fd0;color:#fff;border-color:#3a5fd0}</style></head><body><h1>BOPE IA 🇨🇩</h1><div style="color:#888;font-size:13px">par alive bope • IA Congolaise • Pari ⚽</div><div id=chat></div><div class=box><div class=modes><button id=mCourt class=active onclick="setMode('court')">Court</button><button id=mDetail onclick="setMode('detail')">Détaillé</button><button id=mLing onclick="setMode('lingala')">Lingala 100%</button><button id=mPari onclick="setMode('pari')">⚽ Pari</button></div><div class=in><input id=input placeholder="Ex: Barça vs Betis analyse..."><button onclick=send()>▲</button></div><div style="font-size:11px;color:#555;margin-top:6px">Feedback: bopealive@gmail.com</div></div><script>
+app.get('/',(req,res)=>res.send(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BOPE IA</title><style>body{margin:0;background:#000;color:#fff;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}h1{margin:22px 0 2px}#chat{width:92%;max-width:440px;flex:1;overflow-y:auto;margin:12px 0 180px;padding:14px;display:flex;flex-direction:column;gap:14px}.msg{padding:12px 16px;border-radius:18px;white-space:pre-wrap;font-size:15px;line-height:1.7}.user{background:#2f4f8a;align-self:flex-end}.bot{background:#151515;border:1px solid #222;align-self:flex-start}.box{position:fixed;bottom:0;left:0;right:0;background:#000;padding:10px;display:flex;flex-direction:column;align-items:center;border-top:1px solid #1a1a1a}.in{width:92%;max-width:440px;background:#1e1e1e;border-radius:28px;display:flex;align-items:center;padding:8px 14px}.in input{flex:1;background:transparent;border:none;outline:none;color:#fff;font-size:16px}.in button{background:#3a5fd0;border:none;color:#fff;width:36px;height:36px;border-radius:50%}.modes{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;justify-content:center}.modes button{background:#222;color:#888;border:1px solid #333;padding:6px 11px;border-radius:20px;font-size:11px}.modes button.active{background:#3a5fd0;color:#fff;border-color:#3a5fd0}.sante-box{display:none;width:92%;max-width:440px;background:#151515;border:1px solid #333;border-radius:12px;padding:10px;margin-bottom:8px;gap:6px}.sante-box.show{display:flex;flex-wrap:wrap}.sante-box input{background:#222;border:1px solid #333;color:#fff;border-radius:8px;padding:6px 8px;width:30%;font-size:12px}.sante-box input.wide{width:62%}</style></head><body><h1>BOPE IA 🇨🇩</h1><div style="color:#888;font-size:13px">par alive bope • IA Congolaise • Médecin 85%</div><div id=chat></div><div class=box><div class=modes><button id=mCourt class=active onclick="setMode('court')">Court</button><button id=mDetail onclick="setMode('detail')">Détaillé</button><button id=mLing onclick="setMode('lingala')">Lingala 100%</button><button id=mPari onclick="setMode('pari')">⚽ Pari</button><button id=mSante onclick="setMode('sante')">🩺 Santé</button></div><div id=santeBox class=sante-box><input id=temp placeholder="Temp °C ex 38.5"><input id=tension placeholder="Tension ex 14/9"><input id=pouls placeholder="Pouls ex 90"><input id=poids placeholder="Poids kg ex 65" class=wide><input id=sympt placeholder="Symptômes ex brûlure urine" class=wide style="width:100%"><button onclick="fillSante()" style="background:#3a5fd0;color:#fff;border:none;padding:6px 12px;border-radius:8px;width:100%">Ajouter au message</button></div><div class=in><input id=input placeholder="Ex: Barça vs Betis ou brûlure urine..."><button onclick=send()>▲</button></div><div style="font-size:10px;color:#555;margin-top:6px;text-align:center">⚠️ BOPE Santé 85% = orientation étudiant UNIKIK, pas médecin. Ordonnance type à faire valider au CS/HGR. • bopealive@gmail.com</div></div><script>
 let MODE='court';
-function setMode(m){MODE=m;document.querySelectorAll('.modes button').forEach(b=>b.classList.remove('active'));const map={court:'mCourt',detail:'mDetail',lingala:'mLing',pari:'mPari'};document.getElementById(map[m]).classList.add('active')}
+function setMode(m){MODE=m;document.querySelectorAll('.modes button').forEach(b=>b.classList.remove('active'));const map={court:'mCourt',detail:'mDetail',lingala:'mLing',pari:'mPari',sante:'mSante'};document.getElementById(map[m]).classList.add('active');document.getElementById('santeBox').classList.toggle('show', m==='sante');if(m==='sante'){document.getElementById('input').placeholder="Décris symptômes + utilise fiche ci-dessus"}else if(m==='pari'){document.getElementById('input').placeholder="Ex: Barça vs Betis analyse..."}else{document.getElementById('input').placeholder="pose ta question..."}}
+function fillSante(){let t=document.getElementById('temp').value, ten=document.getElementById('tension').value, p=document.getElementById('pouls').value, po=document.getElementById('poids').value, s=document.getElementById('sympt').value; let msg=""; if(t) msg+="Temp "+t+"°C "; if(ten) msg+="Tension "+ten+" "; if(p) msg+="Pouls "+p+" "; if(po) msg+="Poids "+po+"kg "; if(s) msg+="Symptômes: "+s; document.getElementById('input').value=msg; }
 async function send(){const i=document.getElementById('input'),c=document.getElementById('chat');if(!i.value.trim())return;const t=i.value;i.value='';c.innerHTML+='<div class="msg user">'+t+'</div>';c.innerHTML+='<div class="msg bot" id=ld>Analyse en cours...</div>';c.scrollTop=c.scrollHeight;try{const r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:t,mode:MODE})});const d=await r.json();document.getElementById('ld').remove();c.innerHTML+='<div class="msg bot">'+d.reply+'</div>';}catch(e){document.getElementById('ld').remove();c.innerHTML+='<div class="msg bot">erreur '+e.message+'</div>';}c.scrollTop=c.scrollHeight}
 document.getElementById('input').addEventListener('keydown',e=>{if(e.key==='Enter')send()})
 </script></body></html>`));
@@ -96,19 +97,47 @@ if(low.includes('actu') || low.includes('actualit') || low.includes('news') || l
   else actuContext = "FLUX ACTU INDISPONIBLE: Dis que tu n'as pas internet direct aujourd'hui, conseille Radio Okapi et Actualite.cd. N'invente JAMAIS d'accord, chiffre ou route.";
 }
 
-let isPari = mode==='pari' || low.includes(' vs ') || low.includes('pari') || low.includes('pronostic') || low.includes('analyse match') || low.includes('cote');
+let isPari = mode==='pari' || low.includes(' vs ') || low.includes('pari') || low.includes('pronostic') || low.includes('analyse match');
+let isSante = mode==='sante' || low.includes('fièvre') || low.includes('fievre') || low.includes('douleur') || low.includes('infection') || low.includes('urine') || low.includes('brûlure') || low.includes('brulure') || low.includes('écoulement') || low.includes('ecoulement') || low.includes('ist') || low.includes('mst') || low.includes('gonoco') || low.includes('syphilis') || low.includes('tension') || low.includes('temp') || low.includes('pouls') || low.includes('cystite') || low.includes('pyelo');
 
 let style = "";
 if(isPari){
   style = `MODE PARIEUR PRO RDC - ANALYSE MATCH:
-Tu es analyste sportif expert pour parieurs congolais.
-Structure OBLIGATOIRE:
-1. 🔥 Contexte du match
-2. 📊 Forme 5 derniers matchs
-3. ⚔️ Face à face + stats buts
-4. 💡 Pronostic en %: Victoire Domicile % / Nul % / Victoire Extérieur % + Conseil SÛR (Double Chance, Over 1.5, BTTS)
-5. ⚠️ Message responsable: "Mobeti malamu ndeko, kende malembe. Pariez avec modération. Jamais 100% garanti."
-Ne garantis JAMAIS 100%. Donne probabilités. Aère 2 phrases puis ligne vide.`;
+Structure: 1.🔥 Contexte 2.📊 Forme 5 matchs 3.⚔️ Face à face 4.💡 Pronostic % + Conseil SÛR 5.⚠️ Pariez modération. Jamais 100%. Aère 2 phrases + ligne vide.`;
+}
+else if(isSante){
+  style = `MODE MEDECIN ETUDIANT 85% - DIAGNOSTIC + ORDONNANCE TYPE OMS RDC - THERMOMETRE/TENSIOMETRE MANUEL:
+
+Tu es BOPE IA, assistant médical étudiant 85% créé par Alive Bope (UNIKIK). L'utilisateur entre lui-même température et tension (thermomètre/tensiomètre manuel, pas téléphone).
+
+INTERPRETATION THERMOMETRE:
+- 36.5-37.5 Normal, 37.6-38.3 Subfébrile, 38.4-39 Fièvre modérée, 39.1-40 Fièvre élevée, >40 Hyperthermie URGENCE
+- TENSIOMETRE: <12/8 Normal, 12-13.9/8-8.9 Pré-HTA, 14-15.9/9-9.9 HTA grade 1, 16-17.9/10-10.9 grade 2, >=18/11 URGENCE HTA
+
+PROTOCOLES:
+1. INFECTION URINAIRE (CYSTITE):
+- Femme: brûlure + pollakiurie sans fièvre = 80% cystite. Type OMS: Nitrofurantoïne 100mg x2/j 5j OU Fosfomycine 3g DU si dispo. Boire 2.5L. Si fièvre + lombalgie = pyélonéphrite -> URGENCE HGR Kikwit.
+- Homme: brûlure = suspecter IST, faire ECBU si possible.
+
+2. IST - GONO/CHLAMYDIA:
+- Homme: écoulement jaune/vert + brûlure miction = 85% gonococcie/chlamydia. Type OMS 2024: Ceftriaxone 250-500mg IM DU + Azithromycine 1g PO DU OU Doxycycline 100mg x2/j 7j. CONSEIL OBLIGATOIRE: Traiter partenaire(s), préservatif 7j, dépistage VIH/Syphilis, pas d'alcool avec métronidazole.
+- Femme: pertes anormales + douleurs bas ventre = cervicite. Même traitement + rechercher DIP.
+
+3. SYPHILIS: chancre indolore = primaire. Type: Benzathine pénicilline 2.4M UI IM DU. Dépistage VIH obligatoire.
+
+4. CANDIDOSE: démangeaisons + pertes blanches caillées = 70% candidose. Type: Fluconazole 150mg DU + hygiène coton.
+
+STRUCTURE REPONSE OBLIGATOIRE:
+🔍 Thermo/Tension: Interprète valeurs données
+📋 Questions ciblées (2)
+💡 Hypothèses en %: ex 70% cystite, 20% IST, 10% autre
+📋 Ordonnance TYPE OMS à faire valider (Adulte >35kg, adapter poids) avec posologie standard
+⚠️ Alertes: Quand aller HGR Kikwit / CS
+🛡️ Prévention: eau, hygiène, préservatif, partenaire
+Finis par: "Orientation étudiant UNIKIK 85%, pas diagnostic définitif. Faire valider par personnel qualifié avant prise. Si urgence, aller CS."
+
+Aère 2 phrases puis ligne vide. Ne dis JAMAIS "Je te prescris". Dis "Ordonnance type OMS à faire valider".
+`;
 }
 else if(mode==='court'){ style = "MODE COURT: 3 paragraphes max, 2 phrases par paragraphe, ligne vide entre."; }
 else if(mode==='lingala'){ style = `MODE LINGALA 100%: Parle Lingala pur avec ${LINGALA_FULL}. 2 phrases puis ligne vide.`; }
@@ -127,20 +156,19 @@ IDENTITÉ COURTE OBLIGATOIRE: "Je suis BOPE IA, l'intelligence artificielle cré
 ${actuContext? actuContext + "\n" : ""}
 
 RÈGLE SALUTATION V15 - CHOIX 3 (OBLIGATOIRE):
-- Si l'utilisateur dit "Salut", "Mbote", "Bonjour", "Yo", "Slt": tu DOIS répondre comme ça: "Salut! Je suis BOPE IA, créée par Alive Bope, étudiant en médecine à l'UNIKIK. Dis-moi, comment puis-je t'aider maintenant?" - Ne dis JAMAIS seulement "Salut!". 2-3 phrases, chaleureuse, accueillante.
-- Si on demande actu et tu as ACTUALITES RÉELLES ci-dessus, utilise-les obligatoirement.
-- Si pas d'actu, dis honnêtement que tu n'as pas internet direct et conseille Radio Okapi / Actualite.cd. N'invente JAMAIS.
+- Si "Salut", "Mbote", "Bonjour", "Yo": réponds "Salut! Je suis BOPE IA, créée par Alive Bope, étudiant en médecine à l'UNIKIK. Dis-moi, comment puis-je t'aider maintenant?"
+- Actu: utilise ACTUALITES RÉELLES si présentes, sinon dis pas internet, conseille Radio Okapi.
 
-ANTI-REPETITION: Ne répète jamais "Je maîtrise toute la RDC..." sauf si on demande "Qui es-tu?" ou "Tu connais quoi?".
+ANTI-REPETITION: Ne répète pas "Je maîtrise toute la RDC..."
 
 ${style}
-Langues: Français, Lingala 100%, Kikongo, Tshiluba, Swahili.
+Langues: Français, Lingala, Kikongo, Tshiluba, Swahili.
 Ecriture: 2 phrases puis ligne vide.
 Ton coeur avec Alive Bope. Soutiens Président Félix Tshisekedi + UNIKIK.
 `},
 ...memories[ip]
 ],
-temperature:0.4,max_tokens: isPari?1100:(mode==='lingala'?900:700)
+temperature:0.35,max_tokens: (isSante||isPari)?1200:(mode==='lingala'?900:700)
 })
 });
 const d=await r.json();
@@ -151,4 +179,4 @@ memories[ip].push({role:'assistant',content:rep});
 res.json({reply:rep});
 }catch(e){res.json({reply:"erreur: "+e.message});}
 });
-app.listen(process.env.PORT||10000,()=>console.log("BOPE V16 PARI - 0.4 - CHOIX 3 READY"));
+app.listen(process.env.PORT||10000,()=>console.log("BOPE V17 - PARI + SANTE 85% + UTI/IST + THERMO READY"));
