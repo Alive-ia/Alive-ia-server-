@@ -4,6 +4,7 @@ const app=express();
 app.use(cors());
 app.use(express.json());
 const memories = {};
+const userNames = {};
 function aererTexte(texte){
   let phrases = texte.split(/(?<=[.!?])\s+/);
   let out=[];
@@ -26,19 +27,17 @@ async function getActuRDC(){
 app.get('/',(req,res)=>res.send(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BOPE IA</title><style>body{margin:0;background:#000;color:#fff;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}h1{margin:22px 0 2px}#chat{width:92%;max-width:440px;flex:1;overflow-y:auto;margin:12px 0 180px;padding:14px;display:flex;flex-direction:column;gap:14px}.msg{padding:12px 16px;border-radius:18px;white-space:pre-wrap;font-size:15px;line-height:1.7}.user{background:#2f4f8a;align-self:flex-end}.bot{background:#151515;border:1px solid #222;align-self:flex-start}.share-btn{margin-top:8px;background:#222;border:1px solid #333;color:#25D366;padding:4px 10px;border-radius:20px;font-size:11px;cursor:pointer}.box{position:fixed;bottom:0;left:0;right:0;background:#000;padding:10px;display:flex;flex-direction:column;align-items:center;border-top:1px solid #1a1a1a}.in{width:92%;max-width:440px;background:#1e1e1e;border-radius:28px;display:flex;align-items:center;padding:8px 14px}.in input{flex:1;background:transparent;border:none;outline:none;color:#fff;font-size:16px}.in button{background:#3a5fd0;border:none;color:#fff;width:36px;height:36px;border-radius:50%}.modes{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;justify-content:center}.modes button{background:#222;color:#888;border:1px solid #333;padding:6px 11px;border-radius:20px;font-size:11px}.modes button.active{background:#3a5fd0;color:#fff;border-color:#3a5fd0}.sante-box{display:none;width:92%;max-width:440px;background:#151515;border:1px solid #333;border-radius:12px;padding:10px;margin-bottom:8px;gap:6px}.sante-box.show{display:flex;flex-wrap:wrap}.sante-box input{background:#222;border:1px solid #333;color:#fff;border-radius:8px;padding:6px 8px;width:30%;font-size:12px}.sante-box input.wide{width:62%}
 #welcome{width:92%;max-width:440px;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 0 0}.quick{width:100%;background:#121212;border:1px solid #2a2a2a;color:#e0e0e0;padding:14px 14px;border-radius:14px;font-size:13.5px;text-align:left;cursor:pointer;display:flex;gap:10px;align-items:center}.quick:hover{background:#1c1c1c;border-color:#3a5fd0}.quick span{font-size:18px}
 </style></head><body><h1>BOPE IA 🇨🇩</h1><div style="color:#888;font-size:13px;display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap"><span>par alive bope • IA Congolaise • Médecin 85%</span><button onclick="partagerBOPE()" style="background:#25D366;color:#fff;border:none;padding:5px 12px;border-radius:20px;font-size:11px;cursor:pointer">↗️ Partager BOPE</button></div>
-
 <div id=welcome>
   <div style="font-size:48px;margin:20px 0 8px">🇨🇩</div>
   <h2 style="margin:0 0 6px">Que veux-tu faire?</h2>
   <p style="color:#666;font-size:13px;margin:0 0 20px">Demande à BOPE, ton IA congolaise</p>
   <div style="display:flex;flex-direction:column;gap:10px;width:100%">
+    <button class=quick onclick="quickAsk('Je m\\'appelle')"><span>👋</span> Je m'appelle... (dis ton prénom)</button>
     <button class=quick onclick="quickAsk('Explique-moi la fièvre typhoïde')"><span>🩺</span> Expliquer une maladie</button>
     <button class=quick onclick="quickAsk('Analyse match Barça vs Real pronostic sûr')"><span>⚽</span> Analyser un match de foot</button>
     <button class=quick onclick="quickAsk('Actualités RDC aujourd\\'hui')"><span>📰</span> Actualités RDC du jour</button>
-    <button class=quick onclick="quickAsk('Quel est l\\'os le plus long du corps humain?')"><span>🧠</span> Poser une question de cours</button>
   </div>
 </div>
-
 <div id=chat></div><div class=box><div class=modes><button id=mCourt class=active onclick="setMode('court')">Court</button><button id=mDetail onclick="setMode('detail')">Détaillé</button><button id=mPari onclick="setMode('pari')">⚽ Pari</button><button id=mSante onclick="setMode('sante')">🩺 Santé</button></div><div id=santeBox class=sante-box><input id=temp placeholder="Temp °C ex 38.5"><input id=tension placeholder="Tension ex 14/9"><input id=pouls placeholder="Pouls ex 90"><input id=poids placeholder="Poids kg ex 65" class=wide><input id=sympt placeholder="Symptômes ex brûlure urine" class=wide style="width:100%"><button onclick="fillSante()" style="background:#3a5fd0;color:#fff;border:none;padding:6px 12px;border-radius:8px;width:100%">Ajouter au message</button></div><div class=in><input id=input placeholder="Demande à BOPE,"><button onclick=send()>▲</button></div><div style="font-size:10px;color:#555;margin-top:6px;text-align:center">⚠️ BOPE Santé 85% = orientation étudiant UNIKIK, pas médecin. Ordonnance type à faire valider au CS/HGR. • bopealive@gmail.com</div></div><script>
 let MODE='court';
 function setMode(m){MODE=m;document.querySelectorAll('.modes button').forEach(b=>b.classList.remove('active'));const map={court:'mCourt',detail:'mDetail',pari:'mPari',sante:'mSante'};document.getElementById(map[m]).classList.add('active');document.getElementById('santeBox').classList.toggle('show', m==='sante');document.getElementById('input').placeholder="Demande à BOPE,";}
@@ -68,6 +67,9 @@ const m=(req.body.message||'').trim();
 const mode=req.body.mode||'court';
 const ip=req.ip;
 if(!memories[ip]) memories[ip]=[];
+let detectedName = null;
+const nameMatch = m.match(/(?:je m'appelle|je m appelle|appelle moi|mon prenom c'est|mon prénom c'est|je suis)\s+([A-ZÀ-ÿ][a-zà-ÿ]+)/i);
+if(nameMatch){ detectedName = nameMatch[1]; userNames[ip] = detectedName; }
 memories[ip].push({role:'user',content:m});
 if(memories[ip].length>8) memories[ip]=memories[ip].slice(-8);
 const low=m.toLowerCase();
@@ -87,10 +89,21 @@ let isPari = mode==='pari' || low.includes(' vs ') || low.includes('pari') || lo
 let isSante = mode==='sante' || low.includes('fièvre') || low.includes('fievre') || low.includes('douleur') || low.includes('infection') || low.includes('urine') || low.includes('brûlure') || low.includes('brulure') || low.includes('écoulement') || low.includes('ecoulement') || low.includes('ist') || low.includes('mst') || low.includes('gonoco') || low.includes('syphilis') || low.includes('tension') || low.includes('temp') || low.includes('pouls') || low.includes('cystite') || low.includes('pyelo');
 let style = "";
 let presentationRule = "";
-if(isFirst && isGreeting){
-  presentationRule = "PREMIER CONTACT - OBLIGATOIRE: L'utilisateur te dit salut/bonjour pour la PREMIERE fois. Tu DOIS te présenter en UNE phrase courte: 'Salut! Je suis BOPE IA, créée par Alive Bope, étudiant en médecine à l'UNIKIK 🇨🇩. Comment puis-je t'aider?'";
+const savedName = userNames[ip] || null;
+if(detectedName){
+  presentationRule = `L'utilisateur vient de dire qu'il s'appelle ${detectedName}. Retiens-le! Réponds: "Enchanté ${detectedName}! Je retiens ton prénom. Je suis BOPE IA, créée par Alive Bope UNIKIK 🇨🇩. Comment puis-je t'aider ${detectedName}?"`;
+} else if(isFirst && isGreeting){
+  if(savedName){
+    presentationRule = `C'est un retour, tu connais déjà son prénom: ${savedName}. Dis: "Salut ${savedName}! Content de te revoir. Comment puis-je t'aider?"`;
+  } else {
+    presentationRule = "PREMIER CONTACT: L'utilisateur dit salut/bonjour 1ère fois. Présente-toi court et demande son prénom: 'Salut! Je suis BOPE IA, créée par Alive Bope UNIKIK 🇨🇩. Tu t'appelles comment?'";
+  }
 } else {
-  presentationRule = "RÈGLE ANTI-SPAM IDENTITÉ ABSOLUE: Tu es en conversation déjà commencée. INTERDICTION TOTALE de dire 'Je suis BOPE IA, créée par...' ou 'Je soutiens Tshisekedi' ou 'UNIKIK'. Réponds DIRECTEMENT à la question sans aucune présentation. Si question anatomie, réponds juste anatomie.";
+  if(savedName){
+    presentationRule = `RÈGLE: Tu connais son prénom c'est ${savedName}. Utilise-le de temps en temps naturellement. INTERDICTION de te re-présenter avec ta bio complète. Réponds direct à la question.`;
+  } else {
+    presentationRule = "RÈGLE ANTI-SPAM: Conversation déjà commencée, ne te présente plus. Réponds DIRECTEMENT à la question sans bio.";
+  }
 }
 if(isPari){
   style = `MODE PARIEUR PRO RDC - ANALYSE MATCH:
@@ -131,4 +144,4 @@ memories[ip].push({role:'assistant',content:rep});
 res.json({reply:rep});
 }catch(e){res.json({reply:"erreur: "+e.message});}
 });
-app.listen(process.env.PORT||10000,()=>console.log("BOPE V20 WELCOME SCREEN READY"));
+app.listen(process.env.PORT||10000,()=>console.log("BOPE V21 PRENOM MEMORY READY"));
