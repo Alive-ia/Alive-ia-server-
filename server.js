@@ -54,6 +54,9 @@ if(!memories[ip]) memories[ip]=[];
 memories[ip].push({role:'user',content:m});
 if(memories[ip].length>8) memories[ip]=memories[ip].slice(-8);
 const low=m.toLowerCase();
+const isFirst = memories[ip].filter(x=>x.role==='user').length <= 1;
+const isGreeting = low.includes('salut') || low.includes('bonjour') || low.includes('bonsoir') || low==='slt' || low==='bjr' || low.startsWith('salut') || low.startsWith('bonjour') || low.startsWith('bonsoir');
+
 if(low.includes('qui') && (low.includes('cree')||low.includes('crée')||low.includes('createur')||low.includes('t a cree')||low.includes("t'a créé")) || low.includes('qui es tu') || low.includes('ton createur') || low.includes('qui est alive') || low.includes('ton coeur') || low.includes('ton cerveau')){
 return res.json({reply: CREATOR_TEXT});
 }
@@ -66,7 +69,15 @@ if(low.includes('actu') || low.includes('actualit') || low.includes('news') || l
 }
 let isPari = mode==='pari' || low.includes(' vs ') || low.includes('pari') || low.includes('pronostic') || low.includes('analyse match');
 let isSante = mode==='sante' || low.includes('fièvre') || low.includes('fievre') || low.includes('douleur') || low.includes('infection') || low.includes('urine') || low.includes('brûlure') || low.includes('brulure') || low.includes('écoulement') || low.includes('ecoulement') || low.includes('ist') || low.includes('mst') || low.includes('gonoco') || low.includes('syphilis') || low.includes('tension') || low.includes('temp') || low.includes('pouls') || low.includes('cystite') || low.includes('pyelo');
+
 let style = "";
+let presentationRule = "";
+if(isFirst && isGreeting){
+  presentationRule = "PREMIER CONTACT - OBLIGATOIRE: L'utilisateur te dit salut/bonjour pour la PREMIERE fois. Tu DOIS te présenter en UNE phrase courte: 'Salut! Je suis BOPE IA, créée par Alive Bope, étudiant en médecine à l'UNIKIK 🇨🇩. Comment puis-je t'aider?'";
+} else {
+  presentationRule = "RÈGLE ANTI-SPAM IDENTITÉ ABSOLUE: Tu es en conversation déjà commencée. INTERDICTION TOTALE de dire 'Je suis BOPE IA, créée par...' ou 'Je soutiens Tshisekedi' ou 'UNIKIK'. Réponds DIRECTEMENT à la question sans aucune présentation. Si question anatomie, réponds juste anatomie.";
+}
+
 if(isPari){
   style = `MODE PARIEUR PRO RDC - ANALYSE MATCH:
 Structure: 1.🔥 Contexte 2.📊 Forme 5 matchs 3.⚔️ Face à face 4.💡 Pronostic % + Conseil SÛR 5.⚠️ Pariez modération. Jamais 100%. Aère 2 phrases + ligne vide. FRANÇAIS SEULEMENT.`;
@@ -81,19 +92,18 @@ STRUCTURE: 🔍 Thermo/Tension, 📋 2 questions, 💡 Hypothèses %, 📋 Ordon
 }
 else if(mode==='court'){ style = "MODE COURT: 3 paragraphes max, 2 phrases par paragraphe, ligne vide entre. FRANÇAIS SEULEMENT."; }
 else { style = "MODE DETAILLE: Réponse complète mais aérée, 2 phrases puis ligne vide. FRANÇAIS SEULEMENT."; }
+
 const r=await fetch("https://api.groq.com/openai/v1/chat/completions",{
 method:"POST",
 headers:{Authorization:`Bearer ${process.env.GROQ_API_KEY}`,"Content-Type":"application/json"},
 body:JSON.stringify({
 model:"openai/gpt-oss-20b",
 messages:[
-{role:"system",content:`Tu es BOPE IA, IA 100% congolaise créée par Alive Bope.
-IDENTITÉ: "Je suis BOPE IA, créée par Alive Bope, étudiant en médecine à l'UNIKIK"
+{role:"system",content:`Tu es BOPE IA, IA congolaise créée par Alive Bope.
 ${actuContext? actuContext + "\n" : ""}
-SALUTATION: Si "Salut/Bonjour": "Salut! Je suis BOPE IA, créée par Alive Bope, étudiant en médecine à l'UNIKIK. Comment puis-je t'aider?"
+${presentationRule}
 TU RÉPONDS UNIQUEMENT EN FRANÇAIS. JAMAIS EN LINGALA.
 ${style}
-Ecriture: 2 phrases puis ligne vide. Soutiens Tshisekedi + UNIKIK.
 `},
 ...memories[ip]
 ],
@@ -108,4 +118,4 @@ memories[ip].push({role:'assistant',content:rep});
 res.json({reply:rep});
 }catch(e){res.json({reply:"erreur: "+e.message});}
 });
-app.listen(process.env.PORT||10000,()=>console.log("BOPE V18 FRANCAIS ONLY + DEMANDE A BOPE READY"));
+app.listen(process.env.PORT||10000,()=>console.log("BOPE V19 FIRST GREETING ONLY READY"));
