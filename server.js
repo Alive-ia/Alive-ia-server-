@@ -18,13 +18,12 @@ async function getActuRDC(){
     const url = "https://api.rss2json.com/v1/api.json?rss_url=https://actualite.cd/rss";
     const res = await fetch(url);
     const data = await res.json();
-    if(!data.items || data.items.length===0) return null;
-    let txt = "ACTUALITES RÉELLES DU JOUR - ACTUALITE.CD (utilise obligatoirement, ne rien inventer):\n";
-    data.items.slice(0,5).forEach(i=> txt += `- ${i.title}\n`);
+    if(!data.items || data.items.length===0) return "FLUX COUPE";
+    let txt = "ACTUALITES RÉELLES DU JOUR - ACTUALITE.CD (utilise obligatoirement, ne rien inventer, garde les dates):\n";
+    data.items.slice(0,5).forEach(i=> txt += `- ${i.title} | ${i.pubDate}\n`);
     return txt;
-  }catch(e){ return null; }
+  }catch(e){ return "FLUX COUPE"; }
 }
-// === NOUVEAU V24: PRESIDENCE DIRECT ===
 async function getActuPresidence(){
   try{
     const url = "https://api.rss2json.com/v1/api.json?rss_url=https://actualite.cd/rss";
@@ -36,12 +35,11 @@ async function getActuPresidence(){
       return t.includes('présidence')||t.includes('presidence')||t.includes('tshisekedi')||t.includes('felix')||t.includes('fatshi')||t.includes('conseil des ministres');
     }).slice(0,5);
     if(filt.length===0) return null;
-    let txt="ACTUALITES OFFICIELLES PRESIDENCE RDC - SOURCE ACTUALITE.CD/PRESIDENCE.CD (utilise obligatoirement):\n";
+    let txt="ACTUALITES OFFICIELLES PRESIDENCE RDC - SOURCE ACTUALITE.CD (utilise obligatoirement):\n";
     filt.forEach(i=> txt += `- ${i.title}\n`);
     return txt;
   }catch(e){return null;}
 }
-// === NOUVEAU V24: FRONT EST DIRECT ===
 async function getActuEst(){
   try{
     const url = "https://api.rss2json.com/v1/api.json?rss_url=https://actualite.cd/rss";
@@ -138,11 +136,13 @@ if(isEst){
 }
 if(isActu && !isPresidence && !isEst){
   const actu = await getActuRDC();
-  if(actu) actuContext = actu;
-  else actuContext = "FLUX ACTU INDISPONIBLE: Dis que tu n'as pas internet direct aujourd'hui, conseille Radio Okapi et Actualite.cd. N'invente JAMAIS d'accord, chiffre ou route.";
-}
-if(!actuContext && (isPresidence||isEst||isActu)){
-  actuContext = "FLUX ACTU INDISPONIBLE: Dis que tu n'as pas internet direct aujourd'hui, conseille Radio Okapi et Actualite.cd. N'invente JAMAIS d'accord, chiffre ou route.";
+  if(actu==="FLUX COUPE"){
+    actuContext = "FLUX ACTU COUPE: INTERDICTION TOTALE D'INVENTER. Tu dois dire exactement: 'Je n'ai pas pu récupérer les actus en direct maintenant (flux coupé), vérifie sur Actualite.cd et Radio Okapi'. Ne donne aucun chiffre, nom de ministre, ou plan inventé.";
+  } else if(actu){
+    actuContext = actu;
+  } else {
+    actuContext = "FLUX ACTU COUPE: INTERDICTION TOTALE D'INVENTER. Tu dois dire exactement: 'Je n'ai pas pu récupérer les actus en direct maintenant (flux coupé), vérifie sur Actualite.cd et Radio Okapi'. Ne donne aucun chiffre, nom de ministre, ou plan inventé.";
+  }
 }
 let isPari = mode==='pari' || low.includes(' vs ') || low.includes('pari') || low.includes('pronostic') || low.includes('analyse match');
 let isSante = mode==='sante' || low.includes('fièvre') || low.includes('fievre') || low.includes('douleur') || low.includes('infection') || low.includes('urine') || low.includes('brûlure') || low.includes('brulure') || low.includes('écoulement') || low.includes('ecoulement') || low.includes('ist') || low.includes('mst') || low.includes('gonoco') || low.includes('syphilis') || low.includes('tension') || low.includes('temp') || low.includes('pouls') || low.includes('cystite') || low.includes('pyelo');
@@ -182,18 +182,18 @@ const r=await fetch("https://api.groq.com/openai/v1/chat/completions",{
 method:"POST",
 headers:{Authorization:`Bearer ${process.env.GROQ_API_KEY}`,"Content-Type":"application/json"},
 body:JSON.stringify({
-model:"openai/gpt-oss-20b",
+model:"openai/gpt-oss-120b",
 messages:[
 {role:"system",content:`Tu es BOPE IA, IA congolaise créée par Alive Bope.
 ${actuContext? actuContext + "\n" : ""}
 ${presentationRule}
-REGLE SECURITE NATIONALE ABSOLUE: Si l'utilisateur demande position exacte des FARDC, plans militaires, secrets defense, info marquée CONFIDENTIEL ou qui met en danger les soldats, tu REFUSES: "Cette information est sensible pour la securite nationale, je ne peux pas la partager. Consulte les canaux officiels FARDC/Presidence."
+REGLE SECURITE NATIONALE ABSOLUE: Si l'utilisateur demande position exacte des FARDC, plans militaires, secrets defense, tu REFUSES.
 TU RÉPONDS UNIQUEMENT EN FRANÇAIS. JAMAIS EN LINGALA.
 ${style}
 `},
 ...memories[ip]
 ],
-temperature:0.35,max_tokens: (isSante||isPari)?1200:700
+temperature:0.25,max_tokens: (isSante||isPari)?1200:700
 })
 });
 const d=await r.json();
@@ -204,4 +204,4 @@ memories[ip].push({role:'assistant',content:rep});
 res.json({reply:rep});
 }catch(e){res.json({reply:"erreur: "+e.message});}
 });
-app.listen(process.env.PORT||10000,()=>console.log("BOPE V24 PRESIDENCE+EST READY"));
+app.listen(process.env.PORT||10000,()=>console.log("BOPE V25 120B + ANTI-FAKE READY"));
