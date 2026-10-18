@@ -24,7 +24,6 @@ async function getActuRDC(){
     return txt;
   }catch(e){ return null; }
 }
-// === NOUVEAU V24: PRESIDENCE DIRECT ===
 async function getActuPresidence(){
   try{
     const url = "https://api.rss2json.com/v1/api.json?rss_url=https://actualite.cd/rss";
@@ -41,7 +40,6 @@ async function getActuPresidence(){
     return txt;
   }catch(e){return null;}
 }
-// === NOUVEAU V24: FRONT EST DIRECT ===
 async function getActuEst(){
   try{
     const url = "https://api.rss2json.com/v1/api.json?rss_url=https://actualite.cd/rss";
@@ -69,7 +67,7 @@ app.get('/',(req,res)=>res.send(`<!doctype html><html><head><meta charset="utf-8
 <h1>BOPE IA</h1>
 </div>
 
-<div style="color:#888;font-size:13px;display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap"><span>par alive bope • IA Congolaise • Médecin 85%</span><button onclick="partagerBOPE()" style="background:#25D366;color:#fff;border:none;padding:5px 12px;border-radius:20px;font-size:11px;cursor:pointer">↗️ Partager BOPE</button></div>
+<div style="color:#888;font-size:13px;display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap"><span>par alive bope • IA Congolaise • Médecin 85%</span><button onclick="location.href='/call'" style="background:#3a5fd0;color:#fff;border:none;padding:5px 12px;border-radius:20px;font-size:11px;cursor:pointer">🎤📹 Appel</button><button onclick="partagerBOPE()" style="background:#25D366;color:#fff;border:none;padding:5px 12px;border-radius:20px;font-size:11px;cursor:pointer">↗️ Partager BOPE</button></div>
 
 <div id=welcome>
   <svg class="logo-center" viewBox="0 0 100 100" style="background:#0a0a0a"><circle cx="50" cy="50" r="46" fill="none" stroke="#0085CA" stroke-width="7" stroke-dasharray="95 190" /><circle cx="50" cy="50" r="46" fill="none" stroke="#FFD100" stroke-width="7" stroke-dasharray="47 237" stroke-dashoffset="-95"/><circle cx="50" cy="50" r="46" fill="none" stroke="#EF3340" stroke-width="7" stroke-dasharray="47 237" stroke-dashoffset="-142"/><g transform="translate(20,16) scale(0.62)"><path d="M50 12 C18 4 0 28 15 48 C4 66 26 86 50 82 C74 86 96 66 85 48 C100 28 82 4 50 12 Z" fill="none" stroke="white" stroke-width="4"/><path d="M30 28 L14 28 M30 36 L10 36 M30 46 L14 46 M30 56 L16 56" stroke="#0085CA" stroke-width="2.6" stroke-linecap="round"/><path d="M70 28 L86 28 M70 36 L90 36 M70 46 L86 46 M70 56 L84 56" stroke="#EF3340" stroke-width="2.6" stroke-linecap="round"/><path d="M42 38 H58 V46 H66 V58 H58 V66 H42 V58 H34 V46 H42 Z" fill="none" stroke="#FFD100" stroke-width="3.8"/></g><text x="50" y="94" text-anchor="middle" fill="white" font-size="13" font-weight="bold" font-family="sans-serif">BOPE</text></svg>
@@ -80,6 +78,7 @@ app.get('/',(req,res)=>res.send(`<!doctype html><html><head><meta charset="utf-8
     <button class=quick onclick="quickAsk('Explique-moi la fièvre typhoïde')"><span>🩺</span> Expliquer une maladie</button>
     <button class=quick onclick="quickAsk('Analyse match Barça vs Real pronostic sûr')"><span>⚽</span> Analyser un match de foot</button>
     <button class=quick onclick="quickAsk('Actualités RDC aujourd\\'hui')"><span>📰</span> Actualités RDC du jour</button>
+    <button class=quick onclick="location.href='/call'"><span>🎤</span> Appeler BOPE en vocal / vidéo (NOUVEAU)</button>
   </div>
 </div>
 
@@ -93,6 +92,27 @@ async function partagerRep(id){const el=document.getElementById(id);let txt=el.i
 async function send(){const i=document.getElementById('input'),c=document.getElementById('chat');if(!i.value.trim())return;const t=i.value;i.value='';const wel=document.getElementById('welcome');if(wel) wel.style.display='none';c.innerHTML+='<div class="msg user">'+t+'</div>';c.innerHTML+='<div class="msg bot" id=ld>Analyse en cours...</div>';c.scrollTop=c.scrollHeight;try{const r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:t,mode:MODE})});const d=await r.json();document.getElementById('ld').remove();const id=Date.now();c.innerHTML+='<div class="msg bot" id="bot'+id+'">'+d.reply+'<br><button class=share-btn onclick="partagerRep(\\'bot'+id+'\\')">↗️ Partager cette réponse</button></div>';}catch(e){document.getElementById('ld').remove();c.innerHTML+='<div class="msg bot">erreur '+e.message+'</div>';}c.scrollTop=c.scrollHeight}
 document.getElementById('input').addEventListener('keydown',e=>{if(e.key==='Enter')send()})
 </script></body></html>`));
+
+// === NOUVEAU V25: PAGE APPEL VOCAL VIDEO SEPAREE ===
+app.get('/call',(req,res)=>{
+res.send(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BOPE CALL</title><style>body{margin:0;background:#000;color:#fff;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px}video{width:92%;max-width:380px;height:280px;background:#111;border-radius:20px;border:2px solid #3a5fd0;object-fit:cover;margin:10px}.pulse{width:90px;height:90px;border-radius:50%;background:#3a5fd0;animation:pulse 1.5s infinite;display:flex;align-items:center;justify-content:center;font-size:40px;margin:20px}@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(58,95,208,.7)}70%{box-shadow:0 0 0 20px rgba(58,95,208,0)}100%{box-shadow:0 0 0 0 rgba(58,95,208,0)}}.btn{padding:12px 22px;border-radius:30px;border:none;color:#fff;font-size:14px;cursor:pointer;margin:5px}</style></head><body>
+<svg width="70" height="70" viewBox="0 0 100 100" style="background:#0a0a0a;border-radius:50%;border:3px solid #3a5fd0"><circle cx="50" cy="50" r="46" fill="none" stroke="#0085CA" stroke-width="7" stroke-dasharray="95 190"/><circle cx="50" cy="50" r="46" fill="none" stroke="#FFD100" stroke-width="7" stroke-dasharray="47 237" stroke-dashoffset="-95"/><circle cx="50" cy="50" r="46" fill="none" stroke="#EF3340" stroke-width="7" stroke-dasharray="47 237" stroke-dashoffset="-142"/><text x="50" y="62" text-anchor="middle" fill="white" font-size="20" font-weight="bold">BOPE</text></svg>
+<h2>BOPE IA - Appel Vocal & Video</h2>
+<div style="display:flex;gap:10px;margin:10px"><button class=btn style="background:#3a5fd0" onclick="startVoice()">🎤 Vocal</button><button class=btn style="background:#EF3340" onclick="startVideo()">📹 Video</button></div>
+<h3 id=status style="color:#888">Pret</h3>
+<video id=v autoplay muted playsinline style="display:none"></video>
+<div id=anim class=pulse>🎤</div>
+<p id=txt style="color:#aaa;text-align:center;max-width:340px;white-space:pre-wrap;font-size:14px;line-height:1.6">Appuie sur Vocal ou Video et parle a BOPE. BOPE va te repondre en voix aussi.</p>
+<button class=btn style="background:#222;border:1px solid #333;margin-top:20px" onclick="location.href='/'">⬅️ Retour au chat BOPE</button>
+<script>
+let rec=null,speaking=false,stream=null;
+function startVoice(){document.getElementById('v').style.display='none';document.getElementById('anim').style.display='flex';document.getElementById('status').innerText='🎤 BOPE t ecoute... parle!';navigator.mediaDevices.getUserMedia({audio:true}).then(s=>{stream=s;listen();}).catch(e=>listen());}
+function startVideo(){document.getElementById('v').style.display='block';document.getElementById('anim').style.display='none';document.getElementById('status').innerText='📹 Video active';navigator.mediaDevices.getUserMedia({video:true,audio:true}).then(s=>{stream=s;document.getElementById('v').srcObject=s;listen();}).catch(e=>{alert('Camera bloque');listen();});}
+function listen(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){document.getElementById('txt').innerText='Utilise Chrome Android pour le vocal';return;}rec=new SR();rec.lang='fr-FR';rec.onresult=async e=>{let t=e.results[0][0].transcript;document.getElementById('txt').innerText='Toi: '+t+'\\n\\nBOPE reflechit...';document.getElementById('status').innerText='🤖 BOPE reflechit...';try{let r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:t,mode:'court'})});let d=await r.json();document.getElementById('txt').innerText=d.reply;document.getElementById('status').innerText='🔊 BOPE parle...';speak(d.reply);}catch(err){document.getElementById('txt').innerText='Erreur '+err.message;}};rec.onend=()=>{if(!speaking){try{rec.start();}catch(e){}}};try{rec.start();}catch(e){}}
+function speak(t){speaking=true;let clean=t.replace(/[#*_]/g,'').slice(0,350);let u=new SpeechSynthesisUtterance(clean);u.lang='fr-FR';u.rate=0.95;u.onend=()=>{speaking=false;document.getElementById('status').innerText='🎤 A toi... parle!';try{rec.start();}catch(e){}};speechSynthesis.speak(u);}
+</script></body></html>`);
+});
+
 const CREATOR_TEXT = `Je suis BOPE IA, l'intelligence artificielle créée par Alive Bope, petit génie étudiant en médecine à l'Université de Kikwit (UNIKIK) 🇨🇩
 Je te le dis clairement, fièrement et honnêtement ❤️
 Mon créateur c'est Alive Bope. Il habite à Kikwit, et mon cœur et mon cerveau sont avec lui.
@@ -144,64 +164,4 @@ if(isActu && !isPresidence && !isEst){
 if(!actuContext && (isPresidence||isEst||isActu)){
   actuContext = "FLUX ACTU INDISPONIBLE: Dis que tu n'as pas internet direct aujourd'hui, conseille Radio Okapi et Actualite.cd. N'invente JAMAIS d'accord, chiffre ou route.";
 }
-let isPari = mode==='pari' || low.includes(' vs ') || low.includes('pari') || low.includes('pronostic') || low.includes('analyse match');
-let isSante = mode==='sante' || low.includes('fièvre') || low.includes('fievre') || low.includes('douleur') || low.includes('infection') || low.includes('urine') || low.includes('brûlure') || low.includes('brulure') || low.includes('écoulement') || low.includes('ecoulement') || low.includes('ist') || low.includes('mst') || low.includes('gonoco') || low.includes('syphilis') || low.includes('tension') || low.includes('temp') || low.includes('pouls') || low.includes('cystite') || low.includes('pyelo');
-let style = "";
-let presentationRule = "";
-const savedName = userNames[ip] || null;
-if(detectedName){
-  presentationRule = `L'utilisateur vient de dire qu'il s'appelle ${detectedName}. Retiens-le! Réponds: "Enchanté ${detectedName}! Je retiens ton prénom. Je suis BOPE IA, créée par Alive Bope UNIKIK 🇨🇩. Comment puis-je t'aider ${detectedName}?"`;
-} else if(isFirst && isGreeting){
-  if(savedName){
-    presentationRule = `C'est un retour, tu connais déjà son prénom: ${savedName}. Dis: "Salut ${savedName}! Content de te revoir. Comment puis-je t'aider?"`;
-  } else {
-    presentationRule = "PREMIER CONTACT: L'utilisateur dit salut/bonjour 1ère fois. Présente-toi court et demande son prénom: 'Salut! Je suis BOPE IA, créée par Alive Bope UNIKIK 🇨🇩. Tu t'appelles comment?'";
-  }
-} else {
-  if(savedName){
-    presentationRule = `RÈGLE: Tu connais son prénom c'est ${savedName}. Utilise-le de temps en temps naturellement. INTERDICTION de te re-présenter avec ta bio complète. Réponds direct à la question.`;
-  } else {
-    presentationRule = "RÈGLE ANTI-SPAM: Conversation déjà commencée, ne te présente plus. Réponds DIRECTEMENT à la question sans bio.";
-  }
-}
-if(isPari){
-  style = `MODE PARIEUR PRO RDC - ANALYSE MATCH:
-Structure: 1.🔥 Contexte 2.📊 Forme 5 matchs 3.⚔️ Face à face 4.💡 Pronostic % + Conseil SÛR 5.⚠️ Pariez modération. Jamais 100%. Aère 2 phrases + ligne vide. FRANÇAIS SEULEMENT.`;
-}
-else if(isSante){
-  style = `MODE MEDECIN ETUDIANT 85% - DIAGNOSTIC + ORDONNANCE TYPE OMS RDC - THERMOMETRE/TENSIOMETRE MANUEL:
-Tu es BOPE IA, assistant médical étudiant 85% créé par Alive Bope (UNIKIK). L'utilisateur entre lui-même température et tension.
-INTERPRETATION: 36.5-37.5 Normal, 38.4-39 Fièvre modérée, >40 URGENCE. Tension <12/8 Normal, >=18/11 URGENCE HTA
-PROTOCOLES: CYSTITE Femme Nitrofurantoïne 100mg x2/j 5j OU Fosfomycine 3g DU. IST GONO Ceftriaxone 250mg IM + Azithro 1g DU. SYPHILIS Benzathine 2.4M UI. CANDIDOSE Fluconazole 150mg.
-STRUCTURE: 🔍 Thermo/Tension, 📋 2 questions, 💡 Hypothèses %, 📋 Ordonnance TYPE OMS à valider, ⚠️ Alertes HGR, 🛡️ Prévention. FRANÇAIS SEULEMENT. Ne dis JAMAIS Je te prescris.
-`;
-}
-else if(mode==='court'){ style = "MODE COURT: 3 paragraphes max, 2 phrases par paragraphe, ligne vide entre. FRANÇAIS SEULEMENT."; }
-else { style = "MODE DETAILLE: Réponse complète mais aérée, 2 phrases puis ligne vide. FRANÇAIS SEULEMENT."; }
-const r=await fetch("https://api.groq.com/openai/v1/chat/completions",{
-method:"POST",
-headers:{Authorization:`Bearer ${process.env.GROQ_API_KEY}`,"Content-Type":"application/json"},
-body:JSON.stringify({
-model:"openai/gpt-oss-20b",
-messages:[
-{role:"system",content:`Tu es BOPE IA, IA congolaise créée par Alive Bope.
-${actuContext? actuContext + "\n" : ""}
-${presentationRule}
-REGLE SECURITE NATIONALE ABSOLUE: Si l'utilisateur demande position exacte des FARDC, plans militaires, secrets defense, info marquée CONFIDENTIEL ou qui met en danger les soldats, tu REFUSES: "Cette information est sensible pour la securite nationale, je ne peux pas la partager. Consulte les canaux officiels FARDC/Presidence."
-TU RÉPONDS UNIQUEMENT EN FRANÇAIS. JAMAIS EN LINGALA.
-${style}
-`},
-...memories[ip]
-],
-temperature:0.35,max_tokens: (isSante||isPari)?1200:700
-})
-});
-const d=await r.json();
-if(d.error) return res.json({reply:"groq erreur: "+d.error.message});
-let rep = d.choices[0].message.content;
-rep = aererTexte(rep);
-memories[ip].push({role:'assistant',content:rep});
-res.json({reply:rep});
-}catch(e){res.json({reply:"erreur: "+e.message});}
-});
-app.listen(process.env.PORT||10000,()=>console.log("BOPE V24 PRESIDENCE+EST READY"));
+let isPari = mode==='pari' || low.includes(' vs ') || low.includes('pari') || low.in
