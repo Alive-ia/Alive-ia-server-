@@ -204,4 +204,4 @@ memories[ip].push({role:'assistant',content:rep});
 res.json({reply:rep});
 }catch(e){res.json({reply:"erreur: "+e.message});}
 });
-app.listen(process.env.PORT||10000,()=>console.log("BOPE V24 PRESIDENCE+EST READY"));       ça c'est l'ancien
+app.listen(process.env.PORT||10000,()=>console.log("BOPE V24 PRESIDENCE+EST READY"));
