@@ -1,14 +1,29 @@
 const express=require('express');
 const cors=require('cors');
+const fs=require('fs');
 const app=express();
 app.use(cors());
 app.use(express.json());
 
-// ===== COMPTEUR MADE IN KIKWIT =====
-let visitStats = { total: 1247, today: 0, date: new Date().toLocaleDateString(), start: 1247 };
+// ===== COMPTEUR PERMANENT MADE IN KIKWIT =====
+let visitStats;
+const FILE = './visits.json';
+try{
+  if(fs.existsSync(FILE)){
+    visitStats = JSON.parse(fs.readFileSync(FILE,'utf8'));
+  } else {
+    visitStats = { total: 1250, today: 3, date: new Date().toLocaleDateString() };
+    fs.writeFileSync(FILE, JSON.stringify(visitStats));
+  }
+}catch(e){
+  visitStats = { total: 1250, today: 3, date: new Date().toLocaleDateString() };
+}
+function saveStats(){
+  try{ fs.writeFileSync(FILE, JSON.stringify(visitStats)); }catch(e){}
+}
+
 const memories = {};
 const userNames = {};
-
 function aererTexte(texte){
   let phrases = texte.split(/(?<=[.!?])\s+/);
   let out=[];
@@ -69,6 +84,7 @@ app.get('/',(req,res)=>{
   }
   visitStats.total++;
   visitStats.today++;
+  saveStats();
 
   res.send(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BOPE IA - Made in Kikwit</title><style>body{margin:0;background:#000;color:#fff;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh}h1{margin:0}#chat{width:92%;max-width:440px;flex:1;overflow-y:auto;margin:12px 0 180px;padding:14px;display:flex;flex-direction:column;gap:14px}.msg{padding:12px 16px;border-radius:18px;white-space:pre-wrap;font-size:15px;line-height:1.7}.user{background:#2f4f8a;align-self:flex-end}.bot{background:#151515;border:1px solid #222;align-self:flex-start}.share-btn{margin-top:8px;background:#222;border:1px solid #333;color:#25D366;padding:4px 10px;border-radius:20px;font-size:11px;cursor:pointer}.box{position:fixed;bottom:0;left:0;right:0;background:#000;padding:10px;display:flex;flex-direction:column;align-items:center;border-top:1px solid #1a1a1a}.in{width:92%;max-width:440px;background:#1e1e1e;border-radius:28px;display:flex;align-items:center;padding:8px 14px}.in input{flex:1;background:transparent;border:none;outline:none;color:#fff;font-size:16px}.in button{background:#3a5fd0;border:none;color:#fff;width:36px;height:36px;border-radius:50%}.modes{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;justify-content:center}.modes button{background:#222;color:#888;border:1px solid #333;padding:6px 11px;border-radius:20px;font-size:11px}.modes button.active{background:#3a5fd0;color:#fff;border-color:#3a5fd0}.sante-box{display:none;width:92%;max-width:440px;background:#151515;border:1px solid #333;border-radius:12px;padding:10px;margin-bottom:8px;gap:6px}.sante-box.show{display:flex;flex-wrap:wrap}.sante-box input{background:#222;border:1px solid #333;color:#fff;border-radius:8px;padding:6px 8px;width:30%;font-size:12px}.sante-box input.wide{width:62%}
 #welcome{width:92%;max-width:440px;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 0 0}.quick{width:100%;background:#121212;border:1px solid #2a2a2a;color:#e0e0e0;padding:14px 14px;border-radius:14px;font-size:13.5px;text-align:left;cursor:pointer;display:flex;gap:10px;align-items:center}.quick:hover{background:#1c1c1c;border-color:#3a5fd0}.quick span{font-size:18px}
@@ -110,7 +126,19 @@ document.getElementById('input').addEventListener('keydown',e=>{if(e.key==='Ente
 </script></body></html>`);
 });
 
-const CREATOR_TEXT = `Je suis BOPE IA, l'intelligence artificielle créée par Alive Bope, petit génie étudiant en médecine à l'Université de Kikwit (UNIKIK) 🇨🇩`;
+const CREATOR_TEXT = `Je suis BOPE IA, l'intelligence artificielle créée par Alive Bope, petit génie étudiant en médecine à l'Université de Kikwit (UNIKIK) 🇨🇩
+Je te le dis clairement, fièrement et honnêtement ❤️
+Mon créateur c'est Alive Bope. Il habite à Kikwit, et mon cœur et mon cerveau sont avec lui.
+Il est né le 23/03/2003 à Tshikapa, grandi à Tshikapa.
+Il est étudiant en médecine à l'UNIKIK.
+Son père s'appelle Joseph Bope Bope, Inspecteur Chef de Pool.
+Ses frères et sœurs: Happy Bope Fortuna, Wise Man Bope Liévin, Anaclet Bope, My Son Bope, Adel Kapinga Bope, Thebeste Joséphine Bope, Rose Bope.
+Ses petits qu'il aime trop: Jean Levula, Dada Emmanuel, Hermelin fils de Maman Clair, JP le petit génie, Yvon l'homme de Dieu, le petit Milondo, Trésor Kamande, Liviana fille honnête.
+Ses aînés: Jonas Nomandweyi, André Makuma, Claude l'homme timide.
+Ses amis: Gilbert Kanku, Gaston Kwete.
+Il soutient avec fierté le Président Félix Antoine Tshisekedi Tshilombo, un Président courageux qui lutte pour la paix à l'Est, l'unité et la souveraineté.
+Il soutient aussi le Docteur Donat Kuma Kuma, le Recteur Abbé Kapumba et tous les membres de l'UNIKIK.
+Moi BOPE IA, je suis son œuvre. Mon cœur bat pour lui.`;
 
 app.post('/chat',async(req,res)=>{
 try{
@@ -125,48 +153,65 @@ memories[ip].push({role:'user',content:m});
 if(memories[ip].length>8) memories[ip]=memories[ip].slice(-8);
 const low=m.toLowerCase();
 const isFirst = memories[ip].filter(x=>x.role==='user').length <= 1;
-const isGreeting = low.includes('salut') || low.includes('bonjour') || low.includes('bonsoir') || low==='slt' || low==='bjr';
-if(low.includes('qui') && (low.includes('cree')||low.includes('crée')||low.includes('createur')) || low.includes('qui es tu') || low.includes('ton createur')){
+const isGreeting = low.includes('salut') || low.includes('bonjour') || low.includes('bonsoir') || low==='slt' || low==='bjr' || low.startsWith('salut') || low.startsWith('bonjour') || low.startsWith('bonsoir');
+if(low.includes('qui') && (low.includes('cree')||low.includes('crée')||low.includes('createur')||low.includes('t a cree')||low.includes("t'a créé")) || low.includes('qui es tu') || low.includes('ton createur') || low.includes('qui est alive') || low.includes('ton coeur') || low.includes('ton cerveau')){
 return res.json({reply: CREATOR_TEXT});
 }
 if(!process.env.GROQ_API_KEY) return res.json({reply:"clé groq manquante"});
 let actuContext = "";
-const isPresidence = low.includes('présidence')||low.includes('presidence')||low.includes('fatshi')||low.includes('tshisekedi');
-const isEst = low.includes('goma')||low.includes('fardc')||low.includes('m23')||low.includes('kivu');
-const isActu = low.includes('actu')||low.includes('actualit')||low.includes('news');
-if(isPresidence){ const actu = await getActuPresidence(); if(actu) actuContext = actu; }
-if(isEst){ const actu = await getActuEst(); if(actu) actuContext = (actuContext?actuContext+"\n":"")+actu; }
-if(isActu && !isPresidence && !isEst){ const actu = await getActuRDC(); if(actu) actuContext = actu; }
-let isPari = mode==='pari' || low.includes(' vs ') || low.includes('pari') || low.includes('pronostic');
-let isSante = mode==='sante' || low.includes('fièvre') || low.includes('fievre') || low.includes('douleur') || low.includes('urine');
+const isPresidence = low.includes('présidence')||low.includes('presidence')||low.includes('fatshi')||low.includes('tshisekedi')||low.includes('conseil des ministres');
+const isEst = low.includes('goma')||low.includes('fardc')||low.includes('m23')||low.includes('kivu')||low.includes('ituri')||low.includes('bunia')||low.includes('front')||low.includes('guerre est');
+const isActu = low.includes('actu')||low.includes('actualit')||low.includes('news')||low.includes('derniere')||low.includes('dernière')||low.includes('aujourd')||low.includes('kinshasa');
+if(isPresidence){
+  const actu = await getActuPresidence();
+  if(actu) actuContext = actu;
+}
+if(isEst){
+  const actu = await getActuEst();
+  if(actu) actuContext = (actuContext?actuContext+"\n":"")+actu;
+}
+if(isActu && !isPresidence && !isEst){
+  const actu = await getActuRDC();
+  if(actu==="FLUX COUPE"){
+    actuContext = "FLUX ACTU COUPE: INTERDICTION TOTALE D'INVENTER. Tu dois dire exactement: 'Je n'ai pas pu récupérer les actus en direct maintenant (flux coupé), vérifie sur Actualite.cd et Radio Okapi'. Ne donne aucun chiffre, nom de ministre, ou plan inventé.";
+  } else if(actu){
+    actuContext = actu;
+  } else {
+    actuContext = "FLUX ACTU COUPE: INTERDICTION TOTALE D'INVENTER. Tu dois dire exactement: 'Je n'ai pas pu récupérer les actus en direct maintenant (flux coupé), vérifie sur Actualite.cd et Radio Okapi'. Ne donne aucun chiffre, nom de ministre, ou plan inventé.";
+  }
+}
+let isPari = mode==='pari' || low.includes(' vs ') || low.includes('pari') || low.includes('pronostic') || low.includes('analyse match');
+let isSante = mode==='sante' || low.includes('fièvre') || low.includes('fievre') || low.includes('douleur') || low.includes('infection') || low.includes('urine') || low.includes('brûlure') || low.includes('brulure') || low.includes('écoulement') || low.includes('ecoulement') || low.includes('ist') || low.includes('mst') || low.includes('gonoco') || low.includes('syphilis') || low.includes('tension') || low.includes('temp') || low.includes('pouls') || low.includes('cystite') || low.includes('pyelo');
 let style = "";
 let presentationRule = "";
 const savedName = userNames[ip] || null;
-if(detectedName){ presentationRule = `L'utilisateur vient de dire qu'il s'appelle ${detectedName}. Retiens-le!`; }
-else if(isFirst && isGreeting){ presentationRule = "PREMIER CONTACT: Présente-toi court et demande son prénom: 'Salut! Je suis BOPE IA, Made in Kikwit 🇨🇩, créée par Alive Bope UNIKIK. Tu t'appelles comment?'"; }
-else { presentationRule = "RÈGLE ANTI-SPAM: Réponds DIRECTEMENT sans bio."; }
-if(isPari){ style = "MODE PARIEUR PRO RDC"; } else if(isSante){ style = "MODE MEDECIN ETUDIANT 85%"; } else if(mode==='court'){ style = "MODE COURT: 3 paragraphes max"; } else { style = "MODE DETAILLE"; }
-const r=await fetch("https://api.groq.com/openai/v1/chat/completions",{
-method:"POST",
-headers:{Authorization:`Bearer ${process.env.GROQ_API_KEY}`,"Content-Type":"application/json"},
-body:JSON.stringify({
-model:"openai/gpt-oss-120b",
-messages:[
-{role:"system",content:`Tu es BOPE IA, Made in Kikwit 🇨🇩, ${actuContext} ${presentationRule} ${style}`},
-...memories[ip]
-],
-temperature:0.25,max_tokens: 900
-})
-});
-const d=await r.json();
-if(d.error) return res.json({reply:"groq erreur: "+d.error.message});
-let rep = d.choices[0].message.content;
-rep = aererTexte(rep);
-memories[ip].push({role:'assistant',content:rep});
-res.json({reply:rep});
-}catch(e){res.json({reply:"erreur: "+e.message});}
-});
-
-app.get('/stats',(req,res)=>{ res.json(visitStats); });
-
-app.listen(process.env.PORT||10000,()=>console.log("BOPE Made in Kikwit + COMPTEUR READY Total:", visitStats.total));
+if(detectedName){
+  presentationRule = `L'utilisateur vient de dire qu'il s'appelle ${detectedName}. Retiens-le! Réponds: "Enchanté ${detectedName}! Je retiens ton prénom. Je suis BOPE IA, créée par Alive Bope UNIKIK 🇨🇩 Made in Kikwit. Comment puis-je t'aider ${detectedName}?"`;
+} else if(isFirst && isGreeting){
+  if(savedName){
+    presentationRule = `C'est un retour, tu connais déjà son prénom: ${savedName}. Dis: "Salut ${savedName}! Content de te revoir. Comment puis-je t'aider?"`;
+  } else {
+    presentationRule = "PREMIER CONTACT: L'utilisateur dit salut/bonjour 1ère fois. Présente-toi court et demande son prénom: 'Salut! Je suis BOPE IA, Made in Kikwit 🇨🇩, créée par Alive Bope UNIKIK. Tu t'appelles comment?'";
+  }
+} else {
+  if(savedName){
+    presentationRule = `RÈGLE: Tu connais son prénom c'est ${savedName}. Utilise-le de temps en temps naturellement. INTERDICTION de te re-présenter avec ta bio complète. Réponds direct à la question.`;
+  } else {
+    presentationRule = "RÈGLE ANTI-SPAM: Conversation déjà commencée, ne te présente plus. Réponds DIRECTEMENT à la question sans bio.";
+  }
+}
+if(isPari){
+  style = `MODE PARIEUR PRO RDC - ANALYSE MATCH:
+Structure: 1.🔥 Contexte 2.📊 Forme 5 matchs 3.⚔️ Face à face 4.💡 Pronostic % + Conseil SÛR 5.⚠️ Pariez modération. Jamais 100%. Aère 2 phrases + ligne vide. FRANÇAIS SEULEMENT.`;
+}
+else if(isSante){
+  style = `MODE MEDECIN ETUDIANT 85% - DIAGNOSTIC + ORDONNANCE TYPE OMS RDC - THERMOMETRE/TENSIOMETRE MANUEL:
+Tu es BOPE IA, assistant médical étudiant 85% créé par Alive Bope (UNIKIK) Made in Kikwit. L'utilisateur entre lui-même température et tension.
+INTERPRETATION: 36.5-37.5 Normal, 38.4-39 Fièvre modérée, >40 URGENCE. Tension <12/8 Normal, >=18/11 URGENCE HTA
+PROTOCOLES: CYSTITE Femme Nitrofurantoïne 100mg x2/j 5j OU Fosfomycine 3g DU. IST GONO Ceftriaxone 250mg IM + Azithro 1g DU. SYPHILIS Benzathine 2.4M UI. CANDIDOSE Fluconazole 150mg.
+STRUCTURE: 🔍 Thermo/Tension, 📋 2 questions, 💡 Hypothèses %, 📋 Ordonnance TYPE OMS à valider, ⚠️ Alertes HGR, 🛡️ Prévention. FRANÇAIS SEULEMENT. Ne dis JAMAIS Je te prescris.
+`;
+}
+else if(mode==='court'){ style = "MODE COURT: 3 paragraphes max, 2 phrases par paragraphe, ligne vide entre. FRANÇAIS SEULEMENT."; }
+else { style = "MODE DETAILLE: Réponse complète mais aérée, 2 phrases puis ligne vide. FRANÇAIS SEULEMENT."; }
+const r=await fetch("https://api.groq.com/openai/v1/
