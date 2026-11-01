@@ -198,6 +198,11 @@ app.post('/chat', async (req, res) => {
     else presentationRule = savedName ? `Tu connais son prénom c'est ${savedName}. INTERDICTION de re-présenter bio. Réponds direct.` : 'RÈGLE ANTI-SPAM: Ne te présente plus. Réponds DIRECTEMENT.';
 
     // Instructions BOPE Santé conservées telles que fournies dans la version source.
-    if (isSante) style = 'MODE SANTE 85% ETUDIANT: Interpretation thermo/tension, 2 questions, hypotheses %, ordonnance TYPE OMS, alertes HGR. FRANCAIS SEULEMENT.';
-    else if (mode === 'court') style = 'MODE COURT: 3 paragraphes max, 2 phrases par paragraphe, ligne vide. F
-else if (mode === 'court') style = "MODE COURT: 3 paragraphes max, 2 phrases par paragraphe, ligne vide. FRANCAIS SEULEMENT.";
+    // Instructions BOPE Santé conservées.
+if (isSante) {
+  style = 'MODE SANTE 85% ETUDIANT: Interpretation thermo/tension, 2 questions, hypotheses %, ordonnance TYPE OMS, alertes HGR. FRANCAIS SEULEMENT.';
+} else if (mode === 'court') {
+  style = 'MODE COURT: 3 paragraphes max, 2 phrases par paragraphe, ligne vide. FRANCAIS SEULEMENT.';
+} else {
+  style = 'MODE DETAILLE: Réponse complète mais aérée, 2 phrases puis ligne vide. FRANCAIS SEULEMENT.';
+}
