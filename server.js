@@ -70,42 +70,71 @@ async function getRssItems() {
   }
 }
 
+function normalizeNewsItems(items) {
+  const now = Date.now();
+  const maxAge = 7 * 24 * 60 * 60 * 1000;
+  return items.map(item => {
+    const title = String(item.title || '').replace(/<[^>]*>/g, '').trim();
+    const link = String(item.link || '').trim();
+    const published = new Date(item.pubDate || item.isoDate || '').getTime();
+    const description = String(item.description || item.content || '')
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 350);
+    let host = '';
+    try { host = new URL(link).hostname.replace(/^www\./, ''); } catch (e) {}
+    if (!title || !/^https:\/\//i.test(link) || !host || !Number.isFinite(published)) return null;
+    if (now - published > maxAge || published - now > 24 * 60 * 60 * 1000) return null;
+    return { title, link, published, date: new Date(published).toLocaleString('fr-FR', { timeZone: 'Africa/Kinshasa' }), host, description };
+  }).filter(Boolean).sort((a, b) => b.published - a.published);
+}
+
+function formatNewsContext(items, heading) {
+  if (!items.length) return 'AUCUN ARTICLE RECENT VERIFIABLE : le flux disponible ne contient aucun article valide publié dans les 7 derniers jours.';
+  return heading + ' (source : Actualite.cd ; articles récents, classés du plus récent au plus ancien) :\n' +
+    items.slice(0, 5).map(item =>
+      '- Titre : ' + item.title + '\n  Média : ' + item.host + '\n  Date : ' + item.date +
+      '\n  Lien : ' + item.link + (item.description ? '\n  Résumé du flux : ' + item.description : '')
+    ).join('\n');
+}
+
 async function getActuRDC() {
   try {
-    const items = await getRssItems();
-    if (!items.length) return 'FLUX COUPE';
-    let txt = 'ACTUALITES REELLES DU JOUR - ACTUALITE.CD :\n';
-    items.slice(0, 5).forEach(i => { txt += `- ${i.title} | ${i.pubDate || ''}\n`; });
-    return txt;
-  } catch (e) { console.error('Actualités RDC:', e.message); return 'FLUX COUPE'; }
+    const items = normalizeNewsItems(await getRssItems());
+    return formatNewsContext(items, 'ACTUALITES RDC');
+  } catch (e) {
+    console.error('Actualités RDC:', e.message);
+    return 'FLUX ACTUALITES INDISPONIBLE : impossible de récupérer ou vérifier les articles récents.';
+  }
 }
 
 async function getActuPresidence() {
   try {
-    const items = await getRssItems();
-    const filt = items.filter(i => {
-      const t = (i.title || '').toLowerCase();
-      return t.includes('présidence') || t.includes('presidence') || t.includes('tshisekedi') || t.includes('felix') || t.includes('fatshi') || t.includes('conseil des ministres');
-    }).slice(0, 5);
-    if (!filt.length) return null;
-    let txt = 'ACTUALITES PRESIDENCE - SOURCE ACTUALITE.CD :\n';
-    filt.forEach(i => { txt += `- ${i.title}\n`; });
-    return txt;
-  } catch (e) { console.error('Actualités Présidence:', e.message); return null; }
+    const items = normalizeNewsItems(await getRssItems()).filter(item => {
+      const t = (item.title + ' ' + item.description).toLowerCase();
+      return t.includes('présidence') || t.includes('presidence') || t.includes('tshisekedi') ||
+        t.includes('felix') || t.includes('fatshi') || t.includes('conseil des ministres');
+    });
+    return formatNewsContext(items, 'ACTUALITES PRESIDENCE');
+  } catch (e) {
+    console.error('Actualités Présidence:', e.message);
+    return 'FLUX ACTUALITES PRESIDENCE INDISPONIBLE : impossible de vérifier les articles récents.';
+  }
 }
 
 async function getActuEst() {
   try {
-    const items = await getRssItems();
-    const filt = items.filter(i => {
-      const t = (i.title || '').toLowerCase();
-      return t.includes('goma') || t.includes('fardc') || t.includes('m23') || t.includes('kivu') || t.includes('ituri') || t.includes('bunia');
-    }).slice(0, 5);
-    if (!filt.length) return null;
-    let txt = 'ACTUALITES EST - FARDC / GOMA - SOURCE ACTUALITE.CD :\n';
-    filt.forEach(i => { txt += `- ${i.title}\n`; });
-    return txt;
-  } catch (e) { console.error('Actualités Est:', e.message); return null; }
+    const items = normalizeNewsItems(await getRssItems()).filter(item => {
+      const t = (item.title + ' ' + item.description).toLowerCase();
+      return t.includes('goma') || t.includes('fardc') || t.includes('m23') ||
+        t.includes('kivu') || t.includes('ituri') || t.includes('bunia');
+    });
+    return formatNewsContext(items, 'ACTUALITES EST DE LA RDC');
+  } catch (e) {
+    console.error('Actualités Est:', e.message);
+    return 'FLUX ACTUALITES EST INDISPONIBLE : impossible de vérifier les articles récents.';
+  }
 }
 
 // === CREATOR_TEXT : CONSERVE INTEGRALEMENT ===
@@ -217,7 +246,7 @@ const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     messages: [
       {
         role: "system",
-        content: `Tu es BOPE IA, Made in Kikwit, créée par Alive Bope. ${actuContext} ${presentationRule} ${style}`
+        content: `Tu es BOPE IA, Made in Kikwit, créée par Alive Bope. ${actuContext} ${actuContext ? 'REGLES ACTUALITES : utilise uniquement les articles fournis dans le contexte. Ne crée aucun événement, nom, chiffre, date ou citation. Si les articles ne suffisent pas, dis-le clairement. Distingue la date de publication de la date des faits. Cite le média, la date et le lien lorsqu’ils sont disponibles. Un seul flux RSS ne constitue pas une vérification indépendante.' : ''} ${presentationRule} ${style}`
       },
       ...memories[ip]
     ],
