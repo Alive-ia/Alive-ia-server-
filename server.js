@@ -51,20 +51,51 @@ function checkRateLimit(ip) {
 
 // Cache court pour éviter de solliciter le flux RSS à chaque message.
 const rssCache = new Map();
+
+function decodeXml(value) {
+  return String(value || '')
+    .replace(/<!\\[CDATA\\[([\\s\\S]*?)\\]\\]>/g, '$1')
+    .replace(/&#(\\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/&apos;/g, "'")
+    .trim();
+}
+
+function readXmlTag(block, names) {
+  for (const name of names) {
+    const match = block.match(new RegExp('<' + name + '(?:\\s[^>]*)?>([\\s\\S]*?)</' + name + '\\s*>', 'i'));
+    if (match) return decodeXml(match[1].replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' '));
+    const atomLink = name === 'link' ? block.match(/<link\\b[^>]*href=["']([^"']+)["'][^>]*\\/?\\s*>/i) : null;
+    if (atomLink) return decodeXml(atomLink[1]);
+  }
+  return '';
+}
+
 async function getRssItems() {
   const key = 'actualite.cd';
   const cached = rssCache.get(key);
   if (cached && Date.now() - cached.time < 5 * 60 * 1000) return cached.items;
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000);
+  const timeout = setTimeout(() => controller.abort(), 10000);
   try {
-    const url = 'https://api.rss2json.com/v1/api.json?rss_url=https://actualite.cd/rss';
-    const response = await fetch(url, { signal: controller.signal, headers: { Accept: 'application/json' } });
-    if (!response.ok) throw new Error(`Flux RSS HTTP ${response.status}`);
-    const data = await response.json();
-    if (!Array.isArray(data.items)) throw new Error('Format RSS invalide');
-    rssCache.set(key, { time: Date.now(), items: data.items });
-    return data.items;
+    const response = await fetch('https://actualite.cd/rss', {
+      signal: controller.signal,
+      headers: { Accept: 'application/rss+xml, application/xml, text/xml, */*', 'User-Agent': 'BOPE-IA-NewsReader/1.0' }
+    });
+    if (!response.ok) throw new Error('Flux RSS direct HTTP ' + response.status);
+    const xml = await response.text();
+    if (!xml || !/<(?:item|entry)\\b/i.test(xml)) throw new Error('Le flux RSS direct ne contient aucun article reconnu');
+    const blocks = xml.match(/<(?:item|entry)\\b[^>]*>[\\s\\S]*?<\\/(?:item|entry)\\s*>/gi) || [];
+    const items = blocks.map(block => ({
+      title: readXmlTag(block, ['title']),
+      link: readXmlTag(block, ['link', 'guid', 'id']),
+      pubDate: readXmlTag(block, ['pubDate', 'published', 'updated', 'dc:date', 'date']),
+      description: readXmlTag(block, ['description', 'summary', 'content:encoded', 'content'])
+    })).filter(item => item.title && item.link);
+    rssCache.set(key, { time: Date.now(), items });
+    console.log('Flux RSS direct Actualité.cd :', items.length, 'article(s) récupéré(s)');
+    return items;
   } finally {
     clearTimeout(timeout);
   }
