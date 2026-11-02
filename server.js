@@ -206,3 +206,46 @@ if (isSante) {
 } else {
   style = 'MODE DETAILLE: Réponse complète mais aérée, 2 phrases puis ligne vide. FRANCAIS SEULEMENT.';
 }
+const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    model: "openai/gpt-oss-120b",
+    messages: [
+      {
+        role: "system",
+        content: `Tu es BOPE IA, Made in Kikwit, créée par Alive Bope. ${actuContext} ${presentationRule} ${style}`
+      },
+      ...memories[ip]
+    ],
+    temperature: 0.25,
+    max_tokens: isSante ? 1100 : 700
+  })
+});
+
+const d = await r.json();
+
+if (d.error) {
+  return res.json({ reply: "Erreur Groq : " + d.error.message });
+}
+
+let rep = d.choices[0].message.content;
+rep = aererTexte(rep);
+
+memories[ip].push({ role: 'assistant', content: rep });
+
+res.json({ reply: rep });
+
+} catch (e) {
+  res.json({ reply: "Erreur : " + e.message });
+}
+});
+
+app.get('/stats', (req, res) => res.json(visitStats));
+
+app.listen(process.env.PORT || 10000, () => {
+  console.log("BOPE IA démarré - Total :", visitStats.total);
+});
