@@ -64,7 +64,7 @@ function decodeXml(value) {
 
 function readXmlTag(block, names) {
   for (const name of names) {
-    const match = block.match(new RegExp('<' + name + '(?:\s[^>]*)?>([\s\S]*?)</' + name + '\s*>', 'i'));
+    const match = block.match(new RegExp('<' + name + '(?:\\s[^>]*)?>([\\s\\S]*?)</' + name + '\\s*>', 'i'));
     if (match) return decodeXml(match[1].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' '));
     const atomLink = name === 'link' ? block.match(/<link\b[^>]*href=["']([^"']+)["'][^>]*\/?\s*>/i) : null;
     if (atomLink) return decodeXml(atomLink[1]);
