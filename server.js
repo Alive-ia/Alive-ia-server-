@@ -54,8 +54,8 @@ const rssCache = new Map();
 
 function decodeXml(value) {
   return String(value || '')
-    .replace(/<!\\[CDATA\\[([\\s\\S]*?)\\]\\]>/g, '$1')
-    .replace(/&#(\\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
+    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
     .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
     .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"').replace(/&apos;/g, "'")
@@ -64,9 +64,9 @@ function decodeXml(value) {
 
 function readXmlTag(block, names) {
   for (const name of names) {
-    const match = block.match(new RegExp('<' + name + '(?:\\s[^>]*)?>([\\s\\S]*?)</' + name + '\\s*>', 'i'));
-    if (match) return decodeXml(match[1].replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' '));
-    const atomLink = name === 'link' ? block.match(/<link\\b[^>]*href=["']([^"']+)["'][^>]*\\/?\\s*>/i) : null;
+    const match = block.match(new RegExp('<' + name + '(?:\s[^>]*)?>([\s\S]*?)</' + name + '\s*>', 'i'));
+    if (match) return decodeXml(match[1].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' '));
+    const atomLink = name === 'link' ? block.match(/<link\b[^>]*href=["']([^"']+)["'][^>]*\/?\s*>/i) : null;
     if (atomLink) return decodeXml(atomLink[1]);
   }
   return '';
@@ -85,8 +85,8 @@ async function getRssItems() {
     });
     if (!response.ok) throw new Error('Flux RSS direct HTTP ' + response.status);
     const xml = await response.text();
-    if (!xml || !/<(?:item|entry)\\b/i.test(xml)) throw new Error('Le flux RSS direct ne contient aucun article reconnu');
-    const blocks = xml.match(/<(?:item|entry)\\b[^>]*>[\\s\\S]*?<\\/(?:item|entry)\\s*>/gi) || [];
+    if (!xml || !/<(?:item|entry)\b/i.test(xml)) throw new Error('Le flux RSS direct ne contient aucun article reconnu');
+    const blocks = xml.match(/<(?:item|entry)\b[^>]*>[\s\S]*?<\/(?:item|entry)\s*>/gi) || [];
     const items = blocks.map(block => ({
       title: readXmlTag(block, ['title']),
       link: readXmlTag(block, ['link', 'guid', 'id']),
