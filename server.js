@@ -1,4 +1,5 @@
 const express = require('express');
+// Test technique BOPE V2.3 : écriture GitHub vérifiée.
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
