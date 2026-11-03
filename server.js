@@ -6,7 +6,7 @@ const path = require('path');
 const app = express();
 app.disable('x-powered-by');
 app.use(cors());
-app.use(express.json({ limit: '20kb' }));
+app.use(express.json({ limit: '9mb' }));
 
 // === COMPTEUR PERMANENT ===
 const STATS_FILE = path.join(__dirname, 'visits.json');
@@ -242,7 +242,7 @@ app.get('/', (req, res) => {
   <div class="composer">
     <button class="tool-btn" onclick="document.getElementById('fileAttach').click()" title="Joindre un fichier" aria-label="Joindre un fichier">＋</button>
     <textarea id="input" rows="1" placeholder="Écris à BOPE..." aria-label="Ton message"></textarea>
-    <input id="fileAttach" type="file" accept="image/*,.pdf,.txt" style="display:none" onchange="showAttachment(this)">
+    <input id="fileAttach" type="file" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="showAttachment(this)">
     <button class="tool-btn" onclick="startVoiceInput()" title="Dicter un message" aria-label="Dicter un message">🎙</button>
     <button class="tool-btn send-btn" id="sendButton" onclick="send()" title="Envoyer" aria-label="Envoyer">↑</button>
   </div>
@@ -261,7 +261,9 @@ app.get('/', (req, res) => {
   function loadConversation(id){const c=conversations.find(x=>x.id===id);if(!c)return;currentConversationId=id;const chat=document.getElementById('chat');chat.innerHTML='';const w=document.getElementById('welcome');if(w)w.style.display='none';(c.messages||[]).forEach(m=>{const el=document.createElement('div');el.className='msg '+(m.role==='user'?'user':'bot');el.textContent=m.content;chat.appendChild(el);});toggleMenu(false);chat.scrollTop=chat.scrollHeight;}
   function saveMessage(role,content){if(!currentConversationId){currentConversationId=String(Date.now());conversations.unshift({id:currentConversationId,title:content.slice(0,48),messages:[]});}const c=conversations.find(x=>x.id===currentConversationId);if(c){c.messages.push({role,content});saveConversations();}}
   function resizeComposer(){const el=document.getElementById('input');el.style.height='auto';el.style.height=Math.min(el.scrollHeight,180)+'px';}
-  function showAttachment(input){const f=input.files&&input.files[0],info=document.getElementById('attachmentInfo');if(!f){info.style.display='none';return;}info.style.display='block';info.textContent='Fichier sélectionné : '+f.name+' (la transmission des pièces jointes à BOPE sera activée dans une prochaine mise à jour).';}
+  let selectedImageData=null,selectedImageMime=null,selectedImageName=null;
+  function showAttachment(input){const f=input.files&&input.files[0],info=document.getElementById('attachmentInfo');selectedImageData=null;selectedImageMime=null;selectedImageName=null;if(!f){info.style.display='none';return;}if(!['image/jpeg','image/png','image/webp'].includes(f.type)){info.style.display='block';info.textContent='Format non pris en charge. Choisis une image JPG, PNG ou WEBP.';input.value='';return;}if(f.size>6*1024*1024){info.style.display='block';info.textContent='Image trop volumineuse. Taille maximale : 6 Mo.';input.value='';return;}const reader=new FileReader();reader.onload=()=>{selectedImageData=reader.result;selectedImageMime=f.type;selectedImageName=f.name;info.style.display='block';info.textContent='📎 Image prête : '+f.name+' • Elle sera envoyée à BOPE avec ton prochain message.';};reader.onerror=()=>{info.style.display='block';info.textContent='Impossible de lire cette image.';};reader.readAsDataURL(f);}
+
   function startVoiceInput(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){alert('La dictée vocale n’est pas prise en charge par ce navigateur.');return;}const rec=new SR();rec.lang='fr-FR';rec.onresult=e=>{document.getElementById('input').value+=(document.getElementById('input').value?' ':'')+e.results[0][0].transcript;resizeComposer();};rec.onerror=()=>alert('La reconnaissance vocale n’a pas fonctionné.');rec.start();}
 
   function escapeHTML(value){return String(value).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
@@ -270,9 +272,9 @@ app.get('/', (req, res) => {
   function quickAsk(txt){document.getElementById('input').value=txt;send();}
   async function partagerBOPE(){const url=window.location.href,txt='Découvre BOPE IA 🇨🇩 Made in Kikwit - créée par Alive Bope UNIKIK: ';if(navigator.share){try{await navigator.share({title:'BOPE IA - Made in Kikwit',text:txt,url});}catch(e){}}else{try{await navigator.clipboard.writeText(txt+url);alert('Lien BOPE Made in Kikwit copié! 🇨🇩');}catch(e){alert('Copie impossible sur ce navigateur.');}}}
   async function partagerRep(id){const el=document.getElementById(id);if(!el)return;const txt=el.innerText.replace(/↗️ Partager cette réponse/,'').trim();if(navigator.share){try{await navigator.share({title:'BOPE IA',text:txt});}catch(e){}}else{try{await navigator.clipboard.writeText(txt);alert('Réponse copiée!');}catch(e){alert('Copie impossible.');}}}
-  async function send(){const input=document.getElementById('input'),chat=document.getElementById('chat');const message=input.value.trim();if(!message)return;saveMessage('user',message);input.value='';resizeComposer();const welcome=document.getElementById('welcome');if(welcome)welcome.style.display='none';const user=document.createElement('div');user.className='msg user';user.textContent=message;chat.appendChild(user);const loading=document.createElement('div');loading.className='msg bot';loading.textContent='Analyse en cours...';chat.appendChild(loading);chat.scrollTop=chat.scrollHeight;
-    try{const response=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message,mode:MODE})});const data=await response.json();loading.remove();const box=document.createElement('div');box.className='msg bot';box.id='bot'+Date.now();const answer=document.createElement('span');answer.textContent=data.reply||'Aucune réponse reçue.';saveMessage('assistant',answer.textContent);box.appendChild(answer);box.appendChild(document.createElement('br'));const share=document.createElement('button');share.className='share-btn';share.textContent='↗️ Partager cette réponse';share.onclick=()=>partagerRep(box.id);box.appendChild(share);chat.appendChild(box);
-    }catch(e){loading.textContent='Erreur de connexion. Vérifie ta connexion Internet puis réessaie.';}chat.scrollTop=chat.scrollHeight;}
+  async function send(){const input=document.getElementById('input'),chat=document.getElementById('chat');const message=input.value.trim();if(!message&&!selectedImageData)return;const imageData=selectedImageData,imageMime=selectedImageMime,imageName=selectedImageName;saveMessage('user',message||(imageName?'Analyse cette image : '+imageName:'Image envoyée'));input.value='';resizeComposer();const welcome=document.getElementById('welcome');if(welcome)welcome.style.display='none';const user=document.createElement('div');user.className='msg user';user.textContent=message;chat.appendChild(user);const loading=document.createElement('div');loading.className='msg bot';loading.textContent='Analyse en cours...';chat.appendChild(loading);chat.scrollTop=chat.scrollHeight;
+    try{const response=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:message||(imageName?'Analyse cette image : '+imageName:'Analyse cette image.'),mode:MODE,imageData,imageMime})});const data=await response.json();loading.remove();const box=document.createElement('div');box.className='msg bot';box.id='bot'+Date.now();const answer=document.createElement('span');answer.textContent=data.reply||'Aucune réponse reçue.';saveMessage('assistant',answer.textContent);box.appendChild(answer);box.appendChild(document.createElement('br'));const share=document.createElement('button');share.className='share-btn';share.textContent='↗️ Partager cette réponse';share.onclick=()=>partagerRep(box.id);box.appendChild(share);chat.appendChild(box);
+    }catch(e){loading.textContent='Erreur de connexion. Vérifie ta connexion Internet puis réessaie.';}selectedImageData=null;selectedImageMime=null;selectedImageName=null;document.getElementById('fileAttach').value='';document.getElementById('attachmentInfo').style.display='none';chat.scrollTop=chat.scrollHeight;}
   document.getElementById('input').addEventListener('input',resizeComposer);
   document.getElementById('input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
   renderHistory();
@@ -282,9 +284,14 @@ app.get('/', (req, res) => {
 app.post('/chat', async (req, res) => {
   try {
     const m = typeof req.body.message === 'string' ? req.body.message.trim() : '';
+    const imageData = typeof req.body.imageData === 'string' ? req.body.imageData : '';
+    const imageMime = typeof req.body.imageMime === 'string' ? req.body.imageMime : '';
+    const hasImage = Boolean(imageData);
+    if (hasImage && (!['image/jpeg','image/png','image/webp'].includes(imageMime) || !/^data:image\/(jpeg|png|webp);base64,/.test(imageData))) return res.status(400).json({ reply: 'Image invalide. Envoie une image JPG, PNG ou WEBP.' });
+    if (hasImage && imageData.length > 8 * 1024 * 1024) return res.status(413).json({ reply: 'Image trop volumineuse. Limite : 6 Mo.' });
     const mode = ['court', 'detail', 'sante'].includes(req.body.mode) ? req.body.mode : 'court';
     const ip = req.ip || req.socket.remoteAddress || 'unknown';
-    if (!m) return res.status(400).json({ reply: 'Écris d’abord ton message.' });
+    if (!m && !hasImage) return res.status(400).json({ reply: 'Écris un message ou joins une image.' });
     if (m.length > 4000) return res.status(413).json({ reply: 'Ton message est trop long. Limite : 4 000 caractères.' });
     if (!checkRateLimit(ip)) return res.status(429).json({ reply: 'Tu envoies trop de messages. Attends une minute avant de réessayer.' });
 
@@ -335,13 +342,14 @@ const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     "Content-Type": "application/json"
   },
   body: JSON.stringify({
-    model: "openai/gpt-oss-120b",
+    model: hasImage ? "qwen/qwen3.8-27b" : "openai/gpt-oss-120b",
     messages: [
       {
         role: "system",
-        content: `Tu es BOPE IA, Made in Kikwit, créée par Alive Bope. ${actuContext} ${actuContext ? 'REGLES ACTUALITES : utilise uniquement les articles fournis dans le contexte. Ne crée aucun événement, nom, chiffre, date ou citation. Si les articles ne suffisent pas, dis-le clairement. Distingue la date de publication de la date des faits. Cite le média, la date et le lien lorsqu’ils sont disponibles. Un seul flux RSS ne constitue pas une vérification indépendante.' : ''} ${presentationRule} ${style}`
+        content: `Tu es BOPE IA, Made in Kikwit, créée par Alive Bope. ${actuContext} ${actuContext ? 'REGLES ACTUALITES : utilise uniquement les articles fournis dans le contexte. Ne crée aucun événement, nom, chiffre, date ou citation. Si les articles ne suffisent pas, dis-le clairement. Distingue la date de publication de la date des faits. Cite le média, la date et le lien lorsqu’ils sont disponibles. Un seul flux RSS ne constitue pas une vérification indépendante.' : ''} ${hasImage ? 'Une image est jointe. Décris ce qui est réellement visible, lis les textes si possible, réponds à la question de l’utilisateur et signale clairement toute partie illisible. Ne devine pas les détails incertains.' : ''} ${presentationRule} ${style}`
       },
-      ...memories[ip]
+      ...memories[ip].slice(0, -1),
+      { role: 'user', content: hasImage ? [{ type: 'text', text: m || 'Décris et analyse cette image.' }, { type: 'image_url', image_url: { url: imageData } }] : m }
     ],
     temperature: 0.25,
     max_tokens: isSante ? 1100 : 700
