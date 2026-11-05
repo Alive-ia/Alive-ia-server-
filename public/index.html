@@ -101,15 +101,19 @@ function dClone(b){return b.map(row=>row.slice());}
 function dSide(p){return p?p.toLowerCase():null;}
 function dCaptureRoutes(board,r,c,piece,originR,originC,captured,path,out){
  const king=piece===piece.toUpperCase(),dirs=[[-1,-1],[-1,1],[1,-1],[1,1]];
- for(const [dr,dc] of dirs){let rr=r+dr,cc=c+dc;
-  if(!king){while(rr>=0&&rr<10&&cc>=0&&cc<10&&!board[rr][cc]){rr+=dr;cc+=dc;}
+ for(const [dr,dc] of dirs){
+  let rr=r+dr,cc=c+dc;
+  if(!king){
+   // Un pion ordinaire saute uniquement un adversaire adjacent et atterrit juste derrière.
    if(rr<0||rr>=10||cc<0||cc>=10||!board[rr][cc]||dSide(board[rr][cc])===dSide(piece)||captured.some(q=>q[0]===rr&&q[1]===cc))continue;
-   let lr=rr+dr,lc=cc+dc;if(lr<0||lr>=10||lc<0||lc>=10||board[lr][lc])continue;
+   const lr=rr+dr,lc=cc+dc;
+   if(lr<0||lr>=10||lc<0||lc>=10||board[lr][lc])continue;
    const nb=dClone(board);nb[r][c]=null;nb[rr][cc]=null;nb[lr][lc]=piece;
    const nc=captured.concat([[rr,cc]]),np=path.concat([[lr,lc]]),before=out.length;
    dCaptureRoutes(nb,lr,lc,piece,originR,originC,nc,np,out);
    if(out.length===before)out.push({from:[originR,originC],path:np,captured:nc});
   }else{
+   // Une dame peut capturer à distance et choisir n'importe quelle case libre après l'adversaire.
    while(rr>=0&&rr<10&&cc>=0&&cc<10&&!board[rr][cc]){rr+=dr;cc+=dc;}
    if(rr<0||rr>=10||cc<0||cc>=10||!board[rr][cc]||dSide(board[rr][cc])===dSide(piece)||captured.some(q=>q[0]===rr&&q[1]===cc))continue;
    const vr=rr,vc=cc;rr+=dr;cc+=dc;
