@@ -263,7 +263,7 @@ function renderDraughts(){
   cell.onclick=()=>tapDraughts(r,c);el.appendChild(cell);
  }
  const status=document.getElementById('draughtsStatus');
- if(dGameOver){status.textContent=(dTurn==='w'?'Les noirs':'Les blancs')+' gagnent !';if(dTimerInterval){clearInterval(dTimerInterval);dTimerInterval=null;}}
+ if(dGameOver){status.textContent=dBanterMessage||((dTurn==='w'?'Les noirs':'Les blancs')+' gagnent !');if(dTimerInterval){clearInterval(dTimerInterval);dTimerInterval=null;}}
  else status.textContent=dAiThinking?'🤖 BOPE réfléchit...':(dIsBopeturn()?'🤖 BOPE joue...':'Aux '+(dTurn==='w'?'blancs':'noirs')+' de jouer')+(legal.some(m=>m.captured.length)?' • prise obligatoire':'');
  updateDraughtsClocks();
 }
@@ -277,13 +277,28 @@ function tapDraughts(r,c){
  const p=dBoard[r][c];if(p&&dSide(p)===dTurn){const choices=legal.filter(m=>m.from[0]===r&&m.from[1]===c);if(choices.length){dSelected=[r,c];dRoutes=choices;dPrefix=[];renderDraughts();return;}}
  dSelected=null;dRoutes=[];dPrefix=[];renderDraughts();
 }
+let dBanterTimer=null,dBanterMessage='';
+function dShowBanter(message,permanent=false){
+ dBanterMessage=message;
+ const status=document.getElementById('draughtsStatus');
+ if(status)status.textContent=message;
+ if(dBanterTimer){clearTimeout(dBanterTimer);dBanterTimer=null;}
+ if(!permanent)dBanterTimer=setTimeout(()=>{dBanterMessage='';dBanterTimer=null;renderDraughts();},2600);
+}
 function applyDRoute(route){
+ const movingSide=dTurn,capturedCount=route.captured.length;
  const [sr,sc]=route.from;let piece=dBoard[sr][sc];dBoard[sr][sc]=null;
  route.captured.forEach(([r,c])=>dBoard[r][c]=null);
  const [er,ec]=route.path[route.path.length-1];
  if(piece==='w'&&er===0)piece='W';if(piece==='b'&&er===9)piece='B';
  dBoard[er][ec]=piece;dSelected=null;dRoutes=[];dPrefix=[];dTurn=dTurn==='w'?'b':'w';dLastTick=Date.now();
- if(!dAllMoves().length)dGameOver=true;renderDraughts();if(!dGameOver)dScheduleBopMove();
+ if(!dAllMoves().length)dGameOver=true;renderDraughts();
+ if(document.getElementById('draughtsMode')?.value==='bope'&&movingSide==='b'){
+  if(dGameOver)dShowBanter('🤣🤣🤣 HAHAHAHA ! BOPE a gagné ! Oza mwana oyoki ! 😂',true);
+  else if(capturedCount>=2)dShowBanter('😂😂 Oza mwana oyoki ! BOPE vient de capturer '+capturedCount+' pions !');
+  else if(capturedCount===1)dShowBanter('Hé hé ! Un pion de moins pour toi 😏');
+ }
+ if(!dGameOver)dScheduleBopMove();
 }
 
   let currentConversationId = null;
