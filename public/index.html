@@ -37,6 +37,22 @@
 @keyframes gamesGlow{0%,100%{box-shadow:0 0 10px #345cff88,0 0 20px #783cff44;background-position:0% 50%}50%{box-shadow:0 0 18px #568affcc,0 0 30px #a35cff88;background-position:100% 50%}}
 @keyframes gamesEnter{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 
+
+.draughts-screen{display:none;margin-top:14px;text-align:center}.draughts-screen.show{display:block}
+.draughts-head{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:10px}
+.draughts-head button,.draughts-actions button{background:#252525;border:1px solid #555;color:#fff;border-radius:10px;padding:9px 10px}
+.draughts-status{color:#ffe08a;font-size:14px;margin:10px 0}
+.draughts-board{width:min(92vw,440px);aspect-ratio:1;display:grid;grid-template-columns:repeat(10,1fr);border:3px solid #c49b48;margin:0 auto;background:#c9a875;touch-action:manipulation}
+.d-cell{position:relative;display:flex;align-items:center;justify-content:center;min-width:0;padding:0;border:0;border-radius:0}
+.d-cell.light{background:#e8d2a7}.d-cell.dark{background:#76502f}
+.d-cell.target:after{content:"";position:absolute;width:30%;height:30%;border-radius:50%;background:#ffe45c;box-shadow:0 0 8px #fff;z-index:1}
+.d-cell.selected{outline:3px solid #ffe45c;outline-offset:-3px}
+.d-piece{width:78%;height:78%;border-radius:50%;z-index:2;box-shadow:inset 0 -4px 0 #0005,0 2px 4px #0009;border:2px solid #ffffff88;display:flex;align-items:center;justify-content:center;font-size:clamp(10px,3vw,17px);font-weight:bold}
+.d-piece.white{background:radial-gradient(circle at 35% 28%,#fff,#c9c9c9 65%,#888)}
+.d-piece.black{background:radial-gradient(circle at 35% 28%,#777,#222 65%,#050505)}
+.d-piece.king:after{content:"♛";color:#d7ae39;text-shadow:0 1px 2px #000;font-size:clamp(12px,3.4vw,20px)}
+.draughts-info{font-size:12px;color:#aaa;margin:9px 0}
+.draughts-actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:12px}
 </style></head><body>
 
   <div class="topbar">
@@ -57,8 +73,7 @@
   <div style="color:#FFD100;font-size:13px;font-weight:bold;letter-spacing:.5px;margin-bottom:4px">🇨🇩 Made in Kikwit • Fierté Congolaise</div>
   <div style="color:#888;font-size:13px;display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap"><span>par alive bope • IA Congolaise • Made in Kikwit</span><button onclick="partagerBOPE()" style="background:#25D366;color:#fff;border:none;padding:5px 12px;border-radius:20px;font-size:11px;cursor:pointer">↗️ Partager BOPE</button></div>
   <div style="background:#111;border:1px solid #FFD100;border-radius:20px;padding:5px 14px;font-size:11px;color:#FFD100;margin:6px 0 10px">👁️ __VISIT_TOTAL__ visites • 🔥 __VISIT_TODAY__ aujourd'hui • 🇨🇩 Made in Kikwit</div>
-  <button class="games-launch" id="gamesLaunch" onclick="openGames()">🎮 BOPE GAMES<small>DIVERTISSEMENT • INTELLIGENCE • COMPÉTITION</small></button><div class="games-page" id="gamesPage"><div style="font-size:42px">🏆🎮</div><h2>Bienvenue dans BOPE GAMES</h2><p>Joue, réfléchis, apprends et relève des défis !</p><div class="games-grid"><button class="games-category" onclick="gamesNotice('Jeux classiques')"><span>♟️</span>Jeux classiques</button><button class="games-category" onclick="gamesNotice('Intelligence')"><span>🧠</span>Intelligence</button><button class="games-category" onclick="gamesNotice('Culture générale')"><span>🌍</span>Culture générale</button><button class="games-category" onclick="gamesNotice('Sciences')"><span>🔬</span>Sciences</button><button class="games-category" onclick="gamesNotice('Médecine')"><span>🩺</span>Médecine</button></div><button class="games-back" onclick="closeGames()">← Retour à BOPE IA</button></div>
-<div id="welcome"><svg class="logo-center" viewBox="0 0 100 100" style="background:#0a0a0a"><circle cx="50" cy="50" r="46" fill="none" stroke="#0085CA" stroke-width="7" stroke-dasharray="95 190"/><circle cx="50" cy="50" r="46" fill="none" stroke="#FFD100" stroke-width="7" stroke-dasharray="47 237" stroke-dashoffset="-95"/><circle cx="50" cy="50" r="46" fill="none" stroke="#EF3340" stroke-width="7" stroke-dasharray="47 237" stroke-dashoffset="-142"/><g transform="translate(20,16) scale(0.62)"><path d="M50 12 C18 4 0 28 15 48 C4 66 26 86 50 82 C74 86 96 66 85 48 C100 28 82 4 50 12 Z" fill="none" stroke="white" stroke-width="4"/><path d="M30 28 L14 28 M30 36 L10 36 M30 46 L14 46 M30 56 L16 56" stroke="#0085CA" stroke-width="2.6" stroke-linecap="round"/><path d="M70 28 L86 28 M70 36 L90 36 M70 46 L86 46 M70 56 L84 56" stroke="#EF3340" stroke-width="2.6" stroke-linecap="round"/><path d="M42 38 H58 V46 H66 V58 H58 V66 H42 V58 H34 V46 H42 Z" fill="none" stroke="#FFD100" stroke-width="3.8"/></g><text x="50" y="94" text-anchor="middle" fill="white" font-size="13" font-weight="bold" font-family="sans-serif">BOPE</text></svg>
+  <button class="games-launch" id="gamesLaunch" onclick="openGames()">🎮 BOPE GAMES<small>DIVERTISSEMENT • INTELLIGENCE • COMPÉTITION</small></button><div class="games-page" id="gamesPage"><div id="gamesHome"><div style="font-size:42px">🏆🎮</div><h2>Bienvenue dans BOPE GAMES</h2><p>Joue, réfléchis, apprends et relève des défis !</p><div class="games-grid"><button class="games-category" onclick="openDraughts()"><span>♟️</span>Jeux classiques</button><button class="games-category" onclick="gamesNotice('Intelligence')"><span>🧠</span>Intelligence</button><button class="games-category" onclick="gamesNotice('Culture générale')"><span>🌍</span>Culture générale</button><button class="games-category" onclick="gamesNotice('Sciences')"><span>🔬</span>Sciences</button><button class="games-category" onclick="gamesNotice('Médecine')"><span>🩺</span>Médecine</button></div><button class="games-back" onclick="closeGames()">← Retour à BOPE IA</button></div><section class="draughts-screen" id="draughtsScreen"><div class="draughts-head"><button onclick="backToGames()">← Jeux</button><strong>♟️ BOPE DAMES</strong><button onclick="resetDraughts()">↻ Recommencer</button></div><div class="draughts-status" id="draughtsStatus">Aux blancs de jouer</div><div class="draughts-board" id="draughtsBoard" aria-label="Damier international 10 par 10"></div><div class="draughts-info" id="draughtsInfo">Deux joueurs sur le même téléphone • Prise obligatoire • Prise maximale</div><div class="draughts-actions"><button onclick="resetDraughts()">Nouvelle partie</button><button onclick="backToGames()">Quitter la partie</button></div></section></div><div id="welcome"><svg class="logo-center" viewBox="0 0 100 100" style="background:#0a0a0a"><circle cx="50" cy="50" r="46" fill="none" stroke="#0085CA" stroke-width="7" stroke-dasharray="95 190"/><circle cx="50" cy="50" r="46" fill="none" stroke="#FFD100" stroke-width="7" stroke-dasharray="47 237" stroke-dashoffset="-95"/><circle cx="50" cy="50" r="46" fill="none" stroke="#EF3340" stroke-width="7" stroke-dasharray="47 237" stroke-dashoffset="-142"/><g transform="translate(20,16) scale(0.62)"><path d="M50 12 C18 4 0 28 15 48 C4 66 26 86 50 82 C74 86 96 66 85 48 C100 28 82 4 50 12 Z" fill="none" stroke="white" stroke-width="4"/><path d="M30 28 L14 28 M30 36 L10 36 M30 46 L14 46 M30 56 L16 56" stroke="#0085CA" stroke-width="2.6" stroke-linecap="round"/><path d="M70 28 L86 28 M70 36 L90 36 M70 46 L86 46 M70 56 L84 56" stroke="#EF3340" stroke-width="2.6" stroke-linecap="round"/><path d="M42 38 H58 V46 H66 V58 H58 V66 H42 V58 H34 V46 H42 Z" fill="none" stroke="#FFD100" stroke-width="3.8"/></g><text x="50" y="94" text-anchor="middle" fill="white" font-size="13" font-weight="bold" font-family="sans-serif">BOPE</text></svg>
   <h2 style="margin:14px 0 6px">Que veux-tu faire?</h2><p style="color:#666;font-size:13px;margin:0 0 20px">Demande à BOPE, ton IA congolaise</p><div style="display:flex;flex-direction:column;gap:10px;width:100%"><button class="quick" onclick="quickAsk('Je m\'appelle')"><span>👋</span> Je m'appelle...</button><button class="quick" onclick="quickAsk('Explique-moi la fièvre typhoïde')"><span>🩺</span> Expliquer une maladie</button><button class="quick" onclick="quickAsk('Actualités RDC aujourd\'hui')"><span>📰</span> Actualités RDC du jour</button></div></div>
   <div id="chat"></div><div class="box"><div class="modes"><button id="mCourt" class="active" onclick="setMode('court')">Court</button><button id="mDetail" onclick="setMode('detail')">Détaillé</button><button id="mSante" onclick="setMode('sante')">🩺 Santé</button></div>
   <div id="santeBox" class="sante-box"><input id="temp" placeholder="Temp °C ex 38.5"><input id="tension" placeholder="Tension ex 14/9"><input id="pouls" placeholder="Pouls ex 90"><input id="poids" placeholder="Poids kg ex 65" class="wide"><input id="sympt" placeholder="Symptômes ex brûlure urine" class="wide" style="width:100%"><button onclick="fillSante()" style="background:#3a5fd0;color:#fff;border:none;padding:6px 12px;border-radius:8px;width:100%">Ajouter au message</button></div>
@@ -76,7 +91,80 @@
   <script>
 
   let MODE='court';
-  function openGames(){document.getElementById('welcome').style.display='none';document.getElementById('chat').style.display='none';document.querySelector('.box').style.display='none';document.getElementById('gamesLaunch').style.display='none';document.getElementById('gamesPage').style.display='block';}function closeGames(){document.getElementById('gamesPage').style.display='none';document.getElementById('gamesLaunch').style.display='block';document.getElementById('welcome').style.display='flex';document.getElementById('chat').style.display='flex';document.querySelector('.box').style.display='flex';}function gamesNotice(category){alert(category+' : cette rubrique sera activée progressivement dans BOPE GAMES.');}
+  function openGames(){document.getElementById('welcome').style.display='none';document.getElementById('chat').style.display='none';document.querySelector('.box').style.display='none';document.getElementById('gamesLaunch').style.display='none';document.getElementById('gamesPage').style.display='block';}function closeGames(){document.getElementById('gamesPage').style.display='none';document.getElementById('gamesLaunch').style.display='block';document.getElementById('welcome').style.display='flex';document.getElementById('chat').style.display='flex';document.querySelector('.box').style.display='flex';}
+function gamesNotice(category){alert(category+' : cette rubrique sera activée progressivement dans BOPE GAMES.');}
+let dBoard=[],dTurn='w',dSelected=null,dRoutes=[],dPrefix=[],dGameOver=false;
+function openDraughts(){document.getElementById('gamesHome').style.display='none';document.getElementById('draughtsScreen').classList.add('show');resetDraughts();}
+function backToGames(){document.getElementById('draughtsScreen').classList.remove('show');document.getElementById('gamesHome').style.display='block';}
+function resetDraughts(){dBoard=Array.from({length:10},()=>Array(10).fill(null));for(let r=0;r<4;r++)for(let c=0;c<10;c++)if((r+c)%2===1)dBoard[r][c]='b';for(let r=6;r<10;r++)for(let c=0;c<10;c++)if((r+c)%2===1)dBoard[r][c]='w';dTurn='w';dSelected=null;dRoutes=[];dPrefix=[];dGameOver=false;renderDraughts();}
+function dClone(b){return b.map(row=>row.slice());}
+function dSide(p){return p?p.toLowerCase():null;}
+function dCaptureRoutes(board,r,c,piece,originR,originC,captured,path,out){
+ const king=piece===piece.toUpperCase(),dirs=[[-1,-1],[-1,1],[1,-1],[1,1]];
+ for(const [dr,dc] of dirs){let rr=r+dr,cc=c+dc;
+  if(!king){while(rr>=0&&rr<10&&cc>=0&&cc<10&&!board[rr][cc]){rr+=dr;cc+=dc;}
+   if(rr<0||rr>=10||cc<0||cc>=10||!board[rr][cc]||dSide(board[rr][cc])===dSide(piece)||captured.some(q=>q[0]===rr&&q[1]===cc))continue;
+   let lr=rr+dr,lc=cc+dc;if(lr<0||lr>=10||lc<0||lc>=10||board[lr][lc])continue;
+   const nb=dClone(board);nb[r][c]=null;nb[rr][cc]=null;nb[lr][lc]=piece;
+   const nc=captured.concat([[rr,cc]]),np=path.concat([[lr,lc]]),before=out.length;
+   dCaptureRoutes(nb,lr,lc,piece,originR,originC,nc,np,out);
+   if(out.length===before)out.push({from:[originR,originC],path:np,captured:nc});
+  }else{
+   while(rr>=0&&rr<10&&cc>=0&&cc<10&&!board[rr][cc]){rr+=dr;cc+=dc;}
+   if(rr<0||rr>=10||cc<0||cc>=10||!board[rr][cc]||dSide(board[rr][cc])===dSide(piece)||captured.some(q=>q[0]===rr&&q[1]===cc))continue;
+   const vr=rr,vc=cc;rr+=dr;cc+=dc;
+   while(rr>=0&&rr<10&&cc>=0&&cc<10&&!board[rr][cc]){
+    const nb=dClone(board);nb[r][c]=null;nb[vr][vc]=null;nb[rr][cc]=piece;
+    const nc=captured.concat([[vr,vc]]),np=path.concat([[rr,cc]]),before=out.length;
+    dCaptureRoutes(nb,rr,cc,piece,originR,originC,nc,np,out);
+    if(out.length===before)out.push({from:[originR,originC],path:np,captured:nc});
+    rr+=dr;cc+=dc;
+   }
+  }
+ }
+}
+function dAllMoves(){
+ let caps=[];
+ for(let r=0;r<10;r++)for(let c=0;c<10;c++){const p=dBoard[r][c];if(p&&dSide(p)===dTurn)dCaptureRoutes(dBoard,r,c,p,r,c,[],[],caps);}
+ if(caps.length){const max=Math.max(...caps.map(m=>m.captured.length));return caps.filter(m=>m.captured.length===max);}
+ const moves=[];
+ for(let r=0;r<10;r++)for(let c=0;c<10;c++){const p=dBoard[r][c];if(!p||dSide(p)!==dTurn)continue;
+  const king=p===p.toUpperCase(),dirs=king?[[-1,-1],[-1,1],[1,-1],[1,1]]:(dTurn==='w'?[[-1,-1],[-1,1]]:[[1,-1],[1,1]]);
+  for(const [dr,dc] of dirs){let rr=r+dr,cc=c+dc;while(rr>=0&&rr<10&&cc>=0&&cc<10&&!dBoard[rr][cc]){moves.push({from:[r,c],path:[[rr,cc]],captured:[]});if(!king)break;rr+=dr;cc+=dc;}}
+ }
+ return moves;
+}
+function renderDraughts(){
+ const el=document.getElementById('draughtsBoard');if(!el)return;el.innerHTML='';const legal=dAllMoves();
+ for(let r=0;r<10;r++)for(let c=0;c<10;c++){const cell=document.createElement('button');cell.type='button';cell.className='d-cell '+((r+c)%2?'dark':'light');cell.setAttribute('aria-label','Case '+(r+1)+','+(c+1));
+  if(dSelected&&dSelected[0]===r&&dSelected[1]===c)cell.classList.add('selected');
+  if(dSelected&&legal.some(m=>m.from[0]===dSelected[0]&&m.from[1]===dSelected[1]&&m.path[0][0]===r&&m.path[0][1]===c))cell.classList.add('target');
+  const p=dBoard[r][c];if(p){const piece=document.createElement('span');piece.className='d-piece '+(dSide(p)==='w'?'white':'black')+(p===p.toUpperCase()?' king':'');cell.appendChild(piece);}
+  cell.onclick=()=>tapDraughts(r,c);el.appendChild(cell);
+ }
+ const status=document.getElementById('draughtsStatus');
+ if(dGameOver)status.textContent=(dTurn==='w'?'Les noirs':'Les blancs')+' gagnent !';
+ else status.textContent='Aux '+(dTurn==='w'?'blancs':'noirs')+' de jouer'+(legal.some(m=>m.captured.length)?' • prise obligatoire':'');
+}
+function tapDraughts(r,c){
+ if(dGameOver)return;const legal=dAllMoves();
+ if(dSelected){const candidates=dRoutes.filter(m=>m.path.length>dPrefix.length&&m.path[dPrefix.length][0]===r&&m.path[dPrefix.length][1]===c);
+  if(candidates.length){dPrefix.push([r,c]);const continuing=candidates.filter(m=>m.path.length>dPrefix.length),finished=candidates.filter(m=>m.path.length===dPrefix.length);
+   if(continuing.length){dRoutes=continuing;renderDraughts();return;}if(finished.length){applyDRoute(finished[0]);return;}
+  }
+ }
+ const p=dBoard[r][c];if(p&&dSide(p)===dTurn){const choices=legal.filter(m=>m.from[0]===r&&m.from[1]===c);if(choices.length){dSelected=[r,c];dRoutes=choices;dPrefix=[];renderDraughts();return;}}
+ dSelected=null;dRoutes=[];dPrefix=[];renderDraughts();
+}
+function applyDRoute(route){
+ const [sr,sc]=route.from;let piece=dBoard[sr][sc];dBoard[sr][sc]=null;
+ route.captured.forEach(([r,c])=>dBoard[r][c]=null);
+ const [er,ec]=route.path[route.path.length-1];
+ if(piece==='w'&&er===0)piece='W';if(piece==='b'&&er===9)piece='B';
+ dBoard[er][ec]=piece;dSelected=null;dRoutes=[];dPrefix=[];dTurn=dTurn==='w'?'b':'w';
+ if(!dAllMoves().length)dGameOver=true;renderDraughts();
+}
+
   let currentConversationId = null;
   let conversations = [];
   try { conversations = JSON.parse(localStorage.getItem('bope_conversations') || '[]'); } catch(e) { conversations = []; }
