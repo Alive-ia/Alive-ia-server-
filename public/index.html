@@ -268,6 +268,7 @@ function renderDraughts(){
  updateDraughtsClocks();
 }
 function tapDraughts(r,c){
+ unlockDraughtsAudio();
  if(dGameOver||dIsBopeturn()||dAiThinking)return;const legal=dAllMoves();
  if(dSelected){const candidates=dRoutes.filter(m=>m.path.length>dPrefix.length&&m.path[dPrefix.length][0]===r&&m.path[dPrefix.length][1]===c);
   if(candidates.length){dPrefix.push([r,c]);const continuing=candidates.filter(m=>m.path.length>dPrefix.length),finished=candidates.filter(m=>m.path.length===dPrefix.length);
@@ -288,14 +289,26 @@ function toggleDraughtsVoice(){
  if(btn)btn.textContent=dVoiceEnabled?'🔊 Voix de BOPE activée':'🔇 Activer la voix de BOPE';
  if(dVoiceEnabled)speakDraughts('Salut ! Moi, c’est BOPE. Prépare-toi à jouer !');else window.speechSynthesis.cancel();
 }
+let dMoveAudioContext=null;
+function getDraughtsAudioContext(){
+ const AudioCtx=window.AudioContext||window.webkitAudioContext;if(!AudioCtx)return null;
+ if(!dMoveAudioContext||dMoveAudioContext.state==='closed')dMoveAudioContext=new AudioCtx();
+ return dMoveAudioContext;
+}
+function unlockDraughtsAudio(){
+ try{const ctx=getDraughtsAudioContext();if(ctx&&ctx.state==='suspended')ctx.resume().catch(()=>{});}catch(e){}
+}
 function playDraughtsMoveSound(){
  try{
-  const AudioCtx=window.AudioContext||window.webkitAudioContext;if(!AudioCtx)return;
-  const ctx=new AudioCtx();if(ctx.state==='suspended')ctx.resume();
-  const osc=ctx.createOscillator(),gain=ctx.createGain();
-  osc.type='triangle';osc.frequency.setValueAtTime(185,ctx.currentTime);osc.frequency.exponentialRampToValueAtTime(92,ctx.currentTime+0.075);
-  gain.gain.setValueAtTime(0.0001,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(0.22,ctx.currentTime+0.008);gain.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.11);
-  osc.connect(gain);gain.connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+0.12);osc.onended=()=>ctx.close();
+  const ctx=getDraughtsAudioContext();if(!ctx)return;
+  const play=()=>{
+   const osc=ctx.createOscillator(),gain=ctx.createGain(),now=ctx.currentTime;
+   osc.type='triangle';osc.frequency.setValueAtTime(190,now);osc.frequency.exponentialRampToValueAtTime(105,now+0.085);
+   gain.gain.setValueAtTime(0.0001,now);gain.gain.linearRampToValueAtTime(0.28,now+0.012);gain.gain.exponentialRampToValueAtTime(0.0001,now+0.14);
+   osc.connect(gain);gain.connect(ctx.destination);osc.start(now);osc.stop(now+0.15);
+  };
+  if(ctx.state==='suspended')ctx.resume().then(play).catch(e=>console.warn('Audio non autorisé',e));
+  else if(ctx.state==='running')play();
  }catch(e){console.warn('Son du déplacement indisponible',e);}
 }
 function playDraughtsApplause(){
