@@ -316,7 +316,7 @@ function makeDraughtsCode() {
 io.on('connection', socket => {
   socket.on('draughts:create', (callback) => {
     const code = makeDraughtsCode();
-    const room = { code, host: socket.id, guest: null, createdAt: Date.now() };
+    const room = { code, host: socket.id, guest: null, state: null, createdAt: Date.now() };
     draughtsRooms.set(code, room);
     socket.join(code);
     socket.data.draughtsRoom = code;
@@ -341,8 +341,33 @@ io.on('connection', socket => {
     socket.data.draughtsSide = 'b';
     if (typeof callback === 'function') callback({ ok: true, code, side: 'b', waiting: false });
     io.to(code).emit('draughts:players', { ready: true, message: 'Les deux joueurs sont connectés. La partie peut commencer !' });
+    if (room.state) socket.emit('draughts:state', room.state);
   });
 
+  function validDraughtsState(state) {
+    if (!state || !Array.isArray(state.board) || state.board.length !== 10) return false;
+    if (!state.board.every(row => Array.isArray(row) && row.length === 10 && row.every(cell => cell === null || ['w','b','W','B'].includes(cell)))) return false;
+    if (!['w','b'].includes(state.turn) || typeof state.gameOver !== 'boolean') return false;
+    if (!state.clock || !['w','b'].every(side => Number.isFinite(state.clock[side]) && state.clock[side] >= 0 && state.clock[side] <= 900)) return false;
+    return true;
+  }
+
+  socket.on('draughts:start', state => {
+    const code = socket.data.draughtsRoom;
+    const room = code && draughtsRooms.get(code);
+    if (!room || room.host !== socket.id || room.state || !validDraughtsState(state)) return;
+    room.state = { board: state.board, turn: state.turn, gameOver: state.gameOver, clock: state.clock };
+    socket.to(code).emit('draughts:state', room.state);
+  });
+
+  socket.on('draughts:move', state => {
+    const code = socket.data.draughtsRoom;
+    const room = code && draughtsRooms.get(code);
+    if (!room || !room.guest || !room.state || !validDraughtsState(state)) return;
+    if (socket.data.draughtsSide !== room.state.turn) return;
+    room.state = { board: state.board, turn: state.turn, gameOver: state.gameOver, clock: state.clock };
+    socket.to(code).emit('draughts:state', room.state);
+  });
   socket.on('draughts:leave', () => {
     const code = socket.data.draughtsRoom;
     const room = code && draughtsRooms.get(code);
