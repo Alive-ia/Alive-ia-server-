@@ -288,6 +288,21 @@ function toggleDraughtsVoice(){
  if(btn)btn.textContent=dVoiceEnabled?'🔊 Voix de BOPE activée':'🔇 Activer la voix de BOPE';
  if(dVoiceEnabled)speakDraughts('Salut ! Moi, c’est BOPE. Prépare-toi à jouer !');else window.speechSynthesis.cancel();
 }
+function playDraughtsApplause(){
+ try{
+  const AudioCtx=window.AudioContext||window.webkitAudioContext;if(!AudioCtx)return;
+  const ctx=new AudioCtx();if(ctx.state==='suspended')ctx.resume();
+  const duration=1.7,buffer=ctx.createBuffer(1,Math.floor(ctx.sampleRate*duration),ctx.sampleRate),data=buffer.getChannelData(0);
+  for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*0.75;
+  const noise=ctx.createBufferSource();noise.buffer=buffer;
+  const filter=ctx.createBiquadFilter();filter.type='bandpass';filter.frequency.value=1450;filter.Q.value=0.7;
+  const gain=ctx.createGain();gain.gain.value=0;
+  noise.connect(filter);filter.connect(gain);gain.connect(ctx.destination);
+  const start=ctx.currentTime;
+  for(let i=0;i<15;i++){const t=start+i*0.105;gain.gain.setValueAtTime(0.0001,t);gain.gain.linearRampToValueAtTime(0.32,t+0.012);gain.gain.exponentialRampToValueAtTime(0.0001,t+0.075);}
+  noise.start(start);noise.stop(start+duration);noise.onended=()=>ctx.close();
+ }catch(e){console.warn('Applaudissements indisponibles',e);}
+}
 function dShowBanter(message,permanent=false){
  dBanterMessage=message;
  speakDraughts(message);
@@ -301,11 +316,16 @@ function applyDRoute(route){
  const [sr,sc]=route.from;let piece=dBoard[sr][sc];dBoard[sr][sc]=null;
  route.captured.forEach(([r,c])=>dBoard[r][c]=null);
  const [er,ec]=route.path[route.path.length-1];
+ const bopeMode=document.getElementById('draughtsMode')?.value==='bope';
+ const bopePromoted=bopeMode&&movingSide==='b'&&piece==='b'&&er===9;
  if(piece==='w'&&er===0)piece='W';if(piece==='b'&&er===9)piece='B';
  dBoard[er][ec]=piece;dSelected=null;dRoutes=[];dPrefix=[];dTurn=dTurn==='w'?'b':'w';dLastTick=Date.now();
  if(!dAllMoves().length)dGameOver=true;renderDraughts();
- if(document.getElementById('draughtsMode')?.value==='bope'&&movingSide==='b'){
-  if(dGameOver)dShowBanter('🤣🤣🤣 HAHAHAHA ! BOPE a gagné ! Oza mwana oyoki ! 😂',true);
+ if(bopeMode&&movingSide==='w'&&capturedCount>=2){
+  dShowBanter('Allez ! Tobetela ye pe maboko !');playDraughtsApplause();
+ }else if(bopeMode&&movingSide==='b'){
+  if(dGameOver){dShowBanter('🤣🤣🤣 BOPE a gagné ! Allez ! Tobetela ye pe maboko ! 😂',true);playDraughtsApplause();}
+  else if(bopePromoted)dShowBanter('Mamamamamamamamamaaaaaah ! Dame, dame, dame, dame !');
   else if(capturedCount>=2)dShowBanter('😂😂 Oza mwana oyoki ! BOPE vient de capturer '+capturedCount+' pions !');
   else if(capturedCount===1)dShowBanter('Hé hé ! Un pion de moins pour toi 😏');
  }
