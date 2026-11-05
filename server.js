@@ -3,6 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const http = require('http');
+const { Server } = require('socket.io');
 
 const app = express();
 app.disable('x-powered-by');
@@ -296,6 +298,81 @@ res.json({ reply: rep });
 
 app.get('/stats', (req, res) => res.json(visitStats));
 
-app.listen(process.env.PORT || 10000, () => {
+// === BOPE DAMES : SALONS MULTIJOUEURS ===
+const httpServer = http.createServer(app);
+const io = new Server(httpServer, { cors: { origin: true }, transports: ['websocket', 'polling'] });
+const draughtsRooms = new Map();
+
+function makeDraughtsCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  do {
+    code = '';
+    for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  } while (draughtsRooms.has(code));
+  return code;
+}
+
+io.on('connection', socket => {
+  socket.on('draughts:create', (callback) => {
+    const code = makeDraughtsCode();
+    const room = { code, host: socket.id, guest: null, createdAt: Date.now() };
+    draughtsRooms.set(code, room);
+    socket.join(code);
+    socket.data.draughtsRoom = code;
+    socket.data.draughtsSide = 'w';
+    if (typeof callback === 'function') callback({ ok: true, code, side: 'w', waiting: true });
+  });
+
+  socket.on('draughts:join', (rawCode, callback) => {
+    const code = String(rawCode || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const room = draughtsRooms.get(code);
+    if (!room) {
+      if (typeof callback === 'function') callback({ ok: false, error: 'Code introuvable. Vérifie le code de la partie.' });
+      return;
+    }
+    if (room.guest && room.guest !== socket.id) {
+      if (typeof callback === 'function') callback({ ok: false, error: 'Cette partie est déjà complète.' });
+      return;
+    }
+    room.guest = socket.id;
+    socket.join(code);
+    socket.data.draughtsRoom = code;
+    socket.data.draughtsSide = 'b';
+    if (typeof callback === 'function') callback({ ok: true, code, side: 'b', waiting: false });
+    io.to(code).emit('draughts:players', { ready: true, message: 'Les deux joueurs sont connectés. La partie peut commencer !' });
+  });
+
+  socket.on('draughts:leave', () => {
+    const code = socket.data.draughtsRoom;
+    const room = code && draughtsRooms.get(code);
+    if (!room) return;
+    socket.leave(code);
+    if (room.host === socket.id) {
+      io.to(code).emit('draughts:opponent-left');
+      draughtsRooms.delete(code);
+    } else if (room.guest === socket.id) {
+      room.guest = null;
+      io.to(code).emit('draughts:opponent-left');
+    }
+    socket.data.draughtsRoom = null;
+    socket.data.draughtsSide = null;
+  });
+
+  socket.on('disconnect', () => {
+    const code = socket.data.draughtsRoom;
+    const room = code && draughtsRooms.get(code);
+    if (!room) return;
+    if (room.host === socket.id) {
+      io.to(code).emit('draughts:opponent-left');
+      draughtsRooms.delete(code);
+    } else if (room.guest === socket.id) {
+      room.guest = null;
+      io.to(code).emit('draughts:opponent-left');
+    }
+  });
+});
+
+httpServer.listen(process.env.PORT || 10000, () => {
   console.log("BOPE IA démarré - Total :", visitStats.total);
 });
