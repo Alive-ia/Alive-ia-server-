@@ -316,12 +316,30 @@ function makeDraughtsCode() {
 io.on('connection', socket => {
   socket.on('draughts:create', (callback) => {
     const code = makeDraughtsCode();
-    const room = { code, host: socket.id, guest: null, state: null, createdAt: Date.now() };
+    const room = { code, host: socket.id, guest: null, hostProfile: null, guestProfile: null, state: null, createdAt: Date.now() };
     draughtsRooms.set(code, room);
     socket.join(code);
     socket.data.draughtsRoom = code;
     socket.data.draughtsSide = 'w';
     if (typeof callback === 'function') callback({ ok: true, code, side: 'w', waiting: true });
+  });
+
+  socket.on('draughts:profile', rawProfile => {
+    const code = socket.data.draughtsRoom;
+    const room = code && draughtsRooms.get(code);
+    if (!room) return;
+    const profile = rawProfile && typeof rawProfile === 'object' ? rawProfile : {};
+    const name = String(profile.name || 'Joueur').trim().replace(/[<>]/g, '').slice(0, 18) || 'Joueur';
+    const avatar = ['😀','😎','🦁','🐯','🐼','🐺','🦅','⚽','👑','🇨🇩'].includes(profile.avatar) ? profile.avatar : '😀';
+    const safeProfile = { name, avatar };
+    if (socket.id === room.host) room.hostProfile = safeProfile;
+    else if (socket.id === room.guest) room.guestProfile = safeProfile;
+    io.to(code).emit('draughts:players', {
+      ready: !!room.guest,
+      hostProfile: room.hostProfile,
+      guestProfile: room.guestProfile,
+      message: room.guest ? 'Les deux joueurs sont connectés. Bonne partie !' : 'Salon créé. En attente du deuxième joueur…'
+    });
   });
 
   socket.on('draughts:join', (rawCode, callback) => {
@@ -340,7 +358,7 @@ io.on('connection', socket => {
     socket.data.draughtsRoom = code;
     socket.data.draughtsSide = 'b';
     if (typeof callback === 'function') callback({ ok: true, code, side: 'b', waiting: false });
-    io.to(code).emit('draughts:players', { ready: true, message: 'Les deux joueurs sont connectés. La partie peut commencer !' });
+    io.to(code).emit('draughts:players', { ready: true, hostProfile: room.hostProfile, guestProfile: room.guestProfile, message: 'Les deux joueurs sont connectés. La partie peut commencer !' });
     if (room.state) socket.emit('draughts:state', room.state);
   });
 
