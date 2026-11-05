@@ -208,10 +208,16 @@ function ensureDraughtsSocket(){
   draughtsSocket=io();
   draughtsSocket.on('connect',()=>setOnlineStatus('Connecté au serveur BOPE. Tu peux créer ou rejoindre une partie.'));
   draughtsSocket.on('connect_error',()=>setOnlineStatus('Connexion impossible. Vérifie Internet puis réessaie.'));
-  draughtsSocket.on('draughts:players',data=>{dOnlineReady=!!data.ready;setOnlineStatus(data.message||'Ton adversaire est connecté.');document.getElementById('draughtsStatus').textContent='Les deux joueurs sont connectés ! Synchronisation du damier à la prochaine étape.';});
+  draughtsSocket.on('draughts:players',data=>{dOnlineReady=!!data.ready;setOnlineStatus(data.message||'Ton adversaire est connecté.');document.getElementById('draughtsStatus').textContent='Les deux joueurs sont connectés ! À toi de jouer quand ton tour arrive.';if(dOnlineReady&&dOnlineSide==='w')sendDraughtsOnlineState(true);});
+  draughtsSocket.on('draughts:state',state=>{if(!state||!Array.isArray(state.board))return;dBoard=dClone(state.board);dTurn=state.turn;dGameOver=!!state.gameOver;dClock={w:state.clock.w,b:state.clock.b};dSelected=null;dRoutes=[];dPrefix=[];dLastTick=Date.now();renderDraughts();playDraughtsMoveSound();setOnlineStatus(dGameOver?'La partie est terminée.':'Coup reçu ! Partie synchronisée.');});
   draughtsSocket.on('draughts:opponent-left',()=>{dOnlineReady=false;setOnlineStatus('Ton adversaire a quitté la partie ou perdu la connexion.');});
  }
  return draughtsSocket;
+}
+function sendDraughtsOnlineState(initial){
+ if(!draughtsSocket||!dOnlineRoom||!dOnlineReady)return;
+ const state={board:dClone(dBoard),turn:dTurn,gameOver:!!dGameOver,clock:{w:dClock.w,b:dClock.b}};
+ draughtsSocket.emit(initial?'draughts:start':'draughts:move',state);
 }
 function createOnlineDraughtsRoom(){
  const sock=ensureDraughtsSocket();if(!sock)return;
@@ -318,7 +324,8 @@ function renderDraughts(){
 }
 function tapDraughts(r,c){
  unlockDraughtsAudio();
- if(document.getElementById("draughtsMode")?.value==="online"){setOnlineStatus(dOnlineReady?"Les salons sont connectés. La synchronisation des coups arrive à l’étape suivante.":"Attends que les deux joueurs soient connectés.");return;}
+ const onlineMode=document.getElementById("draughtsMode")?.value==="online";
+ if(onlineMode&&(!dOnlineReady||dOnlineSide!==dTurn)){setOnlineStatus(!dOnlineReady?"Attends que les deux joueurs soient connectés.":"Ce n’est pas ton tour.");return;}
  if(dGameOver||dIsBopeturn()||dAiThinking)return;const legal=dAllMoves();
  if(dSelected){const candidates=dRoutes.filter(m=>m.path.length>dPrefix.length&&m.path[dPrefix.length][0]===r&&m.path[dPrefix.length][1]===c);
   if(candidates.length){dPrefix.push([r,c]);const continuing=candidates.filter(m=>m.path.length>dPrefix.length),finished=candidates.filter(m=>m.path.length===dPrefix.length);
@@ -394,6 +401,7 @@ function applyDRoute(route){
  if(piece==='w'&&er===0)piece='W';if(piece==='b'&&er===9)piece='B';
  dBoard[er][ec]=piece;dSelected=null;dRoutes=[];dPrefix=[];dTurn=dTurn==='w'?'b':'w';dLastTick=Date.now();
  if(!dAllMoves().length)dGameOver=true;renderDraughts();playDraughtsMoveSound();
+ if(document.getElementById('draughtsMode')?.value==='online'){sendDraughtsOnlineState(false);return;}
  if(bopeMode&&movingSide==='w'&&capturedCount>=2){
   dShowBanter('Allez ! Tobetela ye pe maboko !');playDraughtsApplause();
  }else if(bopeMode&&movingSide==='b'){
