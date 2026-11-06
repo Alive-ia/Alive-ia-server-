@@ -207,7 +207,7 @@ function classicComing(name){alert(name+' sera bientôt disponible dans BOPE GAM
 
 
 let ludoMode='local',ludoDiceCount=1;
-function openLudo(){document.getElementById('gamesPage').style.display='none';document.getElementById('ludoScreen').classList.add('show');}
+function openLudo(){document.getElementById('gamesPage').style.display='block';document.getElementById('ludoScreen').classList.add('show');}
 function closeLudo(){document.getElementById('ludoScreen').classList.remove('show');document.getElementById('gamesPage').style.display='block';}
 function selectLudoMode(mode,btn){ludoMode=mode;document.querySelectorAll('[data-ludo-mode]').forEach(b=>b.classList.toggle('active',b===btn));const count=document.getElementById('ludoPlayerCount');count.disabled=mode!=='local';if(mode==='ai')count.value='2';document.getElementById('ludoSetupMessage').textContent=mode==='online'?'Le jeu en ligne sera activé avec le plateau multijoueur.':'';}
 function selectLudoDice(n,btn){ludoDiceCount=n;document.querySelectorAll('[data-ludo-dice]').forEach(b=>b.classList.toggle('active',b===btn));}
