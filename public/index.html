@@ -127,7 +127,7 @@
 <section class="music-panel"><h3>🎸 Accords de guitare</h3><div class="music-chords"><button onclick="playMusicChord([196,246.94,293.66,392])">SOL</button><button onclick="playMusicChord([220,261.63,329.63,440])">LA m</button><button onclick="playMusicChord([174.61,220,261.63,349.23])">FA</button><button onclick="playMusicChord([130.81,164.81,196,261.63])">DO</button></div><p>Accords simplifiés pour découvrir la guitare.</p></section>
 <button class="music-back" onclick="backFromMusic()">← Retour aux jeux</button>
 </div>
-<section class="draughts-screen" id="draughtsScreen"><div class="draughts-head"><button onclick="backToGames()">← Jeux</button><strong>♟️ BOPE DAMES</strong><button onclick="resetDraughts()">↻ Recommencer</button></div><div class="draughts-status" id="draughtsStatus">Choisis ton mode de jeu</div><div id="draughtsModeChooser" class="draughts-mode-chooser"><h3>♟️ Comment veux-tu jouer ?</h3><p>Choisis une façon de jouer aux dames.</p><button type="button" onclick="selectDraughtsMode('local')">👥 Jouer à deux sur le même téléphone</button><button type="button" onclick="selectDraughtsMode('bope')">🤖 Jouer contre BOPE</button><button type="button" onclick="selectDraughtsMode('online')">🌐 Jouer en ligne</button></div><section class="d-profile" id="draughtsProfile"><div class="d-profile-head"><div class="d-profile-avatar" id="draughtsProfileAvatar">🇨🇩</div><div class="d-profile-meta"><strong id="draughtsProfileName">Joueur BOPE</strong><small>👤 Ton profil de joueur</small></div></div><div class="d-profile-fields"><input id="draughtsNickname" maxlength="16" placeholder="Ton pseudonyme" autocomplete="nickname"><select id="draughtsAvatar" aria-label="Choisir un avatar"><option value="🇨🇩">🇨🇩 Congo</option><option value="😎">😎 Cool</option><option value="👑">👑 Roi</option><option value="🦁">🦁 Lion</option><option value="🐆">🐆 Léopard</option><option value="⚽">⚽ Sportif</option><option value="🔥">🔥 Feu</option><option value="🎮">🎮 Gamer</option></select><button type="button" onclick="saveDraughtsProfile()">Enregistrer</button></div><p class="d-profile-note" id="draughtsProfileNote">Ton pseudonyme et ton avatar seront conservés sur cet appareil.</p></section><div class="draughts-mode" id="draughtsModeControls" style="display:none"><label>Mode <select id="draughtsMode" onchange="changeDraughtsMode()"><option value="local">👥 Deux joueurs</option><option value="bope">🤖 Contre BOPE</option><option value="online">🌐 En ligne</option></select></label><label id="draughtsLevelWrap" style="display:none">Niveau <select id="draughtsLevel"><option value="easy">Facile</option><option value="medium" selected>Moyen</option><option value="hard">Difficile</option></select></label></div><div id="draughtsOnlineLobby" style="display:none;width:100%;max-width:440px;background:#101820;border:1px solid #28506a;border-radius:12px;padding:12px;margin:8px 0;text-align:center"><strong>🌐 Partie en ligne</strong>
+<section class="draughts-screen" id="draughtsScreen"><div class="draughts-head"><button onclick="backToGames()">← Jeux</button><strong>♟️ BOPE DAMES</strong><button onclick="resetDraughts()">↻ Recommencer</button></div><div class="draughts-status" id="draughtsStatus">Choisis ton mode de jeu</div><div id="draughtsModeChooser" class="draughts-mode-chooser"><h3>♟️ Comment veux-tu jouer ?</h3><p>Choisis une façon de jouer aux dames.</p><button type="button" onclick="selectDraughtsMode('local')">👥 Jouer à deux sur le même téléphone</button><button type="button" onclick="selectDraughtsMode('bope')">🤖 Jouer contre BOPE</button><button type="button" onclick="selectDraughtsMode('online')">🌐 Jouer en ligne</button></div><section class="d-profile" id="draughtsProfile"><div class="d-profile-head"><div class="d-profile-avatar" id="draughtsProfileAvatar">🇨🇩</div><div class="d-profile-meta"><strong id="draughtsProfileName">Joueur BOPE</strong><small>👤 Ton profil de joueur</small></div></div><div class="d-profile-fields"><input id="draughtsNickname" maxlength="16" placeholder="Ton pseudonyme" autocomplete="nickname"><select id="draughtsAvatar" aria-label="Choisir un avatar"><option value="🇨🇩">🇨🇩 Congo</option><option value="😎">😎 Cool</option><option value="👑">👑 Roi</option><option value="🦁">🦁 Lion</option><option value="🐆">🐆 Léopard</option><option value="⚽">⚽ Sportif</option><option value="🔥">🔥 Feu</option><option value="🎮">🎮 Gamer</option></select><button type="button" onclick="saveDraughtsProfile()">Enregistrer</button></div><p class="d-profile-note" id="draughtsProfileNote">Ton pseudonyme et ton avatar seront conservés sur cet appareil.</p></section><div class="draughts-mode" id="draughtsModeControls" style="display:none"><label>Mode <select id="draughtsMode" onchange="changeDraughtsMode()"><option value="local">👥 Deux joueurs</option><option value="bope">🤖 Contre BOPE</option><option value="online">🌐 En ligne</option></select></label><label id="draughtsLevelWrap" style="display:none">Niveau <select id="draughtsLevel"><option value="easy">Facile</option><option value="medium">Moyen</option><option value="hard" selected>Difficile</option></select></label></div><div id="draughtsOnlineLobby" style="display:none;width:100%;max-width:440px;background:#101820;border:1px solid #28506a;border-radius:12px;padding:12px;margin:8px 0;text-align:center"><strong>🌐 Partie en ligne</strong>
 <div class="d-profile">
 <h4>👤 Mon profil de joueur</h4>
 <div class="d-profile-row">
@@ -344,20 +344,38 @@ function dApplyToBoard(board,move){
 }
 function dEvaluate(board){
  let score=0;
+ let blackMen=0,whiteMen=0,blackKings=0,whiteKings=0;
  for(let r=0;r<10;r++)for(let c=0;c<10;c++){
-  const p=board[r][c];if(!p)continue;const king=p===p.toUpperCase(),side=dSide(p)==='b'?1:-1;
-  score+=side*(king?3.25:1);
-  if(!king)score+=side*(p==='b'?(r*0.025):((9-r)*0.025));
-  if(r>=3&&r<=6&&c>=3&&c<=6)score+=side*0.035;
+  const p=board[r][c];if(!p)continue;
+  const king=p===p.toUpperCase(),black=dSide(p)==='b',side=black?1:-1;
+  if(black){if(king)blackKings++;else blackMen++;}
+  else{if(king)whiteKings++;else whiteMen++;}
+  score+=side*(king?4.6:1.15);
+  if(!king){
+   score+=side*(black?r:(9-r))*0.045;
+   if((black&&r>=7)||(!black&&r<=2))score+=side*0.12;
+  }
+  const centerDistance=Math.abs(4.5-r)+Math.abs(4.5-c);
+  score+=side*(4.5-centerDistance)*0.035;
+  if(c===0||c===9)score+=side*0.025;
  }
+ score+=(blackMen-whiteMen)*0.08+(blackKings-whiteKings)*0.12;
  return score;
+}
+function dMoveOrderScore(board,move){
+ let value=move.captured.length*20;
+ const [er,ec]=move.path[move.path.length-1],piece=board[move.from[0]][move.from[1]];
+ if(piece==='b'&&er===9)value+=8;
+ if(piece==='w'&&er===0)value+=8;
+ if(er>=3&&er<=6&&ec>=3&&ec<=6)value+=1;
+ return value;
 }
 function dSearch(board,side,depth,alpha,beta){
  const moves=dMovesFor(board,side);
  if(!moves.length)return side==='b'?-1000-depth:1000+depth;
  if(depth===0)return dEvaluate(board);
  const maximizing=side==='b';let best=maximizing?-Infinity:Infinity;
- moves.sort((a,b)=>b.captured.length-a.captured.length);
+ moves.sort((a,b)=>dMoveOrderScore(board,b)-dMoveOrderScore(board,a));
  for(const move of moves){
   const value=dSearch(dApplyToBoard(board,move),side==='b'?'w':'b',depth-1,alpha,beta);
   if(maximizing){best=Math.max(best,value);alpha=Math.max(alpha,best);}
@@ -368,9 +386,10 @@ function dSearch(board,side,depth,alpha,beta){
 }
 function dChooseBopMove(){
  const moves=dAllMoves();if(!moves.length)return null;
- const level=document.getElementById('draughtsLevel')?.value||'medium';
+ const level=document.getElementById('draughtsLevel')?.value||'hard';
  if(level==='easy')return moves[Math.floor(Math.random()*moves.length)];
- const depth=level==='hard'?3:2;let best=-Infinity,choices=[];
+ const depth=level==='hard'?4:3;let best=-Infinity,choices=[];
+ moves.sort((a,b)=>dMoveOrderScore(dBoard,b)-dMoveOrderScore(dBoard,a));
  for(const move of moves){
   const score=dSearch(dApplyToBoard(dBoard,move),'w',depth-1,-Infinity,Infinity);
   if(score>best+0.0001){best=score;choices=[move];}
