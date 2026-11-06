@@ -77,7 +77,10 @@
 .d-profile-fields{display:flex;gap:7px;flex-wrap:wrap}
 .d-profile-fields input,.d-profile-fields select{min-width:0;flex:1;background:#222;border:1px solid #494949;border-radius:9px;padding:10px;color:#fff}
 .d-profile-fields button{background:#d4ad4c;border:0;border-radius:9px;padding:10px 14px;color:#17120a;font-weight:800}
-.d-profile-note{font-size:11px;color:#999;margin:8px 0 0}</style></head><body>
+.d-profile-note{font-size:11px;color:#999;margin:8px 0 0}
+/* BOPE LUDO setup */
+#ludoScreen{display:none;position:fixed;inset:0;z-index:30;background:radial-gradient(circle at top,#18233d,#050608 65%);color:#fff;overflow:auto;padding:18px 14px 30px}#ludoScreen.show{display:block}.ludo-wrap{max-width:520px;margin:0 auto}.ludo-title{text-align:center;font-size:28px;color:#ffd54a;margin:12px 0}.ludo-sub{text-align:center;color:#c9d2e5}.ludo-panel{background:#111827;border:1px solid #334155;border-radius:16px;padding:15px;margin:12px 0}.ludo-panel h3{margin:0 0 12px;color:#ffd54a}.ludo-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.ludo-choice{background:#202b3d;border:1px solid #53627a;color:#fff;border-radius:12px;padding:13px 8px;font-weight:700}.ludo-choice.active{border:2px solid #ffd54a;background:#3b321b}.ludo-field{width:100%;padding:12px;border-radius:10px;background:#0b1220;color:#fff;border:1px solid #526078}.ludo-start{width:100%;padding:15px;border:0;border-radius:13px;background:linear-gradient(90deg,#f4b400,#ffdf72);color:#171717;font-weight:900;font-size:16px}.ludo-back{background:#263244;color:#fff;border:1px solid #526078;border-radius:10px;padding:10px 14px}.ludo-note{font-size:12px;color:#bdc7d8;line-height:1.5}
+</style></head><body>
 
   <div class="topbar">
     <div class="top-left"><button class="icon-btn" onclick="toggleMenu()" aria-label="Ouvrir le menu">☰</button><span class="brand-mini">🇨🇩 BOPE IA</span></div>
@@ -111,13 +114,33 @@
 <h2 class="classics-title">🎲 Nos jeux classiques</h2><p class="classics-subtitle">Choisis ton jeu et lance une partie !</p>
 <div class="classics-grid">
 <article class="classic-card"><span class="classic-icon">♟️</span><strong>Dames internationales</strong><small>Stratégie • 2 joueurs</small><button onclick="openDraughts()">JOUER</button></article>
-<article class="classic-card soon"><span class="classic-icon">🎲</span><strong>Ludo</strong><small>Jeu de parcours • 2 à 4 joueurs</small><button onclick="classicComing('Ludo')">BIENTÔT</button></article>
+<article class="classic-card soon"><span class="classic-icon">🎲</span><strong>Ludo</strong><small>Jeu de parcours • 2 à 4 joueurs</small><button onclick="openLudo()">BIENTÔT</button></article>
 <article class="classic-card soon"><span class="classic-icon">♜</span><strong>Échecs</strong><small>Stratégie • 2 joueurs</small><button onclick="classicComing('Échecs')">BIENTÔT</button></article>
 <article class="classic-card soon"><span class="classic-icon">🁫</span><strong>Dominos</strong><small>Réflexion • Plusieurs joueurs</small><button onclick="classicComing('Dominos')">BIENTÔT</button></article>
 <article class="classic-card soon"><span class="classic-icon">🪵</span><strong>Lundo</strong><small>Jeu traditionnel</small><button onclick="classicComing('Lundo')">BIENTÔT</button></article>
 <article class="classic-card soon"><span class="classic-icon">🪨</span><strong>Mancala</strong><small>Jeu de stratégie</small><button onclick="classicComing('Mancala')">BIENTÔT</button></article>
 <article class="classic-card soon"><span class="classic-icon">🃏</span><strong>Jeux de cartes</strong><small>Plusieurs variantes</small><button onclick="classicComing('Jeux de cartes')">BIENTÔT</button></article>
 </div><button class="classic-back" onclick="backToCategories()">← Retour aux catégories</button></div>
+
+<div id="ludoScreen"><div class="ludo-wrap">
+<button class="ludo-back" onclick="closeLudo()">← Retour aux jeux</button>
+<h2 class="ludo-title">🎲 BOPE LUDO</h2><p class="ludo-sub">Configure ta partie avant de jouer.</p>
+<div class="ludo-panel"><h3>1. Mode de jeu</h3><div class="ludo-options">
+<button class="ludo-choice active" data-ludo-mode="local" onclick="selectLudoMode('local',this)">👥 2 à 4 sur ce téléphone</button>
+<button class="ludo-choice" data-ludo-mode="ai" onclick="selectLudoMode('ai',this)">🤖 Contre BOPE</button>
+<button class="ludo-choice" data-ludo-mode="online" onclick="selectLudoMode('online',this)">🌐 En ligne</button></div></div>
+<div class="ludo-panel"><h3>2. Nombre de dés</h3><div class="ludo-options">
+<button class="ludo-choice active" data-ludo-dice="1" onclick="selectLudoDice(1,this)">🎲 1 dé</button>
+<button class="ludo-choice" data-ludo-dice="2" onclick="selectLudoDice(2,this)">🎲🎲 2 dés</button></div></div>
+<div class="ludo-panel"><h3>3. Nombre de joueurs</h3><select id="ludoPlayerCount" class="ludo-field"><option value="2">2 joueurs</option><option value="3">3 joueurs</option><option value="4" selected>4 joueurs</option></select></div>
+<div class="ludo-panel"><h3>4. Couleurs</h3><div class="ludo-options">
+<label>Joueur 1<select class="ludo-field" id="ludoColor1"><option value="red">🔴 Rouge</option><option value="blue">🔵 Bleu</option><option value="yellow">🟡 Jaune</option><option value="green">🟢 Vert</option></select></label>
+<label>Joueur 2<select class="ludo-field" id="ludoColor2"><option value="blue">🔵 Bleu</option><option value="red">🔴 Rouge</option><option value="yellow">🟡 Jaune</option><option value="green">🟢 Vert</option></select></label>
+<label>Joueur 3<select class="ludo-field" id="ludoColor3"><option value="yellow">🟡 Jaune</option><option value="red">🔴 Rouge</option><option value="blue">🔵 Bleu</option><option value="green">🟢 Vert</option></select></label>
+<label>Joueur 4<select class="ludo-field" id="ludoColor4"><option value="green">🟢 Vert</option><option value="red">🔴 Rouge</option><option value="blue">🔵 Bleu</option><option value="yellow">🟡 Jaune</option></select></label></div><p class="ludo-note">Chaque joueur doit avoir une couleur différente.</p></div>
+<div class="ludo-panel"><h3>Règles BOPE</h3><p class="ludo-note">6 pour sortir ou libérer un pion • 1 pour entrer dans la porte finale • 6 cases protégées 🛡️ • capture = cachot • 4 pions à rentrer pour gagner • SUPER SIX : six 6 consécutifs avec 1 dé ou trois doubles-six consécutifs avec 2 dés.</p></div>
+<button class="ludo-start" onclick="startLudoSetup()">COMMENCER LA PARTIE</button><p id="ludoSetupMessage" class="ludo-note"></p>
+</div></div>
 <div class="music-studio" id="musicStudio">
 <h2>🎹 BOPE MUSIC STUDIO</h2><p>Joue des notes, teste des accords et crée tes propres sons !</p>
 <section class="music-panel"><h3>🎹 Piano virtuel</h3><div class="music-keys">
@@ -165,6 +188,14 @@ let dBoard=[],dTurn='w',dSelected=null,dRoutes=[],dPrefix=[],dGameOver=false,dCl
 function openClassics(){document.getElementById('gamesHome').style.display='none';document.getElementById('classicsCatalog').classList.add('show');}
 function backToCategories(){document.getElementById('classicsCatalog').classList.remove('show');document.getElementById('gamesHome').style.display='block';}
 function classicComing(name){alert(name+' sera bientôt disponible dans BOPE GAMES !');}
+
+
+let ludoMode='local',ludoDiceCount=1;
+function openLudo(){document.getElementById('gamesPage').style.display='none';document.getElementById('ludoScreen').classList.add('show');}
+function closeLudo(){document.getElementById('ludoScreen').classList.remove('show');document.getElementById('gamesPage').style.display='block';}
+function selectLudoMode(mode,btn){ludoMode=mode;document.querySelectorAll('[data-ludo-mode]').forEach(b=>b.classList.toggle('active',b===btn));const count=document.getElementById('ludoPlayerCount');count.disabled=mode!=='local';if(mode==='ai')count.value='2';document.getElementById('ludoSetupMessage').textContent=mode==='online'?'Le jeu en ligne sera activé avec le plateau multijoueur.':'';}
+function selectLudoDice(n,btn){ludoDiceCount=n;document.querySelectorAll('[data-ludo-dice]').forEach(b=>b.classList.toggle('active',b===btn));}
+function startLudoSetup(){const count=Number(document.getElementById('ludoPlayerCount').value);const colors=[1,2,3,4].slice(0,count).map(i=>document.getElementById('ludoColor'+i).value);if(new Set(colors).size!==colors.length){document.getElementById('ludoSetupMessage').textContent='Choisis une couleur différente pour chaque joueur.';return;}document.getElementById('ludoSetupMessage').textContent='Configuration validée : '+ludoMode+', '+ludoDiceCount+' dé(s), '+count+' joueur(s). Le plateau jouable sera ajouté à l’étape suivante.';}
 
 const D_PROFILE_KEY='bope_draughts_profile_v1';
 function getDraughtsProfile(){
