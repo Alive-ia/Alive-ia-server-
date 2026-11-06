@@ -378,6 +378,21 @@ io.on('connection', socket => {
     socket.to(code).emit('draughts:state', room.state);
   });
 
+  socket.on('draughts:rematch', state => {
+    const code = socket.data.draughtsRoom;
+    const room = code && draughtsRooms.get(code);
+    if (!room || !room.guest || !room.state || !room.state.gameOver) return;
+    if (!validDraughtsState(state) || state.gameOver) return;
+    room.state = {
+      board: state.board,
+      turn: state.turn,
+      gameOver: false,
+      clock: state.clock
+    };
+    io.to(code).emit('draughts:state', room.state);
+    io.to(code).emit('draughts:rematch-started');
+  });
+
   socket.on('draughts:move', state => {
     const code = socket.data.draughtsRoom;
     const room = code && draughtsRooms.get(code);
