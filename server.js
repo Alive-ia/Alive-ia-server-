@@ -389,6 +389,39 @@ app.get('/api/studio/connection-check', async (req, res) => {
   }
 });
 
+// Page d'administration temporaire : la clé est saisie par l'administrateur,
+// envoyée uniquement dans l'en-tête HTTPS, puis effacée du champ.
+app.get('/studio-test-admin', (req, res) => {
+  res.set({
+    'Cache-Control': 'no-store, no-cache, must-revalidate, private',
+    'Pragma': 'no-cache',
+    'Referrer-Policy': 'no-referrer',
+    'X-Content-Type-Options': 'nosniff'
+  });
+  res.type('html').send(`<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BOPE STUDIO — Test administrateur</title>
+<style>body{font-family:Arial,sans-serif;background:#101010;color:#fff;padding:24px;max-width:520px;margin:auto}input,button{box-sizing:border-box;width:100%;padding:14px;margin:10px 0;border-radius:8px;border:1px solid #555}input{background:#222;color:#fff}button{background:#16834a;color:white;font-weight:bold}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#222;padding:12px;border-radius:8px}.note{color:#ccc;font-size:14px}</style></head>
+<body><h2>🇨🇩 BOPE STUDIO</h2><h3>Test vidéo administrateur</h3>
+<p class="note">Cette page ne stocke pas la clé. Elle est envoyée uniquement au serveur dans un en-tête HTTPS. Le test peut déclencher un coût Cloudflare et ne peut être lancé qu'une fois par processus serveur.</p>
+<label for="key">Clé secrète d'administration</label><input id="key" type="password" autocomplete="off" autocapitalize="off" spellcheck="false">
+<button id="run">Lancer le test unique de 1 seconde</button><pre id="result">En attente. Aucun test lancé.</pre>
+<script>
+const button=document.getElementById('run');
+button.addEventListener('click',async()=>{
+ const field=document.getElementById('key'); const key=field.value;
+ if(!key){document.getElementById('result').textContent='Saisis la clé administrateur.';return;}
+ button.disabled=true; document.getElementById('result').textContent='Demande envoyée…';
+ try{
+  const response=await fetch('/api/studio/test-once',{method:'POST',headers:{'Content-Type':'application/json','x-bope-test-key':key},body:'{}',cache:'no-store'});
+  const data=await response.json().catch(()=>({message:'Réponse serveur illisible.'}));
+  document.getElementById('result').textContent='HTTP '+response.status+'\\n'+JSON.stringify(data,null,2);
+ }catch(e){document.getElementById('result').textContent='Erreur réseau. Vérifie la connexion. Le résultat du serveur doit être vérifié avant toute nouvelle tentative.';}
+ finally{field.value='';}
+});
+</script></body></html>`);
+});
+
 // === BOPE STUDIO : TEST TECHNIQUE UNIQUE, DESACTIVE PAR DEFAUT ===
 let studioTestConsumed = false;
 app.post('/api/studio/test-once', async (req, res) => {
