@@ -351,14 +351,21 @@ app.get('/api/studio/connection-check', async (req, res) => {
         typeof item.message === 'string' ? item.message.slice(0, 200) : ''
       ).filter(Boolean);
       console.error('BOPE P-Video schema check failed:', response.status, JSON.stringify(safeErrors).slice(0, 800));
+      const schemaNotFound = safeErrors.some(item => String(item.code) === '6002');
       return res.status(502).json({
         ok: false,
+        authenticated: true,
+        workersAiReadAccess: true,
         cloudflareHttpStatus: response.status,
         cloudflareSuccess: data.success === true,
-        modelFound: false,
+        modelDocumented: true,
+        modelAvailabilityInAccount: 'not_confirmed',
+        schemaAvailable: false,
         cloudflareErrors: safeErrors,
         cloudflareMessages: safeMessages,
-        message: 'La vérification du schéma a échoué. Les détails techniques ci-dessus aideront à identifier la cause. Aucune génération effectuée.'
+        message: schemaNotFound
+          ? 'Cloudflare reconnaît le compte et le modèle pruna/p-video est bien documenté, mais son schéma n’est pas disponible pour ce compte via cette API. Cela ne prouve pas que le modèle est absent. Aucune génération effectuée.'
+          : 'Cloudflare reconnaît le compte, mais la vérification du schéma a échoué. La disponibilité du modèle dans ce compte reste à confirmer. Aucune génération effectuée.'
       });
     }
 
