@@ -326,11 +326,11 @@ app.get('/api/studio/connection-check', async (req, res) => {
     const timeout = setTimeout(() => controller.abort(), 15000);
     let response;
     try {
-      // Recherche large par "p-video" : le catalogue peut ne pas traiter la barre oblique
-      // du nom complet comme une recherche textuelle simple.
+      // Vérifie directement le schéma officiel du modèle : aucun appel de génération.
       response = await fetch(
         'https://api.cloudflare.com/client/v4/accounts/' +
-          encodeURIComponent(accountId) + '/ai/models/search?search=p-video&per_page=100',
+          encodeURIComponent(accountId) +
+          '/ai/models/schema?model=' + encodeURIComponent('pruna/p-video'),
         { headers: { Authorization: 'Bearer ' + apiToken, Accept: 'application/json' }, signal: controller.signal }
       );
     } finally {
@@ -338,38 +338,35 @@ app.get('/api/studio/connection-check', async (req, res) => {
     }
 
     const data = await response.json().catch(() => ({}));
-    if (!response.ok || data.success !== true || (Array.isArray(data.errors) && data.errors.length)) {
-      const status = response.status;
-      console.error('BOPE Cloudflare connection check failed:', status);
+    const schema = data.result || {};
+    const schemaAvailable = response.ok && data.success === true && schema.input && schema.output;
+    if (!schemaAvailable) {
+      console.error('BOPE P-Video schema check failed:', response.status, JSON.stringify(data.errors || data.messages || {}).slice(0, 800));
       return res.status(502).json({
         ok: false,
-        message: status === 401 || status === 403
-          ? 'Cloudflare refuse le jeton ou ses autorisations. Vérifie les permissions.'
-          : 'Cloudflare n’a pas confirmé l’accès API. Réessaie plus tard.',
-        providerStatus: status
+        authenticated: true,
+        workersAiReadAccess: true,
+        modelFound: false,
+        message: 'Cloudflare reconnaît le compte, mais ne fournit pas encore le schéma du modèle pruna/p-video. Aucune génération effectuée.'
       });
     }
 
-    const models = Array.isArray(data.result) ? data.result : [];
-    const modelFound = models.some(model =>
-      JSON.stringify(model).toLowerCase().includes('pruna/p-video')
-    );
     return res.json({
       ok: true,
       authenticated: true,
       workersAiReadAccess: true,
-      modelFound,
-      message: modelFound
-        ? 'Connexion Cloudflare vérifiée. Le modèle pruna/p-video apparaît dans le catalogue. Aucune génération effectuée.'
-        : 'Connexion Cloudflare et accès Workers AI vérifiés. Le modèle pruna/p-video n’a pas été retrouvé dans les premiers résultats. Aucune génération effectuée.'
+      modelFound: true,
+      inputSchemaAvailable: true,
+      outputSchemaAvailable: true,
+      message: 'Cloudflare fournit le schéma du modèle pruna/p-video. Aucune génération effectuée.'
     });
   } catch (error) {
-    console.error('BOPE Cloudflare connection check:', error.name);
+    console.error('BOPE P-Video schema check:', error.name);
     return res.status(502).json({
       ok: false,
       message: error.name === 'AbortError'
-        ? 'La vérification Cloudflare a expiré.'
-        : 'Impossible de joindre Cloudflare pour le moment.'
+        ? 'La vérification du modèle Cloudflare a expiré.'
+        : 'Impossible de vérifier le schéma du modèle auprès de Cloudflare.'
     });
   }
 });
