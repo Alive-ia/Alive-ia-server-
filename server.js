@@ -341,13 +341,24 @@ app.get('/api/studio/connection-check', async (req, res) => {
     const schema = data.result || {};
     const schemaAvailable = response.ok && data.success === true && schema.input && schema.output;
     if (!schemaAvailable) {
-      console.error('BOPE P-Video schema check failed:', response.status, JSON.stringify(data.errors || data.messages || {}).slice(0, 800));
+      const cloudflareErrors = Array.isArray(data.errors) ? data.errors : [];
+      const cloudflareMessages = Array.isArray(data.messages) ? data.messages : [];
+      const safeErrors = cloudflareErrors.slice(0, 3).map(item => ({
+        code: typeof item.code === 'number' || typeof item.code === 'string' ? item.code : null,
+        message: typeof item.message === 'string' ? item.message.slice(0, 300) : 'Erreur Cloudflare non détaillée.'
+      }));
+      const safeMessages = cloudflareMessages.slice(0, 3).map(item =>
+        typeof item.message === 'string' ? item.message.slice(0, 200) : ''
+      ).filter(Boolean);
+      console.error('BOPE P-Video schema check failed:', response.status, JSON.stringify(safeErrors).slice(0, 800));
       return res.status(502).json({
         ok: false,
-        authenticated: true,
-        workersAiReadAccess: true,
+        cloudflareHttpStatus: response.status,
+        cloudflareSuccess: data.success === true,
         modelFound: false,
-        message: 'Cloudflare reconnaît le compte, mais ne fournit pas encore le schéma du modèle pruna/p-video. Aucune génération effectuée.'
+        cloudflareErrors: safeErrors,
+        cloudflareMessages: safeMessages,
+        message: 'La vérification du schéma a échoué. Les détails techniques ci-dessus aideront à identifier la cause. Aucune génération effectuée.'
       });
     }
 
