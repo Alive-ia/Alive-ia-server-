@@ -350,7 +350,7 @@ function ludoAiPlay(){
  if(ludoDiceCount===2&&ludoPending.filter(d=>!d.used).length===2){
   const sum=ludoRolls[0]+ludoRolls[1];ludoPlayers[pi].pawns.forEach((p,pawn)=>{const score=ludoAiMoveScore(pi,pawn,sum);if(Number.isFinite(score))choices.push({pawn,die:'sum',steps:sum,score:score+1});});
  }
- if(!choices.length){ludoPending=[];ludoSelectedDie=null;ludoTurn=(ludoTurn+1)%ludoPlayers.length;document.getElementById('ludoRollButton').disabled=false;ludoSetStatus('BOPE ne peut pas jouer ce coup. À toi !');ludoRenderBoard();ludoScheduleAi(600);return;}
+ if(!choices.length){ludoSetStatus('BOPE ne peut pas jouer ce coup.');ludoFinishTurn();return;}
  choices.sort((a,b)=>b.score-a.score);const best=choices[0];ludoSelectedDie=best.die;ludoRenderBoard();ludoSetStatus('🤖 BOPE réfléchit…');setTimeout(()=>{if(!ludoIsAiTurn())return;ludoChoosePawn(pi,best.pawn);},450);
 }
 function ludoCapture(pi,pawn){const pl=ludoPlayers[pi],pos=pl.pawns[pawn];if(pos<0||pos>=52)return;const idx=(pos+pl.startIndex)%52;if(LUDO_SAFE.includes(idx))return;ludoPlayers.forEach((other,oi)=>{if(oi===pi)return;other.pawns=other.pawns.map(p=>{if(p<0||p>=52)return p;const otherIdx=(p+other.startIndex)%52;return otherIdx===idx?-1:p;});});}
