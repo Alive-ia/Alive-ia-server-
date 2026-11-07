@@ -81,6 +81,15 @@
 /* BOPE LUDO setup */
 #ludoScreen{display:none;position:fixed;inset:0;z-index:30;background:radial-gradient(circle at top,#18233d,#050608 65%);color:#fff;overflow:auto;padding:18px 14px 30px}#ludoScreen.show{display:block}.ludo-wrap{max-width:520px;margin:0 auto}.ludo-title{text-align:center;font-size:28px;color:#ffd54a;margin:12px 0}.ludo-sub{text-align:center;color:#c9d2e5}.ludo-panel{background:#111827;border:1px solid #334155;border-radius:16px;padding:15px;margin:12px 0}.ludo-panel h3{margin:0 0 12px;color:#ffd54a}.ludo-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.ludo-choice{background:#202b3d;border:1px solid #53627a;color:#fff;border-radius:12px;padding:13px 8px;font-weight:700}.ludo-choice.active{border:2px solid #ffd54a;background:#3b321b}.ludo-field{width:100%;padding:12px;border-radius:10px;background:#0b1220;color:#fff;border:1px solid #526078}.ludo-start{width:100%;padding:15px;border:0;border-radius:13px;background:linear-gradient(90deg,#f4b400,#ffdf72);color:#171717;font-weight:900;font-size:16px}.ludo-back{background:#263244;color:#fff;border:1px solid #526078;border-radius:10px;padding:10px 14px}.ludo-note{font-size:12px;color:#bdc7d8;line-height:1.5}
 .ludo-help{width:100%;padding:12px;border:1px solid #53627a;border-radius:12px;background:#172338;color:#eaf1ff;font-size:14px;margin:8px 0}.ludo-instruction{font-size:15px;font-weight:800;color:#ffe08a;text-align:center;margin:10px 0}.ludo-choice{min-height:52px;font-size:15px;touch-action:manipulation}.ludo-choice.active{box-shadow:0 0 0 3px #ffd54a,0 0 18px #ffd54a88}.ludo-pawn{cursor:pointer;transition:filter .2s,opacity .2s}.ludo-pawn.playable{filter:drop-shadow(0 0 7px #ffe45c);animation:ludoPulse 1s infinite alternate}.ludo-pawn.not-playable{opacity:.45;cursor:not-allowed}.ludo-pawn.selected-pawn{stroke:#fff!important;stroke-width:6!important;filter:drop-shadow(0 0 9px #fff)}@keyframes ludoPulse{from{filter:drop-shadow(0 0 2px #ffe45c)}to{filter:drop-shadow(0 0 10px #ffe45c)}}#ludoRollButton:disabled{opacity:.45;filter:grayscale(.6)}
+
+/* BOPE HUB : boutons des futurs espaces */
+.bope-hub{width:92%;max-width:440px;margin:10px auto 18px;padding:15px;border:1px solid #34345c;border-radius:20px;background:linear-gradient(145deg,#111827,#171026 58%,#101820);box-shadow:0 10px 28px #0008}
+.bope-hub-head{text-align:center;margin:0 0 13px}.bope-hub-head h2{margin:0;color:#fff;font-size:19px;letter-spacing:.5px}.bope-hub-head p{margin:5px 0 0;color:#aeb8cb;font-size:11px}
+.bope-hub-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.bope-hub-btn{min-height:78px;padding:11px 8px;border:1px solid var(--hub-border);border-radius:14px;background:linear-gradient(135deg,var(--hub-a),var(--hub-b));color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 5px 13px #0005;transition:transform .16s,filter .16s}
+.bope-hub-btn:active{transform:scale(.97);filter:brightness(1.2)}.bope-hub-btn .hub-icon{font-size:25px;line-height:1.1}.bope-hub-btn small{font-size:9px;font-weight:600;letter-spacing:.5px;color:#ffffffc9}
+.bope-hub-btn.studio{--hub-a:#8b1e62;--hub-b:#d94676;--hub-border:#ff8ab5}.bope-hub-btn.social{--hub-a:#075985;--hub-b:#2563eb;--hub-border:#60a5fa}.bope-hub-btn.creator{--hub-a:#6d28d9;--hub-b:#9333ea;--hub-border:#c4b5fd}.bope-hub-btn.money{--hub-a:#854d0e;--hub-b:#ca8a04;--hub-border:#fde047}.bope-hub-btn.campus{--hub-a:#065f46;--hub-b:#059669;--hub-border:#6ee7b7}.bope-hub-btn.jobs{--hub-a:#1e40af;--hub-b:#0891b2;--hub-border:#67e8f9}.bope-hub-btn.services{--hub-a:#9a3412;--hub-b:#ea580c;--hub-border:#fdba74}.bope-hub-btn.voice{--hub-a:#4338ca;--hub-b:#7c3aed;--hub-border:#c4b5fd}.bope-hub-btn.business{--hub-a:#9f1239;--hub-b:#e11d48;--hub-border:#fda4af}.bope-hub-btn.sports{--hub-a:#166534;--hub-b:#65a30d;--hub-border:#bef264}
+.bope-hub-note{text-align:center;color:#7f8ba1;font-size:10px;margin:11px 2px 0;line-height:1.4}@media(max-width:360px){.bope-hub{padding:11px}.bope-hub-grid{gap:7px}.bope-hub-btn{min-height:72px;font-size:12px}}
 </style></head><body>
 
   <div class="topbar">
@@ -101,7 +110,23 @@
   <div style="color:#FFD100;font-size:13px;font-weight:bold;letter-spacing:.5px;margin-bottom:4px">🇨🇩 Made in Kikwit • Fierté Congolaise</div>
   <div style="color:#888;font-size:13px;display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap"><span>par alive bope • IA Congolaise • Made in Kikwit</span><button onclick="partagerBOPE()" style="background:#25D366;color:#fff;border:none;padding:5px 12px;border-radius:20px;font-size:11px;cursor:pointer">↗️ Partager BOPE</button></div>
   <div style="background:#111;border:1px solid #FFD100;border-radius:20px;padding:5px 14px;font-size:11px;color:#FFD100;margin:6px 0 10px">👁️ __VISIT_TOTAL__ visites • 🔥 __VISIT_TODAY__ aujourd'hui • 🇨🇩 Made in Kikwit</div>
-  <button class="games-launch" id="gamesLaunch" onclick="openGames()">🎮 BOPE GAMES<small>DIVERTISSEMENT • INTELLIGENCE • COMPÉTITION</small></button><div class="games-page" id="gamesPage"><div id="gamesHome"><div style="font-size:42px">🏆🎮</div><h2>Bienvenue dans BOPE GAMES</h2><p>Joue, réfléchis, apprends et relève des défis !</p><div class="games-grid">
+  <button class="games-launch" id="gamesLaunch" onclick="openGames()">🎮 BOPE GAMES<small>DIVERTISSEMENT • INTELLIGENCE • COMPÉTITION</small></button>
+  <section class="bope-hub" aria-label="Les espaces BOPE">
+    <div class="bope-hub-head"><h2>✨ DÉCOUVRE LES UNIVERS BOPE</h2><p>Un seul espace pour apprendre, créer, partager et entreprendre.</p></div>
+    <div class="bope-hub-grid">
+      <button class="bope-hub-btn studio" onclick="bopeFeatureNotice('BOPE STUDIO')"><span class="hub-icon">🎬</span>BOPE STUDIO<small>CRÉATION VIDÉO IA</small></button>
+      <button class="bope-hub-btn social" onclick="bopeFeatureNotice('BOPE SOCIAL')"><span class="hub-icon">🌐</span>BOPE SOCIAL<small>PARTAGE & RÉSEAUX</small></button>
+      <button class="bope-hub-btn creator" onclick="bopeFeatureNotice('BOPE CRÉATEURS')"><span class="hub-icon">📱</span>BOPE CRÉATEURS<small>VIDÉOS & COMMUNAUTÉ</small></button>
+      <button class="bope-hub-btn money" onclick="bopeFeatureNotice('BOPE MONÉTISATION')"><span class="hub-icon">💰</span>BOPE MONÉTISATION<small>RÉCOMPENSES CRÉATEURS</small></button>
+      <button class="bope-hub-btn campus" onclick="bopeFeatureNotice('BOPE CAMPUS')"><span class="hub-icon">🎓</span>BOPE CAMPUS<small>ÉTUDES & FORMATION</small></button>
+      <button class="bope-hub-btn jobs" onclick="bopeFeatureNotice('BOPE JOBS')"><span class="hub-icon">💼</span>BOPE JOBS<small>EMPLOIS & STAGES</small></button>
+      <button class="bope-hub-btn services" onclick="bopeFeatureNotice('BOPE SERVICES')"><span class="hub-icon">🛠️</span>BOPE SERVICES<small>PROS & SERVICES</small></button>
+      <button class="bope-hub-btn voice" onclick="bopeFeatureNotice('BOPE VOICE')"><span class="hub-icon">🎙️</span>BOPE VOICE<small>ASSISTANT VOCAL</small></button>
+      <button class="bope-hub-btn business" onclick="bopeFeatureNotice('BOPE BUSINESS')"><span class="hub-icon">📈</span>BOPE BUSINESS<small>OUTILS POUR COMMERÇANTS</small></button>
+      <button class="bope-hub-btn sports" onclick="bopeFeatureNotice('BOPE SPORTS')"><span class="hub-icon">⚽</span>BOPE SPORTS<small>SCORES & ACTUALITÉS SPORTIVES</small></button>
+    </div>
+    <div class="bope-hub-note">Ces espaces sont présentés en avant-première. Leurs fonctionnalités seront activées progressivement.</div>
+  </section><div class="games-page" id="gamesPage"><div id="gamesHome"><div style="font-size:42px">🏆🎮</div><h2>Bienvenue dans BOPE GAMES</h2><p>Joue, réfléchis, apprends et relève des défis !</p><div class="games-grid">
 <button class="games-category" onclick="openClassics()"><span>♟️</span>Jeux classiques</button>
 <button class="games-category" onclick="gamesNotice('Guerre et aventure')"><span>⚔️</span>Guerre & aventure</button>
 <button class="games-category" onclick="openMusicStudio()"><span>🎹</span>Musique</button>
@@ -200,6 +225,7 @@
   <script src="/socket.io/socket.io.js"></script>
   <script>
 
+  function bopeFeatureNotice(name){alert(name+' : cet espace est en préparation. BOPE l’activera progressivement. 🇨🇩');}
   let MODE='court';
   function openGames(){document.getElementById('welcome').style.display='none';document.getElementById('chat').style.display='none';document.querySelector('.box').style.display='none';document.getElementById('gamesLaunch').style.display='none';document.getElementById('gamesPage').style.display='block';}function closeGames(){document.getElementById('gamesPage').style.display='none';document.getElementById('gamesLaunch').style.display='block';document.getElementById('welcome').style.display='flex';document.getElementById('chat').style.display='flex';document.querySelector('.box').style.display='flex';}
 function gamesNotice(category){alert(category+' : cette rubrique sera activée progressivement dans BOPE GAMES.');}
