@@ -326,7 +326,7 @@ io.on('connection', socket => {
   socket.on('ludo:create', (options, callback) => {
     const code = makeLudoCode();
     const diceCount = Number(options && options.diceCount) === 2 ? 2 : 1;
-    const room = { code, host: socket.id, guest: null, diceCount, createdAt: Date.now() };
+    const room = { code, host: socket.id, guest: null, diceCount, gameState: null, createdAt: Date.now() };
     ludoRooms.set(code, room);
     socket.join('ludo:' + code);
     socket.data.ludoRoom = code;
@@ -346,6 +346,36 @@ io.on('connection', socket => {
     socket.data.ludoSide = 'guest';
     if (typeof callback === 'function') callback({ ok: true, code, side: 'guest', diceCount: room.diceCount });
     io.to('ludo:' + code).emit('ludo:players', { ready: true, diceCount: room.diceCount, message: 'Les deux joueurs sont connectés ! La salle est prête.' });
+  });
+
+  function validLudoState(state) {
+    if (!state || !Array.isArray(state.players) || state.players.length !== 2) return false;
+    if (!state.players.every(p => p && typeof p.name === 'string' && ['red','blue','yellow','green'].includes(p.color) &&
+      Number.isInteger(p.startIndex) && p.startIndex >= 0 && p.startIndex < 52 &&
+      Array.isArray(p.pawns) && p.pawns.length === 4 && p.pawns.every(n => Number.isInteger(n) && n >= -1 && n <= 58))) return false;
+    if (new Set(state.players.map(p => p.color)).size !== 2 || new Set(state.players.map(p => p.startIndex)).size !== 2) return false;
+    if (!Number.isInteger(state.turn) || state.turn < 0 || state.turn > 1 || !Array.isArray(state.rolls) ||
+      state.rolls.length > 2 || !state.rolls.every(n => Number.isInteger(n) && n >= 1 && n <= 6) ||
+      !Array.isArray(state.pending) || state.pending.length > 2 ||
+      !state.pending.every(d => d && Number.isInteger(d.value) && d.value >= 1 && d.value <= 6 && typeof d.used === 'boolean') ||
+      !Number.isInteger(state.sixStreak) || state.sixStreak < 0 || state.sixStreak > 6 ||
+      typeof state.gameFinished !== 'boolean' || ![1,2].includes(state.diceCount)) return false;
+    return true;
+  }
+
+  socket.on('ludo:start', state => {
+    const code = socket.data.ludoRoom, room = code && ludoRooms.get(code);
+    if (!room || room.host !== socket.id || !room.guest || room.gameState || !validLudoState(state)) return;
+    room.gameState = state;
+    io.to('ludo:' + code).emit('ludo:started', state);
+  });
+
+  socket.on('ludo:state', state => {
+    const code = socket.data.ludoRoom, room = code && ludoRooms.get(code);
+    if (!room || !room.guest || !room.gameState || !validLudoState(state)) return;
+    if (socket.data.ludoSide !== (room.gameState.turn === 0 ? 'host' : 'guest')) return;
+    room.gameState = state;
+    socket.to('ludo:' + code).emit('ludo:state', state);
   });
 
   socket.on('ludo:leave', () => {
