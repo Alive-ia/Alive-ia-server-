@@ -326,9 +326,11 @@ app.get('/api/studio/connection-check', async (req, res) => {
     const timeout = setTimeout(() => controller.abort(), 15000);
     let response;
     try {
+      // Recherche large par "p-video" : le catalogue peut ne pas traiter la barre oblique
+      // du nom complet comme une recherche textuelle simple.
       response = await fetch(
         'https://api.cloudflare.com/client/v4/accounts/' +
-          encodeURIComponent(accountId) + '/ai/models/search?search=pruna%2Fp-video&per_page=5',
+          encodeURIComponent(accountId) + '/ai/models/search?search=p-video&per_page=100',
         { headers: { Authorization: 'Bearer ' + apiToken, Accept: 'application/json' }, signal: controller.signal }
       );
     } finally {
