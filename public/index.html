@@ -168,7 +168,7 @@
 <div class="ludo-panel"><h3>2. Nombre de dés</h3><div class="ludo-options">
 <button class="ludo-choice active" data-ludo-dice="1" onclick="selectLudoDice(1,this)">🎲 1 dé</button>
 <button class="ludo-choice" data-ludo-dice="2" onclick="selectLudoDice(2,this)">🎲🎲 2 dés</button></div></div>
-<div class="ludo-panel"><h3>3. Nombre de joueurs</h3><select id="ludoPlayerCount" class="ludo-field"><option value="2">2 joueurs</option><option value="3">3 joueurs</option><option value="4" selected>4 joueurs</option></select></div>
+<div class="ludo-panel" id="ludoOnlineLobby" style="display:none"><h3>🌐 Salon en ligne</h3><p class="ludo-note">Crée un salon et partage son code, ou entre le code reçu de ton ami.</p><div class="ludo-options"><button class="ludo-choice" onclick="createLudoOnlineRoom()">➕ Créer une partie</button><label style="display:flex;gap:8px;align-items:center">Code <input id="ludoJoinCode" class="ludo-field" maxlength="6" placeholder="ABC123" style="width:110px;text-transform:uppercase"></label><button class="ludo-choice" onclick="joinLudoOnlineRoom()">Rejoindre</button></div><div id="ludoRoomCodeBox" style="display:none;margin-top:10px;text-align:center"><strong id="ludoRoomCodeText" style="font-size:26px;letter-spacing:5px"></strong><div class="ludo-options"><button class="ludo-choice" onclick="shareLudoCode('copy')">📋 Copier</button><button class="ludo-choice" onclick="shareLudoCode('whatsapp')">WhatsApp</button><button class="ludo-choice" onclick="shareLudoCode('sms')">SMS</button></div></div><p id="ludoOnlineStatus" class="ludo-note" aria-live="polite">Connecte-toi pour créer ou rejoindre un salon.</p></div><div class="ludo-panel"><h3>3. Nombre de joueurs</h3><select id="ludoPlayerCount" class="ludo-field"><option value="2">2 joueurs</option><option value="3">3 joueurs</option><option value="4" selected>4 joueurs</option></select></div>
 <div class="ludo-panel"><h3>4. Couleurs</h3><div class="ludo-options">
 <label>Joueur 1<select class="ludo-field" id="ludoColor1"><option value="red">🔴 Rouge</option><option value="blue">🔵 Bleu</option><option value="yellow">🟡 Jaune</option><option value="green">🟢 Vert</option></select></label>
 <label>Joueur 2<select class="ludo-field" id="ludoColor2"><option value="blue">🔵 Bleu</option><option value="red">🔴 Rouge</option><option value="yellow">🟡 Jaune</option><option value="green">🟢 Vert</option></select></label>
@@ -246,9 +246,50 @@ function classicComing(name){alert(name+' sera bientôt disponible dans BOPE GAM
 
 
 let ludoMode='local',ludoDiceCount=1;
+let ludoSocket=null,ludoRoomCode=null,ludoRoomSide=null,ludoRoomReady=false;
+function setLudoOnlineStatus(msg){const el=document.getElementById('ludoOnlineStatus');if(el)el.textContent=msg;}
+function ensureLudoSocket(){
+ if(ludoSocket)return ludoSocket;
+ if(!window.io){setLudoOnlineStatus('Le service en ligne n’est pas chargé. Recharge BOPE après le déploiement.');return null;}
+ ludoSocket=io();
+ ludoSocket.on('connect',()=>setLudoOnlineStatus('Connecté au serveur BOPE. Tu peux créer ou rejoindre un salon.'));
+ ludoSocket.on('connect_error',()=>setLudoOnlineStatus('Connexion impossible. Vérifie Internet puis réessaie.'));
+ ludoSocket.on('ludo:players',data=>{ludoRoomReady=!!data.ready;setLudoOnlineStatus(data.message||'Salon en ligne.');});
+ ludoSocket.on('ludo:opponent-left',()=>{ludoRoomReady=false;setLudoOnlineStatus('Ton adversaire a quitté le salon ou perdu la connexion.');});
+ return ludoSocket;
+}
+function showLudoRoom(code){ludoRoomCode=code;const box=document.getElementById('ludoRoomCodeBox');if(box)box.style.display='block';const label=document.getElementById('ludoRoomCodeText');if(label)label.textContent=code;}
+function createLudoOnlineRoom(){
+ const sock=ensureLudoSocket();if(!sock)return;
+ const create=()=>sock.emit('ludo:create',{diceCount:ludoDiceCount},result=>{if(!result||!result.ok){setLudoOnlineStatus(result?.error||'Impossible de créer le salon.');return;}ludoRoomSide='host';showLudoRoom(result.code);setLudoOnlineStatus('Salon créé ! Partage ce code avec ton ami. En attente du deuxième joueur…');});
+ if(sock.connected)create();else sock.once('connect',create);
+}
+function joinLudoOnlineRoom(){
+ const sock=ensureLudoSocket();if(!sock)return;
+ const input=document.getElementById('ludoJoinCode'),code=(input?.value||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+ if(code.length!==6){setLudoOnlineStatus('Entre un code de 6 caractères.');return;}
+ const join=()=>sock.emit('ludo:join',code,result=>{if(!result||!result.ok){setLudoOnlineStatus(result?.error||'Impossible de rejoindre ce salon.');return;}ludoRoomSide='guest';showLudoRoom(result.code);setLudoOnlineStatus('Tu as rejoint le salon ! En attente de la synchronisation du plateau.');});
+ if(sock.connected)join();else sock.once('connect',join);
+}
+function shareLudoCode(channel){
+ if(!ludoRoomCode){setLudoOnlineStatus('Crée ou rejoins un salon avant de partager.');return;}
+ const message='Rejoins-moi sur BOPE LUDO 🇨🇩 ! Ouvre BOPE IA, choisis LUDO puis En ligne et entre ce code : '+ludoRoomCode+'.';
+ const full=message+' '+window.location.origin;
+ if(channel==='whatsapp'){window.location.href='https://wa.me/?text='+encodeURIComponent(full);return;}
+ if(channel==='sms'){window.location.href='sms:?body='+encodeURIComponent(full);return;}
+ const fallback=()=>{const area=document.createElement('textarea');area.value=full;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();try{document.execCommand('copy');setLudoOnlineStatus('Code et lien copiés ! Envoie-les à ton ami.');}catch(e){setLudoOnlineStatus('Copie impossible sur cet appareil.');}area.remove();};
+ if(navigator.clipboard?.writeText)navigator.clipboard.writeText(full).then(()=>setLudoOnlineStatus('Code et lien copiés ! Envoie-les à ton ami.')).catch(fallback);else fallback();
+}
+function leaveLudoOnlineRoom(){
+ if(ludoSocket&&ludoRoomCode)ludoSocket.emit('ludo:leave');
+ ludoRoomCode=null;ludoRoomSide=null;ludoRoomReady=false;
+ const box=document.getElementById('ludoRoomCodeBox');if(box)box.style.display='none';
+ setLudoOnlineStatus('Tu as quitté le salon.');
+}
+
 function openLudo(){document.getElementById('gamesPage').style.display='block';document.getElementById('ludoScreen').classList.add('show');}
 function closeLudo(){document.getElementById('ludoScreen').classList.remove('show');document.getElementById('gamesPage').style.display='block';}
-function selectLudoMode(mode,btn){ludoMode=mode;document.querySelectorAll('[data-ludo-mode]').forEach(b=>b.classList.toggle('active',b===btn));const count=document.getElementById('ludoPlayerCount');count.disabled=mode!=='local';if(mode==='ai')count.value='2';document.getElementById('ludoSetupMessage').textContent=mode==='online'?'Le jeu en ligne sera activé avec le plateau multijoueur.':'';}
+function selectLudoMode(mode,btn){ludoMode=mode;document.querySelectorAll('[data-ludo-mode]').forEach(b=>b.classList.toggle('active',b===btn));const count=document.getElementById('ludoPlayerCount');count.disabled=mode!=='local';if(mode==='ai')count.value='2';document.getElementById('ludoOnlineLobby').style.display=mode==='online'?'block':'none';document.getElementById('ludoSetupMessage').textContent=mode==='online'?'Crée un salon ou rejoins ton ami avec son code.':'';if(mode!=='online'&&ludoRoomCode)leaveLudoOnlineRoom();}
 function selectLudoDice(n,btn){ludoDiceCount=n;document.querySelectorAll('[data-ludo-dice]').forEach(b=>b.classList.toggle('active',b===btn));}
 function startLudoSetup(){const count=Number(document.getElementById('ludoPlayerCount').value);const colors=[1,2,3,4].slice(0,count).map(i=>document.getElementById('ludoColor'+i).value);if(new Set(colors).size!==colors.length){document.getElementById('ludoSetupMessage').textContent='Choisis une couleur différente pour chaque joueur.';return;}document.getElementById('ludoSetupMessage').textContent='Configuration validée : '+ludoMode+', '+ludoDiceCount+' dé(s), '+count+' joueur(s). Le plateau jouable sera ajouté à l’étape suivante.';}
 
