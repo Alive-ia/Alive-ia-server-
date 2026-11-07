@@ -305,6 +305,73 @@ app.get('/api/studio/status', (req, res) => {
   res.json({ configured, enabled: process.env.BOPE_STUDIO_ENABLED === 'true', model: 'pruna/p-video', maxDurationSeconds: 5 });
 });
 
+// Vérification non facturable : confirme l'accès API Workers AI sans exécuter de modèle.
+const studioCheckTimes = new Map();
+app.get('/api/studio/connection-check', async (req, res) => {
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+  const apiToken = process.env.CLOUDFLARE_API_TOKEN;
+  if (!accountId || !apiToken) {
+    return res.status(503).json({ ok: false, message: 'Configuration Cloudflare incomplète.' });
+  }
+
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  const lastCheck = studioCheckTimes.get(ip) || 0;
+  if (Date.now() - lastCheck < 60 * 1000) {
+    return res.status(429).json({ ok: false, message: 'Attends une minute avant une nouvelle vérification.' });
+  }
+  studioCheckTimes.set(ip, Date.now());
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    let response;
+    try {
+      response = await fetch(
+        'https://api.cloudflare.com/client/v4/accounts/' +
+          encodeURIComponent(accountId) + '/ai/models/search?search=pruna%2Fp-video&per_page=5',
+        { headers: { Authorization: 'Bearer ' + apiToken, Accept: 'application/json' }, signal: controller.signal }
+      );
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data.success !== true || (Array.isArray(data.errors) && data.errors.length)) {
+      const status = response.status;
+      console.error('BOPE Cloudflare connection check failed:', status);
+      return res.status(502).json({
+        ok: false,
+        message: status === 401 || status === 403
+          ? 'Cloudflare refuse le jeton ou ses autorisations. Vérifie les permissions.'
+          : 'Cloudflare n’a pas confirmé l’accès API. Réessaie plus tard.',
+        providerStatus: status
+      });
+    }
+
+    const models = Array.isArray(data.result) ? data.result : [];
+    const modelFound = models.some(model =>
+      JSON.stringify(model).toLowerCase().includes('pruna/p-video')
+    );
+    return res.json({
+      ok: true,
+      authenticated: true,
+      workersAiReadAccess: true,
+      modelFound,
+      message: modelFound
+        ? 'Connexion Cloudflare vérifiée. Le modèle pruna/p-video apparaît dans le catalogue. Aucune génération effectuée.'
+        : 'Connexion Cloudflare et accès Workers AI vérifiés. Le modèle pruna/p-video n’a pas été retrouvé dans les premiers résultats. Aucune génération effectuée.'
+    });
+  } catch (error) {
+    console.error('BOPE Cloudflare connection check:', error.name);
+    return res.status(502).json({
+      ok: false,
+      message: error.name === 'AbortError'
+        ? 'La vérification Cloudflare a expiré.'
+        : 'Impossible de joindre Cloudflare pour le moment.'
+    });
+  }
+});
+
 app.post('/api/studio/generate', async (req, res) => {
   if (process.env.BOPE_STUDIO_ENABLED !== 'true') {
     return res.status(503).json({ error: 'BOPE STUDIO est encore en preparation. Les generations sont desactivees.' });
