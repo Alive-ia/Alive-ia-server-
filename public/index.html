@@ -247,6 +247,8 @@ function classicComing(name){alert(name+' sera bientôt disponible dans BOPE GAM
 
 let ludoMode='local',ludoDiceCount=1;
 let ludoSocket=null,ludoRoomCode=null,ludoRoomSide=null,ludoRoomReady=false;
+let ludoConnectionAnnounced=false;
+function ludoAnnounceConnected(){try{const C=window.AudioContext||window.webkitAudioContext;if(C){const ctx=new C();const play=(freq,start,duration)=>{const osc=ctx.createOscillator(),gain=ctx.createGain();osc.frequency.value=freq;gain.gain.setValueAtTime(.0001,ctx.currentTime+start);gain.gain.exponentialRampToValueAtTime(.12,ctx.currentTime+start+.015);gain.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+start+duration);osc.connect(gain);gain.connect(ctx.destination);osc.start(ctx.currentTime+start);osc.stop(ctx.currentTime+start+duration+.02);};play(660,0,.13);play(880,.16,.2);if(ctx.state==='suspended')ctx.resume().catch(()=>{});}}catch(e){}try{if('speechSynthesis'in window){window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance('Très bien, c’est connecté !');u.lang='fr-FR';u.rate=.96;u.pitch=1.05;u.volume=1;window.speechSynthesis.speak(u);}}catch(e){}}
 function setLudoOnlineStatus(msg){const el=document.getElementById('ludoOnlineStatus');if(el)el.textContent=msg;}
 function ensureLudoSocket(){
  if(ludoSocket)return ludoSocket;
@@ -254,18 +256,20 @@ function ensureLudoSocket(){
  ludoSocket=io();
  ludoSocket.on('connect',()=>setLudoOnlineStatus('Connecté au serveur BOPE. Tu peux créer ou rejoindre un salon.'));
  ludoSocket.on('connect_error',()=>setLudoOnlineStatus('Connexion impossible. Vérifie Internet puis réessaie.'));
- ludoSocket.on('ludo:players',data=>{ludoRoomReady=!!data.ready;setLudoOnlineStatus(data.message||'Salon en ligne.');});
+ ludoSocket.on('ludo:players',data=>{const wasReady=ludoRoomReady;ludoRoomReady=!!data.ready;setLudoOnlineStatus(data.message||'Salon en ligne.');if(ludoRoomReady&&!wasReady&&!ludoConnectionAnnounced){ludoConnectionAnnounced=true;ludoAnnounceConnected();}});
  ludoSocket.on('ludo:opponent-left',()=>{ludoRoomReady=false;setLudoOnlineStatus('Ton adversaire a quitté le salon ou perdu la connexion.');});
  return ludoSocket;
 }
 function showLudoRoom(code){ludoRoomCode=code;const box=document.getElementById('ludoRoomCodeBox');if(box)box.style.display='block';const label=document.getElementById('ludoRoomCodeText');if(label)label.textContent=code;}
 function createLudoOnlineRoom(){
  const sock=ensureLudoSocket();if(!sock)return;
+  ludoConnectionAnnounced=false;ludoRoomReady=false;
  const create=()=>sock.emit('ludo:create',{diceCount:ludoDiceCount},result=>{if(!result||!result.ok){setLudoOnlineStatus(result?.error||'Impossible de créer le salon.');return;}ludoRoomSide='host';showLudoRoom(result.code);setLudoOnlineStatus('Salon créé ! Partage ce code avec ton ami. En attente du deuxième joueur…');});
  if(sock.connected)create();else sock.once('connect',create);
 }
 function joinLudoOnlineRoom(){
  const sock=ensureLudoSocket();if(!sock)return;
+  ludoConnectionAnnounced=false;ludoRoomReady=false;
  const input=document.getElementById('ludoJoinCode'),code=(input?.value||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
  if(code.length!==6){setLudoOnlineStatus('Entre un code de 6 caractères.');return;}
  const join=()=>sock.emit('ludo:join',code,result=>{if(!result||!result.ok){setLudoOnlineStatus(result?.error||'Impossible de rejoindre ce salon.');return;}ludoRoomSide='guest';showLudoRoom(result.code);setLudoOnlineStatus('Tu as rejoint le salon ! En attente de la synchronisation du plateau.');});
