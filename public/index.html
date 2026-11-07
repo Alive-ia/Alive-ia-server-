@@ -308,12 +308,21 @@ const LUDO_SAFE=[1,9,14,22,27,35];
 let ludoPlayers=[],ludoTurn=0,ludoRolls=[],ludoPending=[],ludoSixStreak=0,ludoGameFinished=false,ludoSelectedDie=null;
 function ludoBuildState(){return {players:ludoPlayers.map(p=>({name:p.name,color:p.color,startIndex:p.startIndex,pawns:[...p.pawns]})),turn:ludoTurn,rolls:[...ludoRolls],pending:ludoPending.map(d=>({...d})),sixStreak:ludoSixStreak,gameFinished:ludoGameFinished,diceCount:ludoDiceCount};}
 function ludoPublishState(){if(ludoMode==='online'&&ludoSocket&&ludoRoomReady)ludoSocket.emit('ludo:state',ludoBuildState());}
+function ludoRenderOnlineChoices(){
+ const box=document.getElementById('ludoMoveChoices');if(!box)return;box.innerHTML='';
+ const available=ludoPending.map((d,i)=>({d,i})).filter(x=>!x.d.used);
+ if(!available.length){ludoSelectedDie=null;return;}
+ ludoSelectedDie=available[0].i;
+ available.forEach(({d,i})=>{const b=document.createElement('button');b.className='ludo-choice';b.textContent='Utiliser '+d.value;b.onclick=()=>{ludoSelectedDie=i;Array.from(box.children).forEach(x=>x.classList.remove('active'));b.classList.add('active');ludoSetStatus('Dé sélectionné ('+d.value+'). Touche un pion qui brille.');ludoRenderBoard();};box.appendChild(b);});
+ if(ludoDiceCount===2&&available.length===2){const b=document.createElement('button');b.className='ludo-choice';b.textContent='Additionner '+ludoRolls[0]+' + '+ludoRolls[1];b.onclick=()=>{ludoSelectedDie='sum';Array.from(box.children).forEach(x=>x.classList.remove('active'));b.classList.add('active');ludoSetStatus('Les deux dés sont additionnés. Touche un pion qui brille.');ludoRenderBoard();};box.appendChild(b);}
+ if(box.children[0])box.children[0].classList.add('active');
+}
 function ludoApplyOnlineState(state){
  if(!state||!Array.isArray(state.players)||state.players.length!==2)return;
  ludoPlayers=state.players.map(p=>({name:String(p.name||'Joueur').slice(0,20),color:p.color,startIndex:Number(p.startIndex),pawns:p.pawns.map(Number)}));
  ludoTurn=Number(state.turn)||0;ludoRolls=Array.isArray(state.rolls)?state.rolls.slice(0,2):[];
  ludoPending=Array.isArray(state.pending)?state.pending.map(d=>({value:Number(d.value),used:!!d.used,index:Number(d.index)})):[];
- ludoSixStreak=Number(state.sixStreak)||0;ludoGameFinished=!!state.gameFinished;ludoDiceCount=Number(state.diceCount)===2?2:1;ludoSelectedDie=null;
+ ludoSixStreak=Number(state.sixStreak)||0;ludoGameFinished=!!state.gameFinished;ludoDiceCount=Number(state.diceCount)===2?2:1;ludoSelectedDie=null;ludoRenderOnlineChoices();
  const screen=document.getElementById('ludoBoardScreen');
  if(screen.style.display==='none'||!screen.style.display){document.getElementById('ludoScreen').classList.remove('show');screen.style.display='block';}
  const faces=document.getElementById('ludoDiceFaces');if(faces)faces.textContent=ludoRolls.map(v=>['','⚀','⚁','⚂','⚃','⚄','⚅'][v]||'').join('  ')||'⚀';
@@ -385,7 +394,7 @@ function ludoChoosePawn(pi,pawn){if(ludoGameFinished||pi!==ludoTurn||!ludoIsOnli
  used.forEach(i=>{if(ludoPending[i])ludoPending[i].used=true;});
  if(pl.pawns[pawn]>=58){pl.pawns[pawn]=58;}
  ludoCapture(pi,pawn);
- if(pl.pawns.every(x=>x===58)){ludoGameFinished=true;ludoSetStatus(pl.name+' gagne la partie ! 🏆');document.getElementById('ludoRollButton').disabled=true;ludoRenderBoard();return;}
+ if(pl.pawns.every(x=>x===58)){ludoGameFinished=true;ludoSetStatus(pl.name+' gagne la partie ! 🏆');document.getElementById('ludoRollButton').disabled=true;ludoRenderBoard();ludoPublishState();return;}
  ludoSelectedDie=null;ludoRenderBoard();ludoPublishState();
  if(ludoPending.every(d=>d.used)){ludoFinishTurn();}else if(!ludoHasAnyLegalMove(pi)){ludoFinishTurn();}else ludoSetStatus('Déplacement effectué. Utilise le dé restant : choisis le dé disponible puis touche un pion qui brille.');
  ludoScheduleAi(750);
