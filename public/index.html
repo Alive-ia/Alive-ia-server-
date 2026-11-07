@@ -257,6 +257,8 @@ function ensureLudoSocket(){
  ludoSocket.on('connect',()=>setLudoOnlineStatus('Connecté au serveur BOPE. Tu peux créer ou rejoindre un salon.'));
  ludoSocket.on('connect_error',()=>setLudoOnlineStatus('Connexion impossible. Vérifie Internet puis réessaie.'));
  ludoSocket.on('ludo:players',data=>{const wasReady=ludoRoomReady;ludoRoomReady=!!data.ready;setLudoOnlineStatus(data.message||'Salon en ligne.');if(ludoRoomReady&&!wasReady&&!ludoConnectionAnnounced){ludoConnectionAnnounced=true;ludoAnnounceConnected();}});
+ ludoSocket.on('ludo:started',state=>{ludoApplyOnlineState(state);setLudoOnlineStatus('La partie en ligne a commencé ! Bonne chance.');});
+ ludoSocket.on('ludo:state',state=>ludoApplyOnlineState(state));
  ludoSocket.on('ludo:opponent-left',()=>{ludoRoomReady=false;setLudoOnlineStatus('Ton adversaire a quitté le salon ou perdu la connexion.');});
  return ludoSocket;
 }
@@ -304,16 +306,32 @@ const LUDO_NAMES={red:'Rouge',blue:'Bleu',yellow:'Jaune',green:'Vert'};
 const LUDO_PATH=[[6,1],[6,2],[6,3],[6,4],[6,5],[5,6],[4,6],[3,6],[2,6],[1,6],[0,6],[0,7],[0,8],[1,8],[2,8],[3,8],[4,8],[5,8],[6,9],[6,10],[6,11],[6,12],[6,13],[6,14],[7,14],[8,14],[8,13],[8,12],[8,11],[8,10],[8,9],[9,8],[10,8],[11,8],[12,8],[13,8],[14,8],[14,7],[14,6],[13,6],[12,6],[11,6],[10,6],[9,6],[8,5],[8,4],[8,3],[8,2],[8,1],[8,0],[7,0],[6,0]];
 const LUDO_SAFE=[1,9,14,22,27,35];
 let ludoPlayers=[],ludoTurn=0,ludoRolls=[],ludoPending=[],ludoSixStreak=0,ludoGameFinished=false,ludoSelectedDie=null;
+function ludoBuildState(){return {players:ludoPlayers.map(p=>({name:p.name,color:p.color,startIndex:p.startIndex,pawns:[...p.pawns]})),turn:ludoTurn,rolls:[...ludoRolls],pending:ludoPending.map(d=>({...d})),sixStreak:ludoSixStreak,gameFinished:ludoGameFinished,diceCount:ludoDiceCount};}
+function ludoPublishState(){if(ludoMode==='online'&&ludoSocket&&ludoRoomReady)ludoSocket.emit('ludo:state',ludoBuildState());}
+function ludoApplyOnlineState(state){
+ if(!state||!Array.isArray(state.players)||state.players.length!==2)return;
+ ludoPlayers=state.players.map(p=>({name:String(p.name||'Joueur').slice(0,20),color:p.color,startIndex:Number(p.startIndex),pawns:p.pawns.map(Number)}));
+ ludoTurn=Number(state.turn)||0;ludoRolls=Array.isArray(state.rolls)?state.rolls.slice(0,2):[];
+ ludoPending=Array.isArray(state.pending)?state.pending.map(d=>({value:Number(d.value),used:!!d.used,index:Number(d.index)})):[];
+ ludoSixStreak=Number(state.sixStreak)||0;ludoGameFinished=!!state.gameFinished;ludoDiceCount=Number(state.diceCount)===2?2:1;ludoSelectedDie=null;
+ const screen=document.getElementById('ludoBoardScreen');
+ if(screen.style.display==='none'||!screen.style.display){document.getElementById('ludoScreen').classList.remove('show');screen.style.display='block';}
+ const faces=document.getElementById('ludoDiceFaces');if(faces)faces.textContent=ludoRolls.map(v=>['','⚀','⚁','⚂','⚃','⚄','⚅'][v]||'').join('  ')||'⚀';
+ ludoRenderBoard();ludoSetStatus('Partie synchronisée. '+(ludoTurn=== (ludoRoomSide==='host'?0:1)?'C’est ton tour.':'Tour de ton adversaire.'));
+ const roll=document.getElementById('ludoRollButton');if(roll)roll.disabled=ludoGameFinished||ludoTurn!==(ludoRoomSide==='host'?0:1)||ludoPending.length>0;
+}
+function ludoIsOnlineTurn(){return ludoMode!=='online'||(ludoRoomReady&&ludoTurn===(ludoRoomSide==='host'?0:1));}
 function ludoSetupPlayers(){
- const n=ludoMode==='ai'?2:Number(document.getElementById('ludoPlayerCount').value);
+ const n=(ludoMode==='ai'||ludoMode==='online')?2:Number(document.getElementById('ludoPlayerCount').value);
  return Array.from({length:n},(_,i)=>({name:ludoMode==='ai'&&i===1?'BOPE':'Joueur '+(i+1),color:document.getElementById('ludoColor'+(i+1)).value,startIndex:Number(document.getElementById('ludoStart'+(i+1)).value),pawns:[-1,-1,-1,-1]}));
 }
 function startLudoSetup(){
- if(ludoMode==='online'){document.getElementById('ludoSetupMessage').textContent='Le mode en ligne sera ajouté dans une prochaine étape.';return;}
+ if(ludoMode==='online'&&(!ludoRoomReady||!ludoSocket||ludoRoomSide!=='host')){document.getElementById('ludoSetupMessage').textContent='Attends que ton adversaire soit connecté. Seul le créateur lance la partie.';return;}
  const players=ludoSetupPlayers(),colors=players.map(p=>p.color),starts=players.map(p=>p.startIndex);
  if(new Set(colors).size!==colors.length){document.getElementById('ludoSetupMessage').textContent='Choisis une couleur différente pour chaque joueur.';return;}
  if(new Set(starts).size!==starts.length){document.getElementById('ludoSetupMessage').textContent='Chaque joueur doit choisir une case de sortie différente.';return;}
- ludoPlayers=players;ludoTurn=0;ludoGameFinished=false;ludoSixStreak=0;
+ ludoPlayers=players;ludoTurn=0;ludoGameFinished=false;ludoSixStreak=0;ludoRolls=[];ludoPending=[];ludoSelectedDie=null;
+ if(ludoMode==='online')ludoSocket.emit('ludo:start',ludoBuildState());
  document.getElementById('ludoScreen').classList.remove('show');
  document.getElementById('ludoBoardScreen').style.display='block';
  ludoRenderBoard();ludoSetStatus(ludoMode==='ai'?'À toi de commencer contre BOPE ! Lance le dé.':'Lance le dé pour commencer.');document.getElementById('ludoRollButton').disabled=false;
@@ -337,7 +355,7 @@ function ludoFinishTurn(){
  if(extra){ludoSetStatus('Tu as obtenu un 6 : tu rejoues !');}
  else{ludoTurn=(ludoTurn+1)%ludoPlayers.length;ludoSetStatus('Aucun déplacement possible avec le dé restant. Au joueur suivant.');}
  document.getElementById('ludoRollButton').disabled=false;
- ludoRenderBoard();ludoScheduleAi(700);
+ ludoRenderBoard();ludoPublishState();ludoScheduleAi(700);
 }
 function ludoUpdateInstruction(){const el=document.getElementById('ludoInstruction');if(!el)return;if(ludoGameFinished){el.textContent='PARTIE TERMINÉE';return;}if(!ludoPending.length){el.textContent='ÉTAPE 1 : appuie sur « LANCER LE DÉ »';return;}if(ludoSelectedDie===null){el.textContent='ÉTAPE 2 : choisis un dé';return;}el.textContent='ÉTAPE 3 : touche un pion qui brille';}
 function ludoRenderBoard(){
@@ -357,9 +375,9 @@ function ludoRenderBoard(){
 }
 let ludoAudioContext=null;
 function ludoPlaySound(type){try{const C=window.AudioContext||window.webkitAudioContext;if(!C)return;if(!ludoAudioContext)ludoAudioContext=new C();if(ludoAudioContext.state==='suspended')ludoAudioContext.resume();const ctx=ludoAudioContext,osc=ctx.createOscillator(),gain=ctx.createGain(),now=ctx.currentTime;const cfg=type==='dice'?{f:520,d:.16,w:'triangle'}:type==='move'?{f:300,d:.11,w:'sine'}:{f:760,d:.055,w:'sine'};osc.type=cfg.w;osc.frequency.setValueAtTime(cfg.f,now);if(type==='dice')osc.frequency.exponentialRampToValueAtTime(260,now+cfg.d);gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.16,now+.012);gain.gain.exponentialRampToValueAtTime(.0001,now+cfg.d);osc.connect(gain);gain.connect(ctx.destination);osc.start(now);osc.stop(now+cfg.d+.02);}catch(e){console.warn('Son BOPE LUDO indisponible',e);}}
-function ludoRoll(){if(ludoGameFinished||ludoPending.length)return;ludoPlaySound('dice');const n=ludoDiceCount; ludoRolls=Array.from({length:n},()=>1+Math.floor(Math.random()*6));document.getElementById('ludoDiceFaces').textContent=ludoRolls.map(v=>['','⚀','⚁','⚂','⚃','⚄','⚅'][v]).join('  ');if(ludoDiceCount===1){if(ludoRolls[0]===6){ludoSixStreak++;if(ludoSixStreak>=6){ludoWinSpecial();return;}}else ludoSixStreak=0;}else{if(ludoRolls[0]===6&&ludoRolls[1]===6){ludoSixStreak++;if(ludoSixStreak>=3){ludoWinSpecial();return;}}else ludoSixStreak=0;}
- ludoPending=ludoRolls.map((v,i)=>({value:v,used:false,index:i}));const box=document.getElementById('ludoMoveChoices');box.innerHTML='';ludoPending.forEach((d,i)=>{const b=document.createElement('button');b.className='ludo-choice';b.textContent='Utiliser '+d.value;b.onclick=()=>{ludoSelectedDie=i;Array.from(box.children).forEach(x=>x.classList.remove('active'));b.classList.add('active');ludoSetStatus('Dé '+(i+1)+' sélectionné ('+d.value+'). Touche maintenant un pion qui brille.');ludoRenderBoard();};box.appendChild(b);});if(ludoDiceCount===2){const b=document.createElement('button');b.className='ludo-choice';b.textContent='Additionner '+ludoRolls[0]+' + '+ludoRolls[1];b.onclick=()=>{ludoSelectedDie='sum';Array.from(box.children).forEach(x=>x.classList.remove('active'));b.classList.add('active');ludoSetStatus('Les deux dés sont additionnés. Touche un pion qui brille.');ludoRenderBoard();};box.appendChild(b);}const firstSix=ludoRolls.indexOf(6);ludoSelectedDie=firstSix>=0?firstSix:0;for(let di=0;di<ludoPending.length;di++){if(ludoPlayers[ludoTurn].pawns.some((p,pawn)=>ludoCanMove(ludoTurn,pawn,ludoPending[di].value))){ludoSelectedDie=di;break;}}if(ludoDiceCount===2&&!ludoHasAnyLegalMove(ludoTurn)){ludoFinishTurn();return;}if(box.children[ludoSelectedDie])box.children[ludoSelectedDie].classList.add('active');document.getElementById('ludoRollButton').disabled=true;if(!ludoHasAnyLegalMove(ludoTurn)){ludoFinishTurn();return;}ludoSetStatus('Résultat : '+ludoRolls.join(' et ')+'. Touche un pion qui brille pour le déplacer.');ludoRenderBoard();ludoScheduleAi(850);}
-function ludoChoosePawn(pi,pawn){if(ludoGameFinished||pi!==ludoTurn||ludoSelectedDie===null)return;const pl=ludoPlayers[pi],pos=pl.pawns[pawn];let steps,used=[];if(ludoSelectedDie==='sum'){steps=ludoRolls[0]+ludoRolls[1];used=[0,1];}else{const d=ludoPending[ludoSelectedDie];if(!d||d.used)return;steps=d.value;used=[ludoSelectedDie];}
+function ludoRoll(){if(ludoGameFinished||ludoPending.length||!ludoIsOnlineTurn())return;ludoPlaySound('dice');const n=ludoDiceCount; ludoRolls=Array.from({length:n},()=>1+Math.floor(Math.random()*6));document.getElementById('ludoDiceFaces').textContent=ludoRolls.map(v=>['','⚀','⚁','⚂','⚃','⚄','⚅'][v]).join('  ');if(ludoDiceCount===1){if(ludoRolls[0]===6){ludoSixStreak++;if(ludoSixStreak>=6){ludoWinSpecial();return;}}else ludoSixStreak=0;}else{if(ludoRolls[0]===6&&ludoRolls[1]===6){ludoSixStreak++;if(ludoSixStreak>=3){ludoWinSpecial();return;}}else ludoSixStreak=0;}
+ ludoPending=ludoRolls.map((v,i)=>({value:v,used:false,index:i}));const box=document.getElementById('ludoMoveChoices');box.innerHTML='';ludoPending.forEach((d,i)=>{const b=document.createElement('button');b.className='ludo-choice';b.textContent='Utiliser '+d.value;b.onclick=()=>{ludoSelectedDie=i;Array.from(box.children).forEach(x=>x.classList.remove('active'));b.classList.add('active');ludoSetStatus('Dé '+(i+1)+' sélectionné ('+d.value+'). Touche maintenant un pion qui brille.');ludoRenderBoard();};box.appendChild(b);});if(ludoDiceCount===2){const b=document.createElement('button');b.className='ludo-choice';b.textContent='Additionner '+ludoRolls[0]+' + '+ludoRolls[1];b.onclick=()=>{ludoSelectedDie='sum';Array.from(box.children).forEach(x=>x.classList.remove('active'));b.classList.add('active');ludoSetStatus('Les deux dés sont additionnés. Touche un pion qui brille.');ludoRenderBoard();};box.appendChild(b);}const firstSix=ludoRolls.indexOf(6);ludoSelectedDie=firstSix>=0?firstSix:0;for(let di=0;di<ludoPending.length;di++){if(ludoPlayers[ludoTurn].pawns.some((p,pawn)=>ludoCanMove(ludoTurn,pawn,ludoPending[di].value))){ludoSelectedDie=di;break;}}if(ludoDiceCount===2&&!ludoHasAnyLegalMove(ludoTurn)){ludoFinishTurn();return;}if(box.children[ludoSelectedDie])box.children[ludoSelectedDie].classList.add('active');document.getElementById('ludoRollButton').disabled=true;if(!ludoHasAnyLegalMove(ludoTurn)){ludoFinishTurn();return;}ludoSetStatus('Résultat : '+ludoRolls.join(' et ')+'. Touche un pion qui brille pour le déplacer.');ludoRenderBoard();ludoPublishState();ludoScheduleAi(850);}
+function ludoChoosePawn(pi,pawn){if(ludoGameFinished||pi!==ludoTurn||!ludoIsOnlineTurn()||ludoSelectedDie===null)return;const pl=ludoPlayers[pi],pos=pl.pawns[pawn];let steps,used=[];if(ludoSelectedDie==='sum'){steps=ludoRolls[0]+ludoRolls[1];used=[0,1];}else{const d=ludoPending[ludoSelectedDie];if(!d||d.used)return;steps=d.value;used=[ludoSelectedDie];}
  if(!ludoCanMove(pi,pawn,steps)){if(pos<0)ludoSetStatus('Ce pion ne peut pas sortir : il faut faire 6.');else if(pos===51)ludoSetStatus('Pour entrer dans la porte finale, il faut faire 1.');else ludoSetStatus('Ce pion ne peut pas avancer autant : il faut le chiffre exact. Choisis un pion qui brille.');return;}
  if(pos>=52&&pos+steps>58){ludoSetStatus('Il faut le chiffre exact pour terminer ce pion.');return;}
  if(pos===51&&steps!==1){ludoSetStatus('Pour entrer dans la porte finale, il faut faire 1.');return;}
@@ -368,7 +386,7 @@ function ludoChoosePawn(pi,pawn){if(ludoGameFinished||pi!==ludoTurn||ludoSelecte
  if(pl.pawns[pawn]>=58){pl.pawns[pawn]=58;}
  ludoCapture(pi,pawn);
  if(pl.pawns.every(x=>x===58)){ludoGameFinished=true;ludoSetStatus(pl.name+' gagne la partie ! 🏆');document.getElementById('ludoRollButton').disabled=true;ludoRenderBoard();return;}
- ludoSelectedDie=null;ludoRenderBoard();
+ ludoSelectedDie=null;ludoRenderBoard();ludoPublishState();
  if(ludoPending.every(d=>d.used)){ludoFinishTurn();}else if(!ludoHasAnyLegalMove(pi)){ludoFinishTurn();}else ludoSetStatus('Déplacement effectué. Utilise le dé restant : choisis le dé disponible puis touche un pion qui brille.');
  ludoScheduleAi(750);
 }
@@ -399,7 +417,7 @@ function ludoAiPlay(){
  choices.sort((a,b)=>b.score-a.score);const best=choices[0];ludoSelectedDie=best.die;ludoRenderBoard();ludoSetStatus('🤖 BOPE réfléchit…');setTimeout(()=>{if(!ludoIsAiTurn())return;ludoChoosePawn(pi,best.pawn);},450);
 }
 function ludoCapture(pi,pawn){const pl=ludoPlayers[pi],pos=pl.pawns[pawn];if(pos<0||pos>=52)return;const idx=(pos+pl.startIndex)%52;if(LUDO_SAFE.includes(idx))return;ludoPlayers.forEach((other,oi)=>{if(oi===pi)return;other.pawns=other.pawns.map(p=>{if(p<0||p>=52)return p;const otherIdx=(p+other.startIndex)%52;return otherIdx===idx?-1:p;});});}
-function ludoWinSpecial(){ludoGameFinished=true;document.getElementById('ludoRollButton').disabled=true;ludoSetStatus('🎉 SUPER SIX ! '+ludoPlayers[ludoTurn].name+' gagne automatiquement !');}
+function ludoWinSpecial(){ludoGameFinished=true;document.getElementById('ludoRollButton').disabled=true;ludoSetStatus('🎉 SUPER SIX ! '+ludoPlayers[ludoTurn].name+' gagne automatiquement !');ludoPublishState();}
 
 const D_PROFILE_KEY='bope_draughts_profile_v1';
 function getDraughtsProfile(){
