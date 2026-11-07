@@ -392,6 +392,14 @@ app.get('/api/studio/connection-check', async (req, res) => {
 // === BOPE STUDIO : TEST TECHNIQUE UNIQUE, DESACTIVE PAR DEFAUT ===
 let studioTestConsumed = false;
 app.post('/api/studio/test-once', async (req, res) => {
+  // Double verrou : activation explicite + clé secrète d'administration.
+  const configuredTestKey = process.env.BOPE_STUDIO_TEST_KEY;
+  const suppliedTestKey = req.get('x-bope-test-key') || '';
+  if (!configuredTestKey || !suppliedTestKey ||
+      Buffer.byteLength(configuredTestKey) !== Buffer.byteLength(suppliedTestKey) ||
+      !require('crypto').timingSafeEqual(Buffer.from(configuredTestKey), Buffer.from(suppliedTestKey))) {
+    return res.status(403).json({ ok: false, message: 'Accès administrateur requis. Aucune génération effectuée.' });
+  }
   if (process.env.BOPE_STUDIO_TEST_ENABLED !== 'true') {
     return res.status(503).json({ ok: false, message: 'Test vidéo verrouillé. Aucune génération effectuée.' });
   }
