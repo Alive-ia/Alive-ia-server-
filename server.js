@@ -302,6 +302,15 @@ app.get('/stats', (req, res) => res.json(visitStats));
 const httpServer = http.createServer(app);
 const io = new Server(httpServer, { cors: { origin: true }, transports: ['websocket', 'polling'] });
 const draughtsRooms = new Map();
+const ludoRooms = new Map();
+function makeLudoCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  do { code = ''; for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)]; }
+  while (ludoRooms.has(code));
+  return code;
+}
+
 
 function makeDraughtsCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -314,6 +323,42 @@ function makeDraughtsCode() {
 }
 
 io.on('connection', socket => {
+  socket.on('ludo:create', (options, callback) => {
+    const code = makeLudoCode();
+    const diceCount = Number(options && options.diceCount) === 2 ? 2 : 1;
+    const room = { code, host: socket.id, guest: null, diceCount, createdAt: Date.now() };
+    ludoRooms.set(code, room);
+    socket.join('ludo:' + code);
+    socket.data.ludoRoom = code;
+    socket.data.ludoSide = 'host';
+    if (typeof callback === 'function') callback({ ok: true, code, side: 'host', diceCount });
+  });
+
+  socket.on('ludo:join', (rawCode, callback) => {
+    const code = String(rawCode || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const room = ludoRooms.get(code);
+    if (!room) { if (typeof callback === 'function') callback({ ok: false, error: 'Code introuvable. Vérifie le code de la partie.' }); return; }
+    if (room.guest && room.guest !== socket.id) { if (typeof callback === 'function') callback({ ok: false, error: 'Cette partie est déjà complète.' }); return; }
+    if (room.host === socket.id) { if (typeof callback === 'function') callback({ ok: false, error: 'Tu es déjà l’organisateur de ce salon.' }); return; }
+    room.guest = socket.id;
+    socket.join('ludo:' + code);
+    socket.data.ludoRoom = code;
+    socket.data.ludoSide = 'guest';
+    if (typeof callback === 'function') callback({ ok: true, code, side: 'guest', diceCount: room.diceCount });
+    io.to('ludo:' + code).emit('ludo:players', { ready: true, diceCount: room.diceCount, message: 'Les deux joueurs sont connectés ! La salle est prête.' });
+  });
+
+  socket.on('ludo:leave', () => {
+    const code = socket.data.ludoRoom;
+    const room = code && ludoRooms.get(code);
+    if (!room) return;
+    socket.leave('ludo:' + code);
+    if (room.host === socket.id) { io.to('ludo:' + code).emit('ludo:opponent-left'); ludoRooms.delete(code); }
+    else if (room.guest === socket.id) { room.guest = null; io.to('ludo:' + code).emit('ludo:players', { ready: false, message: 'Ton adversaire a quitté le salon. En attente d’un autre joueur…' }); }
+    socket.data.ludoRoom = null; socket.data.ludoSide = null;
+  });
+
+
   socket.on('draughts:create', (callback) => {
     const code = makeDraughtsCode();
     const room = { code, host: socket.id, guest: null, hostProfile: null, guestProfile: null, state: null, createdAt: Date.now() };
@@ -418,6 +463,13 @@ io.on('connection', socket => {
   });
 
   socket.on('disconnect', () => {
+    const ludoCode = socket.data.ludoRoom;
+    const ludoRoom = ludoCode && ludoRooms.get(ludoCode);
+    if (ludoRoom) {
+      if (ludoRoom.host === socket.id) { io.to('ludo:' + ludoCode).emit('ludo:opponent-left'); ludoRooms.delete(ludoCode); }
+      else if (ludoRoom.guest === socket.id) { ludoRoom.guest = null; io.to('ludo:' + ludoCode).emit('ludo:players', { ready: false, message: 'Ton adversaire a perdu la connexion. En attente…' }); }
+    }
+
     const code = socket.data.draughtsRoom;
     const room = code && draughtsRooms.get(code);
     if (!room) return;
