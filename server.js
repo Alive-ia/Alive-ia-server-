@@ -296,6 +296,81 @@ res.json({ reply: rep });
 }
 });
 
+// === BOPE STUDIO : GENERATION VIDEO (V1, verrouillee par defaut) ===
+const studioRequestTimes = new Map();
+let studioGenerationInProgress = false;
+
+app.get('/api/studio/status', (req, res) => {
+  const configured = Boolean(process.env.CLOUDFLARE_ACCOUNT_ID && process.env.CLOUDFLARE_API_TOKEN);
+  res.json({ configured, enabled: process.env.BOPE_STUDIO_ENABLED === 'true', model: 'pruna/p-video', maxDurationSeconds: 5 });
+});
+
+app.post('/api/studio/generate', async (req, res) => {
+  if (process.env.BOPE_STUDIO_ENABLED !== 'true') {
+    return res.status(503).json({ error: 'BOPE STUDIO est encore en preparation. Les generations sont desactivees.' });
+  }
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+  const apiToken = process.env.CLOUDFLARE_API_TOKEN;
+  if (!accountId || !apiToken) return res.status(503).json({ error: 'Configuration Cloudflare incomplete sur le serveur.' });
+
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  const previous = studioRequestTimes.get(ip);
+  if (previous && Date.now() - previous < 10 * 60 * 1000) {
+    return res.status(429).json({ error: 'Limite de test atteinte. Attends 10 minutes avant une nouvelle generation.' });
+  }
+  if (studioGenerationInProgress) return res.status(429).json({ error: 'Une generation BOPE STUDIO est deja en cours. Reessaie plus tard.' });
+
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const prompt = typeof body.prompt === 'string' ? body.prompt.trim() : '';
+  const duration = Number(body.duration || 5);
+  const aspectRatio = ['16:9', '9:16', '1:1', '4:3', '3:4', '3:2', '2:3'].includes(body.aspectRatio) ? body.aspectRatio : '9:16';
+  const image = typeof body.image === 'string' ? body.image : '';
+
+  if (!prompt || prompt.length > 2000) return res.status(400).json({ error: 'Décris la vidéo en 1 à 2 000 caractères.' });
+  if (!Number.isInteger(duration) || duration < 1 || duration > 5) return res.status(400).json({ error: 'La phase de test est limitée à 5 secondes maximum.' });
+  if (image && (!/^data:image\/(jpeg|png|webp);base64,/i.test(image) || image.length > 8 * 1024 * 1024)) {
+    return res.status(400).json({ error: 'Image invalide ou trop volumineuse. Formats acceptés : JPG, PNG, WEBP.' });
+  }
+
+  const input = { prompt, duration, resolution: '720p', fps: 24, aspect_ratio: aspectRatio, draft: true, save_audio: true };
+  if (image) input.image = image;
+
+  studioGenerationInProgress = true;
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 120000);
+    let response;
+    try {
+      response = await fetch('https://api.cloudflare.com/client/v4/accounts/' + encodeURIComponent(accountId) + '/ai/run', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + apiToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'pruna/p-video', input }),
+        signal: controller.signal
+      });
+    } finally { clearTimeout(timeout); }
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data.success === false || data.errors?.length) {
+      console.error('Cloudflare P-Video error:', response.status, JSON.stringify(data.errors || data).slice(0, 1200));
+      return res.status(502).json({ error: 'Le moteur vidéo Cloudflare a refusé la demande.' });
+    }
+    const videoUrl = data.result?.video || data.result?.video_url || data.video;
+    if (!videoUrl || !/^https:\/\//i.test(videoUrl)) {
+      console.error('Réponse P-Video inattendue:', JSON.stringify(data).slice(0, 1200));
+      return res.status(502).json({ error: 'Cloudflare n’a pas retourné de lien vidéo exploitable.' });
+    }
+    studioRequestTimes.set(ip, Date.now());
+    return res.json({
+      success: true, videoUrl, duration, resolution: '720p draft',
+      estimatedProviderCostUsd: Number((duration * 0.005).toFixed(3)),
+      message: 'Vidéo générée. Le lien de sortie peut être temporaire.'
+    });
+  } catch (error) {
+    console.error('BOPE STUDIO generation:', error.message);
+    return res.status(502).json({ error: error.name === 'AbortError' ? 'Le moteur vidéo met trop de temps à répondre.' : 'Impossible de joindre Cloudflare pour le moment.' });
+  } finally { studioGenerationInProgress = false; }
+});
+
 app.get('/stats', (req, res) => res.json(visitStats));
 
 // === BOPE DAMES : SALONS MULTIJOUEURS ===
