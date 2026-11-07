@@ -389,6 +389,103 @@ app.get('/api/studio/connection-check', async (req, res) => {
   }
 });
 
+// === BOPE STUDIO : TEST TECHNIQUE UNIQUE, DESACTIVE PAR DEFAUT ===
+let studioTestConsumed = false;
+app.post('/api/studio/test-once', async (req, res) => {
+  if (process.env.BOPE_STUDIO_TEST_ENABLED !== 'true') {
+    return res.status(503).json({ ok: false, message: 'Test vidéo verrouillé. Aucune génération effectuée.' });
+  }
+  if (studioTestConsumed || studioGenerationInProgress) {
+    return res.status(429).json({ ok: false, message: 'Le test unique a déjà été consommé ou une génération est en cours.' });
+  }
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+  const apiToken = process.env.CLOUDFLARE_API_TOKEN;
+  if (!accountId || !apiToken) {
+    return res.status(503).json({ ok: false, message: 'Configuration Cloudflare incomplète. Aucune génération effectuée.' });
+  }
+
+  // Verrou consommé avant l'appel : même en cas d'erreur, aucune relance automatique.
+  studioTestConsumed = true;
+  studioGenerationInProgress = true;
+  const input = {
+    prompt: 'A calm cinematic view of the Congo River at sunrise, realistic natural light.',
+    duration: 1,
+    resolution: '720p',
+    fps: 24,
+    aspect_ratio: '16:9',
+    draft: true,
+    save_audio: true
+  };
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 120000);
+    let response;
+    try {
+      response = await fetch(
+        'https://api.cloudflare.com/client/v4/accounts/' + encodeURIComponent(accountId) + '/ai/run',
+        {
+          method: 'POST',
+          headers: { Authorization: 'Bearer ' + apiToken, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: 'pruna/p-video', input }),
+          signal: controller.signal
+        }
+      );
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data.success === false || (Array.isArray(data.errors) && data.errors.length)) {
+      const errors = Array.isArray(data.errors) ? data.errors.slice(0, 2).map(e => ({
+        code: typeof e.code === 'number' || typeof e.code === 'string' ? e.code : null,
+        message: typeof e.message === 'string' ? e.message.slice(0, 250) : 'Erreur Cloudflare.'
+      })) : [];
+      console.error('BOPE P-Video one-time test failed:', response.status, JSON.stringify(errors).slice(0, 500));
+      return res.status(502).json({
+        ok: false,
+        testConsumed: true,
+        cloudflareHttpStatus: response.status,
+        cloudflareErrors: errors,
+        message: 'Cloudflare a refusé le test. Le test unique est consommé ; aucune relance automatique.'
+      });
+    }
+
+    const videoUrl = data.result?.video || data.result?.video_url || data.video;
+    if (!videoUrl || !/^https:\/\//i.test(videoUrl)) {
+      console.error('BOPE P-Video one-time test: unexpected response shape');
+      return res.status(502).json({
+        ok: false,
+        testConsumed: true,
+        state: data.state || null,
+        message: 'Cloudflare a répondu, mais aucun lien vidéo exploitable n’a été retourné. Test consommé.'
+      });
+    }
+
+    return res.json({
+      ok: true,
+      testConsumed: true,
+      state: data.state || 'response_received',
+      durationSeconds: 1,
+      resolution: '720p draft',
+      estimatedProviderCostUsd: 0.005,
+      videoUrl,
+      message: 'Test vidéo terminé. Le lien peut être temporaire. BOPE STUDIO public reste désactivé.'
+    });
+  } catch (error) {
+    console.error('BOPE P-Video one-time test:', error.name);
+    return res.status(502).json({
+      ok: false,
+      testConsumed: true,
+      message: error.name === 'AbortError'
+        ? 'Le test a expiré côté serveur ; son résultat de facturation doit être vérifié avant toute autre tentative.'
+        : 'Impossible de terminer le test. Son résultat de facturation doit être vérifié avant toute autre tentative.'
+    });
+  } finally {
+    studioGenerationInProgress = false;
+  }
+});
+
 app.post('/api/studio/generate', async (req, res) => {
   if (process.env.BOPE_STUDIO_ENABLED !== 'true') {
     return res.status(503).json({ error: 'BOPE STUDIO est encore en preparation. Les generations sont desactivees.' });
