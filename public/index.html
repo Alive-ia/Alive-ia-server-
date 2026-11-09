@@ -174,6 +174,20 @@
 .montage-tools span{border-radius:10px;text-align:center;padding:10px 5px}
 .montage-next{border-color:#40516b}
 @media(max-width:360px){.montage-file-thumb{width:44px;flex-basis:44px;height:42px}.montage-file-actions button{padding:5px}}
+
+/* Prévisualisation locale BOPE MONTAGE */
+.montage-preview-card{border-color:#486b91}
+.montage-preview-stage{width:100%;min-height:170px;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:13px;background:#05070b;border:1px solid #303c50}
+.montage-preview-stage video,.montage-preview-stage img{display:block;width:100%;max-height:330px;object-fit:contain;background:#05070b}
+.montage-preview-stage audio{width:92%;margin:25px 4%}
+.montage-preview-placeholder{padding:30px 18px;text-align:center;color:#9ca9ba;font-size:12px;line-height:1.6}
+.montage-preview-meta{margin-top:9px;color:#c9d8ec;font-size:12px;overflow-wrap:anywhere}
+.montage-file.is-selected{border-color:#8dbaff;background:#1a2a40;box-shadow:0 0 0 1px #8dbaff55}
+.montage-file{cursor:pointer}
+.montage-file-actions{cursor:default}
+.montage-trim-panel{margin-top:14px;padding:12px;border:1px solid #40516b;border-radius:12px;background:#101722}
+.montage-trim-panel h4{margin:0 0 8px;color:#e0edff;font-size:13px}
+.montage-trim-panel .studio-option{width:100%;margin-top:10px}
 </style></head><body>
 
   <div class="topbar">
@@ -313,6 +327,21 @@
     <input class="studio-field studio-file" id="montageFiles" type="file" accept="video/*,image/*,audio/*" multiple onchange="montageLoadFiles(this)">
     <p class="studio-note">Tes fichiers sont lus depuis ton appareil. Cette étape ne les envoie pas sur Internet.</p>
     <div id="montageFileList" class="montage-file-list"><div class="montage-empty">Aucun fichier ajouté pour le moment.</div></div>
+   </div>
+   <div class="studio-card montage-preview-card">
+    <h3>🎥 Aperçu de tes fichiers</h3>
+    <p class="studio-note">Sélectionne un élément dans la liste pour le lire ici. La lecture reste sur ton appareil.</p>
+    <div id="montagePreviewStage" class="montage-preview-stage"><div class="montage-preview-placeholder">Choisis une vidéo, une photo ou un audio pour commencer l'aperçu.</div></div>
+    <div id="montagePreviewMeta" class="montage-preview-meta" aria-live="polite">Aucun fichier sélectionné.</div>
+    <div id="montageTrimPanel" class="montage-trim-panel" style="display:none">
+     <h4>✂️ Préparer le début et la fin</h4>
+     <div class="studio-options">
+      <div><label class="studio-label" for="montageTrimStart">Début (secondes)</label><input class="studio-field" type="number" id="montageTrimStart" min="0" step="0.1" value="0"></div>
+      <div><label class="studio-label" for="montageTrimEnd">Fin (secondes)</label><input class="studio-field" type="number" id="montageTrimEnd" min="0" step="0.1" placeholder="Durée totale"></div>
+     </div>
+     <button class="studio-option" type="button" onclick="applyMontageTrim()">Appliquer à la préparation</button>
+     <p class="studio-note">Ces repères seront enregistrés dans ton projet. Le découpage définitif sera effectué lorsque le moteur de montage sera intégré.</p>
+    </div>
    </div>
    <div class="studio-card">
     <h3>2. 🧩 Organiser ton montage</h3>
@@ -471,36 +500,63 @@
 
 
   let montageFiles=[];
+  let montageSelectedFile=null;
   function montageLoadFiles(input){
    const incoming=Array.from(input.files||[]),maxFiles=30;
    for(const file of incoming){
     if(montageFiles.length>=maxFiles){alert('Maximum 30 fichiers par projet pour le moment.');break;}
     if(!file.type.startsWith('video/')&&!file.type.startsWith('image/')&&!file.type.startsWith('audio/'))continue;
     if(file.size>250*1024*1024){alert(file.name+' dépasse la limite de 250 Mo.');continue;}
-    montageFiles.push({file,name:file.name,type:file.type,size:file.size});
+    montageFiles.push({file,name:file.name,type:file.type,size:file.size,url:URL.createObjectURL(file),duration:null,trimStart:0,trimEnd:null});
    }
-   input.value='';renderMontageFiles();
+   input.value='';if(!montageSelectedFile&&montageFiles.length)montageSelectedFile=montageFiles[0];renderMontageFiles();renderMontagePreview();
   }
   function montageFormatSize(bytes){return bytes>=1024*1024?(bytes/1024/1024).toFixed(1)+' Mo':Math.max(1,Math.round(bytes/1024))+' Ko';}
+  function montageDurationLabel(seconds){if(!Number.isFinite(seconds))return 'Durée en cours de lecture des métadonnées';const m=Math.floor(seconds/60),sec=Math.floor(seconds%60);return m+' min '+String(sec).padStart(2,'0')+' s';}
+  function selectMontageFile(item){montageSelectedFile=item;renderMontageFiles();renderMontagePreview();}
   function renderMontageFiles(){
    const list=document.getElementById('montageFileList');if(!list)return;list.innerHTML='';
    if(!montageFiles.length){list.innerHTML='<div class="montage-empty">Aucun fichier ajouté pour le moment.</div>';return;}
    montageFiles.forEach((item,index)=>{
-    const row=document.createElement('div');row.className='montage-file';
+    const row=document.createElement('div');row.className='montage-file'+(item===montageSelectedFile?' is-selected':'');row.onclick=()=>selectMontageFile(item);
     const thumb=document.createElement(item.type.startsWith('image/')?'img':'div');thumb.className='montage-file-thumb';
-    if(item.type.startsWith('image/')){thumb.src=URL.createObjectURL(item.file);thumb.alt='Aperçu';}else{thumb.style.display='grid';thumb.style.placeItems='center';thumb.style.fontSize='23px';thumb.textContent=item.type.startsWith('video/')?'🎞️':'🎵';}
-    const info=document.createElement('div');info.className='montage-file-info';const name=document.createElement('strong');name.textContent=(index+1)+'. '+item.name;const meta=document.createElement('small');meta.textContent=(item.type.startsWith('video/')?'Vidéo':item.type.startsWith('image/')?'Photo':'Audio')+' • '+montageFormatSize(item.size);info.append(name,meta);
-    const actions=document.createElement('div');actions.className='montage-file-actions';
+    if(item.type.startsWith('image/')){thumb.src=item.url;thumb.alt='Miniature';}else{thumb.style.display='grid';thumb.style.placeItems='center';thumb.style.fontSize='23px';thumb.textContent=item.type.startsWith('video/')?'🎞️':'🎵';}
+    const info=document.createElement('div');info.className='montage-file-info';const name=document.createElement('strong');name.textContent=(index+1)+'. '+item.name;const meta=document.createElement('small');meta.textContent=(item.type.startsWith('video/')?'Vidéo':item.type.startsWith('image/')?'Photo':'Audio')+' • '+montageFormatSize(item.size)+(Number.isFinite(item.duration)?' • '+montageDurationLabel(item.duration):'');info.append(name,meta);
+    const actions=document.createElement('div');actions.className='montage-file-actions';actions.onclick=(event)=>event.stopPropagation();
     const up=document.createElement('button');up.type='button';up.textContent='↑';up.disabled=index===0;up.setAttribute('aria-label','Monter');up.onclick=()=>{[montageFiles[index-1],montageFiles[index]]=[montageFiles[index],montageFiles[index-1]];renderMontageFiles();};
     const down=document.createElement('button');down.type='button';down.textContent='↓';down.disabled=index===montageFiles.length-1;down.setAttribute('aria-label','Descendre');down.onclick=()=>{[montageFiles[index+1],montageFiles[index]]=[montageFiles[index],montageFiles[index+1]];renderMontageFiles();};
-    const remove=document.createElement('button');remove.type='button';remove.textContent='✕';remove.setAttribute('aria-label','Retirer');remove.onclick=()=>{montageFiles.splice(index,1);renderMontageFiles();};
+    const remove=document.createElement('button');remove.type='button';remove.textContent='✕';remove.setAttribute('aria-label','Retirer');remove.onclick=()=>{if(item.url)URL.revokeObjectURL(item.url);montageFiles.splice(index,1);if(montageSelectedFile===item)montageSelectedFile=montageFiles[Math.min(index,montageFiles.length-1)]||null;renderMontageFiles();renderMontagePreview();};
     actions.append(up,down,remove);row.append(thumb,info,actions);list.appendChild(row);
    });
+  }
+  function renderMontagePreview(){
+   const stage=document.getElementById('montagePreviewStage'),meta=document.getElementById('montagePreviewMeta'),panel=document.getElementById('montageTrimPanel');if(!stage||!meta||!panel)return;
+   stage.innerHTML='';
+   const item=montageSelectedFile;
+   if(!item){stage.innerHTML='<div class="montage-preview-placeholder">Choisis une vidéo, une photo ou un audio pour commencer l’aperçu.</div>';meta.textContent='Aucun fichier sélectionné.';panel.style.display='none';return;}
+   meta.textContent=item.name+' • '+montageFormatSize(item.size);
+   if(item.type.startsWith('video/')){
+    const player=document.createElement('video');player.src=item.url;player.controls=true;player.playsInline=true;player.preload='metadata';player.onloadedmetadata=()=>{item.duration=Number.isFinite(player.duration)?player.duration:null;meta.textContent=item.name+' • '+montageDurationLabel(item.duration)+' • '+montageFormatSize(item.size);document.getElementById('montageTrimEnd').value=item.trimEnd??(item.duration||'');document.getElementById('montageTrimEnd').max=item.duration||'';renderMontageFiles();};stage.appendChild(player);panel.style.display='block';
+   }else if(item.type.startsWith('image/')){
+    const img=document.createElement('img');img.src=item.url;img.alt='Aperçu de '+item.name;stage.appendChild(img);panel.style.display='none';meta.textContent=item.name+' • Photo • '+montageFormatSize(item.size);
+   }else{
+    const audio=document.createElement('audio');audio.src=item.url;audio.controls=true;audio.preload='metadata';audio.onloadedmetadata=()=>{item.duration=Number.isFinite(audio.duration)?audio.duration:null;meta.textContent=item.name+' • '+montageDurationLabel(item.duration)+' • '+montageFormatSize(item.size);renderMontageFiles();};stage.appendChild(audio);panel.style.display='block';
+   }
+   document.getElementById('montageTrimStart').value=item.trimStart||0;
+   document.getElementById('montageTrimEnd').value=item.trimEnd??(item.duration||'');
+  }
+  function applyMontageTrim(){
+   const item=montageSelectedFile;if(!item||(!item.type.startsWith('video/')&&!item.type.startsWith('audio/')))return;
+   const start=Number(document.getElementById('montageTrimStart').value),end=Number(document.getElementById('montageTrimEnd').value);
+   if(!Number.isFinite(start)||start<0||!Number.isFinite(end)||end<=start||(Number.isFinite(item.duration)&&end>item.duration)){alert('Vérifie les repères : la fin doit être après le début et ne pas dépasser la durée du fichier.');return;}
+   item.trimStart=start;item.trimEnd=end;
+   const media=document.querySelector('#montagePreviewStage video, #montagePreviewStage audio');if(media)media.currentTime=start;
+   document.getElementById('montagePreviewMeta').textContent=item.name+' • Repères préparés : '+montageDurationLabel(start)+' → '+montageDurationLabel(end)+'.';
   }
   function saveMontageDraft(){
    const title=document.getElementById('montageTitle').value.trim()||'Mon projet BOPE MONTAGE';
    if(!montageFiles.length){alert('Ajoute au moins une vidéo, une photo ou un fichier audio avant de sauvegarder.');document.getElementById('montageFiles').focus();return;}
-   const project={mode:'montage',title,instruction:document.getElementById('montageInstruction').value.trim(),files:montageFiles.map((f,i)=>({name:f.name,type:f.type,size:f.size,order:i+1})),ratio:document.getElementById('montageRatio').value,quality:document.getElementById('montageQuality').value,music:document.getElementById('montageMusic').value,subtitles:document.getElementById('montageSubtitles').checked,aiAssist:document.getElementById('montageAiAssist').checked,createdAt:new Date().toISOString()};
+   const project={mode:'montage',title,instruction:document.getElementById('montageInstruction').value.trim(),files:montageFiles.map((f,i)=>({name:f.name,type:f.type,size:f.size,order:i+1,duration:f.duration,trimStart:f.trimStart,trimEnd:f.trimEnd})),ratio:document.getElementById('montageRatio').value,quality:document.getElementById('montageQuality').value,music:document.getElementById('montageMusic').value,subtitles:document.getElementById('montageSubtitles').checked,aiAssist:document.getElementById('montageAiAssist').checked,createdAt:new Date().toISOString()};
    try{localStorage.setItem('bope_montage_draft',JSON.stringify(project));}catch(e){const status=document.getElementById('montageStatus');status.style.display='block';status.textContent='⚠️ Le stockage du navigateur est plein. Les fichiers ne sont pas copiés dans BOPE : libère un peu d’espace puis réessaie.';return;}
    const status=document.getElementById('montageStatus');status.style.display='block';status.textContent='✅ Projet « '+title+' » enregistré sur cet appareil avec '+montageFiles.length+' fichier(s). Les médias originaux restent sur ton téléphone. Le montage final n’est pas encore rendu : aucun frais engagé.';
   }
