@@ -219,26 +219,6 @@
   </div>
   <div id="studioVideoPage" class="studio-service-page" style="display:none">
    <div class="studio-head"><button class="studio-back" type="button" onclick="showStudioHome()">← Retour à BOPE STUDIO</button><div class="studio-heading"><h2>🎬 BOPE VIDEO</h2><p>Décris ton idée ou anime une image.</p></div></div>
-  </div>
-  <div id="studioAvatarPage" class="studio-service-page" style="display:none">
-   <div class="studio-head"><button class="studio-back" type="button" onclick="showStudioHome()">← Retour à BOPE STUDIO</button><div class="studio-heading"><h2>🧑 BOPE AVATAR</h2><p>Prépare ta vidéo personnalisée.</p></div></div>
-  </div>
-  <div class="avatar-card" aria-label="BOPE AVATAR">
-   <h3>🧑‍🎤 BOPE AVATAR</h3>
-   <p class="avatar-intro">Prépare une vidéo personnalisée à partir de ta photo : voyage, avion, voiture, ville, présentation et bien plus.</p>
-   <label class="studio-label" for="bopeAvatarPhoto">1. Choisis ta photo (JPG, PNG ou WEBP — 8 Mo maximum)</label>
-   <input class="avatar-field" id="bopeAvatarPhoto" type="file" accept="image/jpeg,image/png,image/webp" onchange="previewBopeAvatar(this)">
-   <img id="bopeAvatarPreview" alt="Aperçu local de ta photo">
-   <button class="avatar-clear" type="button" onclick="clearBopeAvatarPhoto()">Retirer la photo</button>
-   <label class="studio-label" for="bopeAvatarPrompt">2. Décris la scène que tu souhaites</label>
-   <textarea id="bopeAvatarPrompt" class="avatar-field avatar-prompt" maxlength="1200" placeholder="Ex. : Je suis assis près du hublot dans un avion privé, je regarde les nuages..."></textarea>
-   <label class="studio-label" for="bopeAvatarDuration">3. Durée du premier clip de préparation</label>
-   <select id="bopeAvatarDuration" class="avatar-field"><option value="5">5 secondes</option></select>
-   <button class="avatar-submit" type="button" onclick="prepareBopeAvatar()">📝 Préparer mon projet BOPE AVATAR</button>
-   <div id="bopeAvatarStatus" role="status" aria-live="polite"></div>
-   <p class="avatar-privacy">🔒 Pour cette première étape, la photo reste sur ton appareil : elle n’est pas envoyée au serveur. Aucun clip n’est généré et aucun frais n’est déclenché. La génération sera ajoutée après validation du moteur et des coûts.</p>
-  </div>
-  </div>
   <div class="studio-card">
    <h3>1. Que veux-tu créer ?</h3>
    <label class="studio-label" for="studioPrompt">Décris ta vidéo</label>
@@ -277,7 +257,34 @@
    <div id="studioDraftStatus" role="status" aria-live="polite" style="margin-top:12px"></div>
    <p class="studio-note">ℹ️ BOPE vérifie la connexion au moteur vidéo. La génération reste désactivée pour le moment : aucun clip ne sera créé et aucun frais ne sera déclenché pendant cette vérification.</p>
   </div>
-  <p class="studio-note" style="text-align:center">BOPE STUDIO • 100% Made in Congo 🇨🇩</p>
+
+  </div>
+  <div id="studioAvatarPage" class="studio-service-page" style="display:none">
+   <div class="studio-head"><button class="studio-back" type="button" onclick="showStudioHome()">← Retour à BOPE STUDIO</button><div class="studio-heading"><h2>🧑 BOPE AVATAR</h2><p>Prépare ta vidéo personnalisée.</p></div></div>
+  <div class="avatar-card" aria-label="BOPE AVATAR">
+   <h3>🧑‍🎤 BOPE AVATAR</h3>
+   <p class="avatar-intro">Prépare une vidéo personnalisée à partir de ta photo : voyage, avion, voiture, ville, présentation et bien plus.</p>
+   <label class="studio-label" for="bopeAvatarPhoto">1. Choisis ta photo (JPG, PNG ou WEBP — 8 Mo maximum)</label>
+   <input class="avatar-field" id="bopeAvatarPhoto" type="file" accept="image/jpeg,image/png,image/webp" onchange="previewBopeAvatar(this)">
+   <img id="bopeAvatarPreview" alt="Aperçu local de ta photo">
+   <button class="avatar-clear" type="button" onclick="clearBopeAvatarPhoto()">Retirer la photo</button>
+   <label class="studio-label" for="bopeAvatarPrompt">2. Décris la scène que tu souhaites</label>
+   <textarea id="bopeAvatarPrompt" class="avatar-field avatar-prompt" maxlength="1200" placeholder="Ex. : Je suis assis près du hublot dans un avion privé, je regarde les nuages..."></textarea>
+   <label class="studio-label" for="bopeAvatarDuration">3. Durée du premier clip de préparation</label>
+   <select id="bopeAvatarDuration" class="avatar-field"><option value="5">5 secondes</option></select>
+   <button class="avatar-submit" type="button" onclick="prepareBopeAvatar()">📝 Préparer mon projet BOPE AVATAR</button>
+   <div id="bopeAvatarStatus" role="status" aria-live="polite"></div>
+   <p class="avatar-privacy">🔒 Pour cette première étape, la photo reste sur ton appareil : elle n’est pas envoyée au serveur. Aucun clip n’est généré et aucun frais n’est déclenché. La génération sera ajoutée après validation du moteur et des coûts.</p>
+  </div>
+  </div>
+  <div id="studioMontagePage" class="studio-service-page" style="display:none">
+   <div class="studio-head"><button class="studio-back" type="button" onclick="showStudioHome()">← Retour à BOPE STUDIO</button><div class="studio-heading"><h2>✂️ BOPE MONTAGE</h2><p>Assemble et améliore tes vidéos.</p></div></div>
+   <div class="studio-card"><h3>🚧 BOPE MONTAGE</h3><p class="studio-note">Cet espace est en préparation. Il sera activé lorsque les outils de montage seront prêts.</p><strong>Statut : Bientôt disponible.</strong></div>
+  </div>
+  <div id="studioAudioPage" class="studio-service-page" style="display:none">
+   <div class="studio-head"><button class="studio-back" type="button" onclick="showStudioHome()">← Retour à BOPE STUDIO</button><div class="studio-heading"><h2>🎙️ BOPE AUDIO</h2><p>Crée et travaille tes sons.</p></div></div>
+   <div class="studio-card"><h3>🚧 BOPE AUDIO</h3><p class="studio-note">Cet espace est en préparation. Il sera activé lorsque les outils audio seront prêts.</p><strong>Statut : Bientôt disponible.</strong></div>
+  </div>  <p class="studio-note" style="text-align:center">BOPE STUDIO • 100% Made in Congo 🇨🇩</p>
   </div>
  </div>
 </section>
@@ -411,12 +418,11 @@
   }
 
 
-  function showStudioHome(){document.getElementById('studioHomePage').style.display='block';document.getElementById('studioVideoPage').style.display='none';document.getElementById('studioAvatarPage').style.display='none';}
+  function showStudioHome(){['studioHomePage','studioVideoPage','studioAvatarPage','studioMontagePage','studioAudioPage'].forEach((id)=>{const el=document.getElementById(id);if(el)el.style.display=id==='studioHomePage'?'block':'none';});}
   function openStudioService(service){
-   const home=document.getElementById('studioHomePage'),video=document.getElementById('studioVideoPage'),avatar=document.getElementById('studioAvatarPage');
-   if(service==='video'){home.style.display='none';video.style.display='block';avatar.style.display='none';return;}
-   if(service==='avatar'){home.style.display='none';video.style.display='none';avatar.style.display='block';return;}
-   alert(service==='montage'?'BOPE MONTAGE sera activé progressivement.':'BOPE AUDIO sera activé progressivement.');
+   const pages={video:'studioVideoPage',avatar:'studioAvatarPage',montage:'studioMontagePage',audio:'studioAudioPage'};
+   const target=pages[service];if(!target)return;
+   ['studioHomePage',...Object.values(pages)].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=id===target?'block':'none';});
   }
   function showStudioCreations(){
    const keys=['bope_studio_draft','bope_avatar_draft'];let items=[];
