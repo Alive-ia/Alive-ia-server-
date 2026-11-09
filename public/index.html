@@ -128,6 +128,32 @@
  #bopeAvatarStatus{display:none;margin-top:12px;padding:12px;border:1px solid #477b60;border-radius:11px;background:#10251b;color:#c8f5d7;font-size:13px;line-height:1.5}
  .avatar-privacy{margin:10px 2px 0;color:#b8aab2;font-size:11px;line-height:1.5}
 
+
+/* BOPE STUDIO — accueil simplifié et navigation par service */
+#studioHomePage{max-width:560px;margin:0 auto}
+.studio-home-top{text-align:center;padding:8px 0 16px}
+.studio-home-top>.studio-back{display:block;margin:0 auto 16px}
+.studio-home-brand{display:flex;align-items:center;justify-content:center;gap:12px}
+.studio-home-logo{font-size:48px;filter:drop-shadow(0 0 12px #168bff)}
+.studio-home-brand h2{font-size:34px;line-height:1;margin:0;color:#fff;letter-spacing:1px}
+.studio-home-brand h2 span{color:#ffd52a}
+.studio-home-brand p{margin:7px 0 0;font-weight:700;font-style:italic;color:#dceaff}
+.studio-made{display:inline-block;margin:14px auto 10px;padding:7px 13px;border:1px solid #3e8fff;border-radius:22px;color:#ffe15a;font-size:12px;font-weight:800}
+.studio-tagline{padding:10px 12px;border-radius:20px;background:linear-gradient(90deg,#064bdc,#087fff);font-weight:800;box-shadow:0 0 16px #087fff66}
+.studio-home-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:8px 0 14px}
+.studio-home-tile{min-height:168px;padding:14px 10px;border:1px solid #438cff;border-radius:20px;color:#fff;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:linear-gradient(145deg,#073caa,#06132f);box-shadow:0 8px 22px #0008;cursor:pointer}
+.studio-home-tile.avatar{border-color:#bd62ff;background:linear-gradient(145deg,#6b16bd,#210746)}
+.studio-home-tile.montage{border-color:#56ef77;background:linear-gradient(145deg,#087a35,#06321d)}
+.studio-home-tile.audio{border-color:#ff9a35;background:linear-gradient(145deg,#b84208,#421503)}
+.studio-home-icon{font-size:36px}.studio-home-tile strong{font-size:17px}.studio-home-tile small{font-size:12px;line-height:1.35;min-height:30px}
+.studio-open{padding:8px 12px;border-radius:20px;background:#ffffff20;font-size:12px;font-weight:800}
+.studio-creations-card{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px;border:1px solid #7586b5;border-radius:18px;background:#11182b}
+.studio-creations-card>div{display:flex;align-items:center;gap:10px}.studio-folder{font-size:34px}
+.studio-creations-card strong,.studio-creations-card small{display:block}.studio-creations-card small{font-size:11px;color:#c5cee3;margin-top:4px;max-width:180px}
+.studio-creations-card button{border:0;border-radius:22px;background:#ffd51f;color:#171717;font-weight:800;padding:11px 12px;font-size:12px}
+.studio-home-footer{text-align:center;margin:14px 0 4px;padding:13px;border:1px solid #8951ef;border-radius:16px;background:#281052;font-size:13px;font-weight:700;line-height:1.5}
+.studio-home-footer b{color:#ffe04a}.studio-service-page{max-width:560px;margin:0 auto}
+@media(max-width:360px){.studio-home-grid{gap:8px}.studio-home-tile{min-height:150px;padding:10px 6px}.studio-home-tile strong{font-size:14px}.studio-creations-card{align-items:flex-start;flex-direction:column}.studio-creations-card button{width:100%}}
 </style></head><body>
 
   <div class="topbar">
@@ -175,9 +201,27 @@
   </section>
 <section class="studio-screen" id="studioPage" aria-label="BOPE STUDIO">
  <div class="studio-wrap">
-  <div class="studio-head">
-   <button class="studio-back" type="button" onclick="closeStudio()">← Retour</button>
-   <div class="studio-heading"><h2>🎬 BOPE STUDIO</h2><p>Ton espace de création vidéo • Made in Kikwit 🇨🇩</p></div>
+  <div id="studioHomePage">
+   <div class="studio-home-top">
+    <button class="studio-back" type="button" onclick="closeStudio()">← Retour à BOPE IA</button>
+    <div class="studio-home-brand"><div class="studio-home-logo">🇨🇩</div><div><h2>BOPE <span>STUDIO</span></h2><p>Imagine. Crée. Partage.</p></div></div>
+    <div class="studio-made">100% Made in Congo 🇨🇩</div>
+    <div class="studio-tagline">Ton studio de création intelligent</div>
+   </div>
+   <div class="studio-home-grid">
+    <button class="studio-home-tile video" type="button" onclick="openStudioService('video')"><span class="studio-home-icon">🎬</span><strong>BOPE VIDEO</strong><small>Créer des vidéos en un clic</small><span class="studio-open">Ouvrir ›</span></button>
+    <button class="studio-home-tile avatar" type="button" onclick="openStudioService('avatar')"><span class="studio-home-icon">🧑</span><strong>BOPE AVATAR</strong><small>Me mettre en scène</small><span class="studio-open">Ouvrir ›</span></button>
+    <button class="studio-home-tile montage" type="button" onclick="openStudioService('montage')"><span class="studio-home-icon">✂️</span><strong>BOPE MONTAGE</strong><small>Monter mes vidéos facilement</small><span class="studio-open">Bientôt disponible</span></button>
+    <button class="studio-home-tile audio" type="button" onclick="openStudioService('audio')"><span class="studio-home-icon">🎙️</span><strong>BOPE AUDIO</strong><small>Créer des sons et chansons</small><span class="studio-open">Bientôt disponible</span></button>
+   </div>
+   <div class="studio-creations-card"><div><span class="studio-folder">📁</span><div><strong>Mes créations</strong><small>Retrouve les projets préparés sur cet appareil.</small></div></div><button type="button" onclick="showStudioCreations()">Voir mes créations ›</button></div>
+   <div class="studio-home-footer">Une puissance incroyable… avec une simplicité totale !<br><b>BOPE STUDIO • par Alive Bope 🇨🇩</b></div>
+  </div>
+  <div id="studioVideoPage" class="studio-service-page" style="display:none">
+   <div class="studio-head"><button class="studio-back" type="button" onclick="showStudioHome()">← Retour à BOPE STUDIO</button><div class="studio-heading"><h2>🎬 BOPE VIDEO</h2><p>Décris ton idée ou anime une image.</p></div></div>
+  </div>
+  <div id="studioAvatarPage" class="studio-service-page" style="display:none">
+   <div class="studio-head"><button class="studio-back" type="button" onclick="showStudioHome()">← Retour à BOPE STUDIO</button><div class="studio-heading"><h2>🧑 BOPE AVATAR</h2><p>Prépare ta vidéo personnalisée.</p></div></div>
   </div>
   <div class="avatar-card" aria-label="BOPE AVATAR">
    <h3>🧑‍🎤 BOPE AVATAR</h3>
@@ -193,6 +237,7 @@
    <button class="avatar-submit" type="button" onclick="prepareBopeAvatar()">📝 Préparer mon projet BOPE AVATAR</button>
    <div id="bopeAvatarStatus" role="status" aria-live="polite"></div>
    <p class="avatar-privacy">🔒 Pour cette première étape, la photo reste sur ton appareil : elle n’est pas envoyée au serveur. Aucun clip n’est généré et aucun frais n’est déclenché. La génération sera ajoutée après validation du moteur et des coûts.</p>
+  </div>
   </div>
   <div class="studio-card">
    <h3>1. Que veux-tu créer ?</h3>
@@ -233,6 +278,7 @@
    <p class="studio-note">ℹ️ BOPE vérifie la connexion au moteur vidéo. La génération reste désactivée pour le moment : aucun clip ne sera créé et aucun frais ne sera déclenché pendant cette vérification.</p>
   </div>
   <p class="studio-note" style="text-align:center">BOPE STUDIO • 100% Made in Congo 🇨🇩</p>
+  </div>
  </div>
 </section>
 <div class="games-page" id="gamesPage"><div id="gamesHome"><div style="font-size:42px">🏆🎮</div><h2>Bienvenue dans BOPE GAMES</h2><p>Joue, réfléchis, apprends et relève des défis !</p><div class="games-grid">
@@ -364,7 +410,20 @@
    status.textContent='✅ Projet BOPE AVATAR préparé sur cet appareil. 🔒 La photo n’a pas été transmise. Aucun clip généré, aucun frais engagé. Le serveur vidéo reste limité à 5 secondes et désactivé pour le moment.';
   }
 
-  function openStudio(){document.getElementById('studioPage').classList.add('show');}
+
+  function showStudioHome(){document.getElementById('studioHomePage').style.display='block';document.getElementById('studioVideoPage').style.display='none';document.getElementById('studioAvatarPage').style.display='none';}
+  function openStudioService(service){
+   const home=document.getElementById('studioHomePage'),video=document.getElementById('studioVideoPage'),avatar=document.getElementById('studioAvatarPage');
+   if(service==='video'){home.style.display='none';video.style.display='block';avatar.style.display='none';return;}
+   if(service==='avatar'){home.style.display='none';video.style.display='none';avatar.style.display='block';return;}
+   alert(service==='montage'?'BOPE MONTAGE sera activé progressivement.':'BOPE AUDIO sera activé progressivement.');
+  }
+  function showStudioCreations(){
+   const keys=['bope_studio_draft','bope_avatar_draft'];let items=[];
+   keys.forEach(k=>{try{const v=JSON.parse(localStorage.getItem(k)||'null');if(v)items.push((k==='bope_studio_draft'?'🎬 BOPE VIDEO : ':'🧑 BOPE AVATAR : ')+(v.prompt||'Projet préparé'));}catch(e){}});
+   alert(items.length?'Projets préparés sur cet appareil :\\n\\n'+items.join('\\n')+'\\n\\nLes fichiers vidéo finaux ne sont pas encore générés.':'Aucun projet préparé pour le moment.');
+  }
+  function openStudio(){document.getElementById('studioPage').classList.add('show');showStudioHome();}
   function closeStudio(){document.getElementById('studioPage').classList.remove('show');}
   function studioToggleImage(){const imageMode=document.getElementById('studioType').value==='image';document.getElementById('studioImageArea').style.display=imageMode?'block':'none';}
   function studioPreviewImage(input){const file=input.files&&input.files[0],preview=document.getElementById('studioImagePreview');if(!file){preview.style.display='none';preview.removeAttribute('src');return;}if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>8*1024*1024){alert('Choisis une image JPG, PNG ou WEBP de 8 Mo maximum.');input.value='';preview.style.display='none';return;}const reader=new FileReader();reader.onload=()=>{preview.src=reader.result;preview.style.display='block';};reader.onerror=()=>alert('Impossible de lire cette image.');reader.readAsDataURL(file);}
