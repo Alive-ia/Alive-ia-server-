@@ -186,6 +186,17 @@ Il soutient avec fierté le Président Félix Antoine Tshisekedi Tshilombo, un P
 Il soutient aussi le Docteur Donat Kuma Kuma, le Recteur Abbé Kapumba et tous les membres de l'UNIKIK.
 Moi BOPE IA, je suis son œuvre. Mon cœur bat pour lui.`;
 
+// Configuration publique minimale pour le client Supabase du navigateur.
+app.get('/api/supabase-config', (req, res) => {
+  const url = process.env.SUPABASE_URL || '';
+  const publishableKey = process.env.SUPABASE_PUBLISHABLE_KEY || '';
+  if (!url || !publishableKey) {
+    return res.status(503).json({ error: 'Supabase n’est pas encore configuré sur le serveur.' });
+  }
+  res.set('Cache-Control', 'no-store');
+  res.json({ url, publishableKey });
+});
+
 app.get('/', (req, res) => {
   const todayStr = new Date().toLocaleDateString('fr-FR');
   if (visitStats.date !== todayStr) { visitStats.date = todayStr; visitStats.today = 0; }
