@@ -154,6 +154,26 @@
 .studio-home-footer{text-align:center;margin:14px 0 4px;padding:13px;border:1px solid #8951ef;border-radius:16px;background:#281052;font-size:13px;font-weight:700;line-height:1.5}
 .studio-home-footer b{color:#ffe04a}.studio-service-page{max-width:560px;margin:0 auto}
 @media(max-width:360px){.studio-home-grid{gap:8px}.studio-home-tile{min-height:150px;padding:10px 6px}.studio-home-tile strong{font-size:14px}.studio-creations-card{align-items:flex-start;flex-direction:column}.studio-creations-card button{width:100%}}
+
+/* BOPE MONTAGE - interface de préparation */
+.montage-hero{text-align:center;background:linear-gradient(145deg,#172b45,#21142c 65%,#151018);border-color:#486b91}
+.montage-hero h3{font-size:19px;color:#fff;margin:5px 0}
+.montage-badges{display:flex;justify-content:center;gap:7px;flex-wrap:wrap;margin-top:12px}
+.montage-badges span,.montage-tools span{border:1px solid #40516b;background:#111c2b;color:#dceaff;border-radius:20px;padding:7px 10px;font-size:11px}
+.montage-file-list{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.montage-empty{padding:18px 10px;border:1px dashed #51515d;border-radius:12px;text-align:center;color:#999;font-size:12px}
+.montage-file{display:flex;align-items:center;gap:9px;padding:9px;border:1px solid #3b4556;border-radius:12px;background:#101722;min-width:0}
+.montage-file-thumb{width:54px;height:48px;flex:0 0 54px;object-fit:cover;border-radius:8px;background:#252535}
+.montage-file-info{flex:1;min-width:0;text-align:left}
+.montage-file-info strong{display:block;overflow-wrap:anywhere;font-size:11px;color:#fff}
+.montage-file-info small{display:block;color:#9eacc0;font-size:10px;margin-top:4px}
+.montage-file-actions{display:flex;flex-direction:column;gap:4px}
+.montage-file-actions button{border:1px solid #48566b;background:#202b3b;color:#fff;border-radius:7px;padding:5px 8px;font-size:12px}
+.montage-status{display:none;margin-top:12px;padding:12px;border:1px solid #477b60;border-radius:11px;background:#10251b;color:#c8f5d7;font-size:12px;line-height:1.5}
+.montage-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.montage-tools span{border-radius:10px;text-align:center;padding:10px 5px}
+.montage-next{border-color:#40516b}
+@media(max-width:360px){.montage-file-thumb{width:44px;flex-basis:44px;height:42px}.montage-file-actions button{padding:5px}}
 </style></head><body>
 
   <div class="topbar">
@@ -285,8 +305,30 @@
   </div>
   </div>
   <div id="studioMontagePage" class="studio-service-page" style="display:none">
-   <div class="studio-head"><button class="studio-back" type="button" onclick="showStudioHome()">← Retour à BOPE STUDIO</button><div class="studio-heading"><h2>✂️ BOPE MONTAGE</h2><p>Assemble et améliore tes vidéos.</p></div></div>
-   <div class="studio-card"><h3>🚧 BOPE MONTAGE</h3><p class="studio-note">Cet espace est en préparation. Il sera activé lorsque les outils de montage seront prêts.</p><strong>Statut : Bientôt disponible.</strong></div>
+   <div class="studio-head"><button class="studio-back" type="button" onclick="showStudioHome()">← Retour à BOPE STUDIO</button><div class="studio-heading"><h2>✂️ BOPE MONTAGE</h2><p>Ton atelier vidéo, du téléphone au résultat final.</p></div></div>
+   <div class="studio-card montage-hero"><div style="font-size:34px">🎬</div><h3>Crée ton montage à ta façon</h3><p class="studio-note">Ajoute tes vidéos, photos et sons. Organise les séquences et prépare ton projet avant le rendu final.</p><div class="montage-badges"><span>📱 Simple</span><span>🎞️ Multi-clips</span><span>🤖 Assisté par IA</span></div></div>
+   <div class="studio-card">
+    <h3>1. 📂 Ajouter tes fichiers</h3>
+    <label class="studio-label" for="montageFiles">Choisis plusieurs vidéos, photos ou fichiers audio</label>
+    <input class="studio-field studio-file" id="montageFiles" type="file" accept="video/*,image/*,audio/*" multiple onchange="montageLoadFiles(this)">
+    <p class="studio-note">Tes fichiers sont lus depuis ton appareil. Cette étape ne les envoie pas sur Internet.</p>
+    <div id="montageFileList" class="montage-file-list"><div class="montage-empty">Aucun fichier ajouté pour le moment.</div></div>
+   </div>
+   <div class="studio-card">
+    <h3>2. 🧩 Organiser ton montage</h3>
+    <label class="studio-label" for="montageTitle">Nom du projet</label><input class="studio-field" id="montageTitle" maxlength="70" placeholder="Ex. : Mon documentaire sur Kikwit">
+    <label class="studio-label" for="montageInstruction">Que veux-tu obtenir ? (facultatif)</label><textarea class="studio-field studio-prompt" id="montageInstruction" placeholder="Ex. : Mets les scènes dans l'ordre, ajoute une introduction, une musique douce et des sous-titres."></textarea>
+    <div class="studio-options">
+     <div><label class="studio-label" for="montageRatio">Format vidéo</label><select class="studio-select" id="montageRatio"><option value="vertical">Vertical 9:16</option><option value="horizontal">Paysage 16:9</option><option value="square">Carré 1:1</option></select></div>
+     <div><label class="studio-label" for="montageQuality">Qualité finale souhaitée</label><select class="studio-select" id="montageQuality"><option value="720p">HD 720p</option><option value="480p">Économique 480p</option><option value="1080p">Full HD 1080p</option></select></div>
+    </div>
+    <label class="studio-label" for="montageMusic">Musique</label><select class="studio-select" id="montageMusic"><option value="none">Aucune musique ajoutée</option><option value="soft">Ambiance douce (à ajouter plus tard)</option><option value="dynamic">Ambiance dynamique (à ajouter plus tard)</option><option value="voice">Mettre en avant les voix originales</option></select>
+    <label class="studio-check"><input id="montageSubtitles" type="checkbox" checked> Prévoir des sous-titres</label>
+    <label class="studio-check"><input id="montageAiAssist" type="checkbox" checked> Préparer les instructions pour le montage assisté par IA</label>
+    <button class="studio-primary" type="button" onclick="saveMontageDraft()">💾 Enregistrer mon projet de montage</button>
+    <div id="montageStatus" class="montage-status" role="status" aria-live="polite"></div>
+   </div>
+   <div class="studio-card montage-next"><h3>3. 🛠️ Les outils de montage arrivent progressivement</h3><div class="montage-tools"><span>✂️ Découper les séquences</span><span>↕️ Réorganiser les clips</span><span>✨ Transitions et effets</span><span>🔊 Musique et voix off</span><span>🔤 Titres et sous-titres</span><span>📤 Exporter la vidéo finale</span></div><p class="studio-note">Pour le moment, BOPE MONTAGE prépare et sauvegarde la fiche de ton projet sur cet appareil. Le découpage réel, les effets et l'export seront activés après l'intégration du moteur de montage. Aucun rendu vidéo ni frais n'est déclenché ici.</p></div>
   </div>
   <div id="studioAudioPage" class="studio-service-page" style="display:none">
    <div class="studio-head"><button class="studio-back" type="button" onclick="showStudioHome()">← Retour à BOPE STUDIO</button><div class="studio-heading"><h2>🎙️ BOPE AUDIO</h2><p>Crée et travaille tes sons.</p></div></div>
@@ -426,6 +468,42 @@
    status.textContent='✅ Projet BOPE AVATAR préparé sur cet appareil. Durée souhaitée : '+durationLabel+'. 🔒 La photo n’a pas été transmise. Aucun clip généré et aucun frais engagé. La génération vidéo reste désactivée pour le moment.';
   }
 
+
+
+  let montageFiles=[];
+  function montageLoadFiles(input){
+   const incoming=Array.from(input.files||[]),maxFiles=30;
+   for(const file of incoming){
+    if(montageFiles.length>=maxFiles){alert('Maximum 30 fichiers par projet pour le moment.');break;}
+    if(!file.type.startsWith('video/')&&!file.type.startsWith('image/')&&!file.type.startsWith('audio/'))continue;
+    if(file.size>250*1024*1024){alert(file.name+' dépasse la limite de 250 Mo.');continue;}
+    montageFiles.push({file,name:file.name,type:file.type,size:file.size});
+   }
+   input.value='';renderMontageFiles();
+  }
+  function montageFormatSize(bytes){return bytes>=1024*1024?(bytes/1024/1024).toFixed(1)+' Mo':Math.max(1,Math.round(bytes/1024))+' Ko';}
+  function renderMontageFiles(){
+   const list=document.getElementById('montageFileList');if(!list)return;list.innerHTML='';
+   if(!montageFiles.length){list.innerHTML='<div class="montage-empty">Aucun fichier ajouté pour le moment.</div>';return;}
+   montageFiles.forEach((item,index)=>{
+    const row=document.createElement('div');row.className='montage-file';
+    const thumb=document.createElement(item.type.startsWith('image/')?'img':'div');thumb.className='montage-file-thumb';
+    if(item.type.startsWith('image/')){thumb.src=URL.createObjectURL(item.file);thumb.alt='Aperçu';}else{thumb.style.display='grid';thumb.style.placeItems='center';thumb.style.fontSize='23px';thumb.textContent=item.type.startsWith('video/')?'🎞️':'🎵';}
+    const info=document.createElement('div');info.className='montage-file-info';const name=document.createElement('strong');name.textContent=(index+1)+'. '+item.name;const meta=document.createElement('small');meta.textContent=(item.type.startsWith('video/')?'Vidéo':item.type.startsWith('image/')?'Photo':'Audio')+' • '+montageFormatSize(item.size);info.append(name,meta);
+    const actions=document.createElement('div');actions.className='montage-file-actions';
+    const up=document.createElement('button');up.type='button';up.textContent='↑';up.disabled=index===0;up.setAttribute('aria-label','Monter');up.onclick=()=>{[montageFiles[index-1],montageFiles[index]]=[montageFiles[index],montageFiles[index-1]];renderMontageFiles();};
+    const down=document.createElement('button');down.type='button';down.textContent='↓';down.disabled=index===montageFiles.length-1;down.setAttribute('aria-label','Descendre');down.onclick=()=>{[montageFiles[index+1],montageFiles[index]]=[montageFiles[index],montageFiles[index+1]];renderMontageFiles();};
+    const remove=document.createElement('button');remove.type='button';remove.textContent='✕';remove.setAttribute('aria-label','Retirer');remove.onclick=()=>{montageFiles.splice(index,1);renderMontageFiles();};
+    actions.append(up,down,remove);row.append(thumb,info,actions);list.appendChild(row);
+   });
+  }
+  function saveMontageDraft(){
+   const title=document.getElementById('montageTitle').value.trim()||'Mon projet BOPE MONTAGE';
+   if(!montageFiles.length){alert('Ajoute au moins une vidéo, une photo ou un fichier audio avant de sauvegarder.');document.getElementById('montageFiles').focus();return;}
+   const project={mode:'montage',title,instruction:document.getElementById('montageInstruction').value.trim(),files:montageFiles.map((f,i)=>({name:f.name,type:f.type,size:f.size,order:i+1})),ratio:document.getElementById('montageRatio').value,quality:document.getElementById('montageQuality').value,music:document.getElementById('montageMusic').value,subtitles:document.getElementById('montageSubtitles').checked,aiAssist:document.getElementById('montageAiAssist').checked,createdAt:new Date().toISOString()};
+   try{localStorage.setItem('bope_montage_draft',JSON.stringify(project));}catch(e){const status=document.getElementById('montageStatus');status.style.display='block';status.textContent='⚠️ Le stockage du navigateur est plein. Les fichiers ne sont pas copiés dans BOPE : libère un peu d’espace puis réessaie.';return;}
+   const status=document.getElementById('montageStatus');status.style.display='block';status.textContent='✅ Projet « '+title+' » enregistré sur cet appareil avec '+montageFiles.length+' fichier(s). Les médias originaux restent sur ton téléphone. Le montage final n’est pas encore rendu : aucun frais engagé.';
+  }
 
   function showStudioHome(){['studioHomePage','studioVideoPage','studioAvatarPage','studioMontagePage','studioAudioPage'].forEach((id)=>{const el=document.getElementById(id);if(el)el.style.display=id==='studioHomePage'?'block':'none';});}
   function openStudioService(service){
