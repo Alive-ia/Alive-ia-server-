@@ -323,9 +323,16 @@
    <div class="studio-card montage-hero"><div style="font-size:34px">🎬</div><h3>Crée ton montage à ta façon</h3><p class="studio-note">Ajoute tes vidéos, photos et sons. Organise les séquences et prépare ton projet avant le rendu final.</p><div class="montage-badges"><span>📱 Simple</span><span>🎞️ Multi-clips</span><span>🤖 Assisté par IA</span></div></div>
    <div class="studio-card">
     <h3>1. 📂 Ajouter tes fichiers</h3>
-    <label class="studio-label" for="montageFiles">Choisis plusieurs vidéos, photos ou fichiers audio</label>
-    <button class="studio-primary" type="button" style="margin:4px 0 10px" onclick="document.getElementById('montageFiles').click()">📂 Parcourir mes fichiers</button>
-    <input class="studio-field studio-file" id="montageFiles" type="file" accept="video/*,image/*,audio/*" multiple onchange="montageLoadFiles(this)">
+    <label class="studio-label">Choisis ce que tu veux ajouter</label>
+    <div class="studio-options montage-import-actions">
+     <button class="studio-option" type="button" onclick="openMontagePicker('video')">🎬 Ajouter des vidéos</button>
+     <button class="studio-option" type="button" onclick="openMontagePicker('image')">🖼️ Ajouter des photos</button>
+     <button class="studio-option" type="button" onclick="openMontagePicker('audio')">🎵 Ajouter des sons</button>
+    </div>
+    <input id="montageVideoFiles" type="file" accept="video/*" multiple hidden onchange="montageLoadFiles(this)">
+    <input id="montageImageFiles" type="file" accept="image/*" multiple hidden onchange="montageLoadFiles(this)">
+    <input id="montageAudioFiles" type="file" accept="audio/*" multiple hidden onchange="montageLoadFiles(this)">
+    <p class="studio-note">Sur Android, le menu de sélection peut aussi proposer l'appareil photo selon les applications installées.</p>
     <p class="studio-note">Tes fichiers sont lus depuis ton appareil. Cette étape ne les envoie pas sur Internet.</p>
     <div id="montageFileList" class="montage-file-list"><div class="montage-empty">Aucun fichier ajouté pour le moment.</div></div>
    </div>
@@ -502,6 +509,12 @@
 
   let montageFiles=[];
   let montageSelectedFile=null;
+  function openMontagePicker(kind){
+   const ids={video:'montageVideoFiles',image:'montageImageFiles',audio:'montageAudioFiles'};
+   const input=document.getElementById(ids[kind]);
+   if(!input)return;
+   input.click();
+  }
   function montageLoadFiles(input){
    const incoming=Array.from(input.files||[]),maxFiles=30;
    for(const file of incoming){
