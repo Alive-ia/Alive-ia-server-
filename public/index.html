@@ -324,6 +324,7 @@
    <div class="studio-card">
     <h3>1. 📂 Ajouter tes fichiers</h3>
     <label class="studio-label" for="montageFiles">Choisis plusieurs vidéos, photos ou fichiers audio</label>
+    <button class="studio-primary" type="button" style="margin:4px 0 10px" onclick="document.getElementById('montageFiles').click()">📂 Parcourir mes fichiers</button>
     <input class="studio-field studio-file" id="montageFiles" type="file" accept="video/*,image/*,audio/*" multiple onchange="montageLoadFiles(this)">
     <p class="studio-note">Tes fichiers sont lus depuis ton appareil. Cette étape ne les envoie pas sur Internet.</p>
     <div id="montageFileList" class="montage-file-list"><div class="montage-empty">Aucun fichier ajouté pour le moment.</div></div>
