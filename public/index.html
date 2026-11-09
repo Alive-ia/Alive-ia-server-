@@ -1311,6 +1311,13 @@ function applyDRoute(route){
     <button class="bc-primary" type="submit" id="bcLoginButton">Me connecter</button>
     <button class="bc-secondary" type="button" onclick="bcForgotPassword()">Mot de passe oublié ?</button>
    </form>
+   <form id="bcResetPasswordForm" style="display:none">
+    <h3>Choisir un nouveau mot de passe</h3>
+    <p class="bc-muted">Entre ton nouveau mot de passe pour récupérer ton compte BOPE.</p>
+    <label class="bc-field"><span>Nouveau mot de passe</span><input id="bcNewPassword" type="password" autocomplete="new-password" minlength="8" required placeholder="Au moins 8 caractères"></label>
+    <label class="bc-field"><span>Confirmer le mot de passe</span><input id="bcNewPasswordConfirm" type="password" autocomplete="new-password" minlength="8" required placeholder="Répète le mot de passe"></label>
+    <button class="bc-primary" type="submit" id="bcResetPasswordButton">Enregistrer le nouveau mot de passe</button>
+   </form>
    <div id="bcAuthMessage" class="bc-message" role="status" aria-live="polite"></div>
    <p class="bc-small" style="margin-top:16px">En créant un compte, tu acceptes de respecter les règles de la communauté BOPE.</p>
   </div>
@@ -1341,7 +1348,11 @@ function applyDRoute(route){
    bcReady=true;
    const {data}=await bcClient.auth.getSession();
    if(data&&data.session)await bcShowAccount(data.session.user);
-   bcClient.auth.onAuthStateChange((_event,session)=>{if(session&&session.user)bcShowAccount(session.user);else bcShowAuth();});
+   bcClient.auth.onAuthStateChange((event,session)=>{
+    if(event==='PASSWORD_RECOVERY'){bcShowResetForm();return;}
+    if(session&&session.user)bcShowAccount(session.user);else bcShowAuth();
+   });
+   if(data&&data.session&&(window.location.hash.includes('type=recovery')||window.location.search.includes('type=recovery')))bcShowResetForm();
    return true;
   }catch(e){bcMessage(e.message||'Impossible de préparer la connexion.',true);return false;}
  }
@@ -1362,8 +1373,15 @@ function applyDRoute(route){
  }
  window.openBopeCreators=async function(){byId('bopeCreatorsPage').classList.add('active');document.body.style.overflow='hidden';bcShowForm('signup');await bcInit();};
  window.closeBopeCreators=function(){byId('bopeCreatorsPage').classList.remove('active');document.body.style.overflow='';};
+ function bcShowResetForm(){
+  byId('bcAuthCard').style.display='block';byId('bcAccountCard').classList.remove('show');
+  byId('bcSignupForm').style.display='none';byId('bcLoginForm').style.display='none';byId('bcResetPasswordForm').style.display='block';
+  byId('bcSignupTab').style.display='none';byId('bcLoginTab').style.display='none';
+  bcMessage('Lien de récupération reconnu. Choisis ton nouveau mot de passe.');
+ }
  window.bcShowForm=function(mode){
-  const signup=mode==='signup';byId('bcSignupForm').style.display=signup?'block':'none';byId('bcLoginForm').style.display=signup?'none':'block';
+  const signup=mode==='signup';byId('bcSignupForm').style.display=signup?'block':'none';byId('bcLoginForm').style.display=signup?'none':'block';byId('bcResetPasswordForm').style.display='none';
+  byId('bcSignupTab').style.display='';byId('bcLoginTab').style.display='';
   byId('bcSignupTab').classList.toggle('active',signup);byId('bcLoginTab').classList.toggle('active',!signup);byId('bcAuthMessage').className='bc-message';
  };
  byId('bcSignupForm').addEventListener('submit',async e=>{
@@ -1400,9 +1418,25 @@ function applyDRoute(route){
   if(!await bcInit())return;
   const email=byId('bcLoginEmail').value.trim();
   if(!email){bcMessage('Entre d’abord ton adresse e-mail dans le champ ci-dessus.',true);return;}
-  try{const {error}=await bcClient.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin});if(error)throw error;bcMessage('Si cette adresse possède un compte, un e-mail de réinitialisation sera envoyé.');}
+  try{const {error}=await bcClient.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin});if(error)throw error;bcMessage('Si cette adresse possède un compte, un e-mail de réinitialisation sera envoyé. Ouvre le lien reçu sur cet appareil.');}
   catch(err){bcMessage(err.message||'Impossible d’envoyer le lien.',true);}
  };
+ byId('bcResetPasswordForm').addEventListener('submit',async e=>{
+  e.preventDefault();if(!await bcInit())return;
+  const password=byId('bcNewPassword').value,confirm=byId('bcNewPasswordConfirm').value;
+  if(password.length<8){bcMessage('Le mot de passe doit contenir au moins 8 caractères.',true);return;}
+  if(password!==confirm){bcMessage('Les deux mots de passe ne correspondent pas.',true);return;}
+  bcBusy('bcResetPasswordButton',true,'Enregistrer le nouveau mot de passe');
+  try{
+   const {data,error}=await bcClient.auth.updateUser({password});
+   if(error)throw error;
+   byId('bcResetPasswordForm').reset();
+   history.replaceState({},document.title,window.location.pathname+window.location.search);
+   if(data&&data.user){await bcShowAccount(data.user);byId('bcAccountMessage').textContent='Ton mot de passe a été modifié avec succès.';}
+   else{bcShowForm('login');bcMessage('Mot de passe modifié. Tu peux maintenant te connecter.');}
+  }catch(err){bcMessage(err.message||'Impossible de modifier le mot de passe. Ouvre à nouveau le lien reçu par e-mail.',true);}
+  finally{bcBusy('bcResetPasswordButton',false,'Enregistrer le nouveau mot de passe');}
+ });
  window.bcSignOut=async function(){if(!bcClient)return;const {error}=await bcClient.auth.signOut();if(error){byId('bcAccountMessage').textContent=error.message;return;}bcCurrentUser=null;bcShowAuth();bcShowForm('login');};
 })();
 </script>
