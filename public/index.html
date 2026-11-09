@@ -216,6 +216,22 @@
 .audio-coming{border-color:#69472e}
 @media(max-width:360px){.audio-tab{font-size:10px;padding:10px 3px}.audio-action-row{flex-direction:column}.audio-secondary{margin-top:0}}
 
+
+/* === BOPE CREATEURS : authentification initiale === */
+#bopeCreatorsPage{display:none;position:fixed;inset:0;z-index:10050;background:#f4f6fb;color:#172033;overflow-y:auto;font-family:Arial,sans-serif}
+#bopeCreatorsPage.active{display:block}
+.bc-shell{max-width:520px;margin:0 auto;min-height:100%;padding:18px 16px 34px}
+.bc-top{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.bc-back{border:0;border-radius:12px;padding:10px 13px;background:#e7ebf3;color:#172033;font-size:15px}
+.bc-brand{font-weight:800;font-size:20px;color:#182b53}.bc-brand span{color:#e5a900}
+.bc-card{background:#fff;border-radius:20px;padding:22px;box-shadow:0 8px 30px rgba(20,35,70,.08)}
+.bc-card h2{margin:0 0 7px;font-size:24px}.bc-muted{color:#667085;font-size:14px;line-height:1.5;margin:0 0 18px}
+.bc-tabs{display:flex;gap:8px;margin:0 0 18px}.bc-tabs button{flex:1;border:0;border-radius:12px;padding:12px;background:#edf0f6;color:#344054;font-weight:700}.bc-tabs button.active{background:#182b53;color:#fff}
+.bc-field{display:block;margin:12px 0}.bc-field span{display:block;font-size:13px;font-weight:700;margin-bottom:6px}.bc-field input{width:100%;box-sizing:border-box;border:1px solid #d7dce5;border-radius:12px;padding:13px;font-size:16px;background:#fff;color:#172033}
+.bc-primary{width:100%;border:0;border-radius:13px;padding:14px;background:#182b53;color:#fff;font-size:16px;font-weight:800;margin-top:8px}
+.bc-secondary{width:100%;border:0;background:transparent;color:#284b8b;padding:13px 8px;font-weight:700}
+.bc-message{display:none;margin-top:14px;border-radius:12px;padding:12px;font-size:14px;line-height:1.45;background:#eef5ff;color:#214477}.bc-message.show{display:block}.bc-message.error{background:#fff0f0;color:#9d2424}.bc-account{display:none}.bc-account.show{display:block}.bc-profile{border-radius:14px;background:#f5f7fb;padding:14px;margin:14px 0}.bc-small{font-size:12px;color:#667085}
+@media(min-width:600px){.bc-shell{padding-top:30px}}
 </style></head><body>
 
   <div class="topbar">
@@ -250,7 +266,7 @@
     <div class="bope-hub-grid">
       <button class="bope-hub-btn studio" onclick="openStudio()"><span class="hub-icon">🎬</span>BOPE STUDIO<small>CRÉATION VIDÉO IA</small></button>
       <button class="bope-hub-btn social" onclick="bopeFeatureNotice('BOPE SOCIAL')"><span class="hub-icon">🌐</span>BOPE SOCIAL<small>PARTAGE & RÉSEAUX</small></button>
-      <button class="bope-hub-btn creator" onclick="bopeFeatureNotice('BOPE CRÉATEURS')"><span class="hub-icon">📱</span>BOPE CRÉATEURS<small>VIDÉOS & COMMUNAUTÉ</small></button>
+      <button class="bope-hub-btn creator" onclick="openBopeCreators()"><span class="hub-icon">📱</span>BOPE CRÉATEURS<small>VIDÉOS & COMMUNAUTÉ</small></button>
       <button class="bope-hub-btn money" onclick="bopeFeatureNotice('BOPE MONÉTISATION')"><span class="hub-icon">💰</span>BOPE MONÉTISATION<small>RÉCOMPENSES CRÉATEURS</small></button>
       <button class="bope-hub-btn campus" onclick="bopeFeatureNotice('BOPE CAMPUS')"><span class="hub-icon">🎓</span>BOPE CAMPUS<small>ÉTUDES & FORMATION</small></button>
       <button class="bope-hub-btn jobs" onclick="bopeFeatureNotice('BOPE JOBS')"><span class="hub-icon">💼</span>BOPE JOBS<small>EMPLOIS & STAGES</small></button>
@@ -1266,4 +1282,124 @@ function applyDRoute(route){
   loadDraughtsProfile();
   renderDraughtsStats();
   renderHistory();
-  </script></body></html>
+  </script>
+<!-- BOPE CRÉATEURS : inscription et connexion -->
+<section id="bopeCreatorsPage" aria-label="BOPE CRÉATEURS">
+ <div class="bc-shell">
+  <div class="bc-top">
+   <button class="bc-back" type="button" onclick="closeBopeCreators()">← Retour</button>
+   <div class="bc-brand">🇨🇩 BOPE <span>CRÉATEURS</span></div>
+  </div>
+  <div class="bc-card" id="bcAuthCard">
+   <h2>Bienvenue dans BOPE CRÉATEURS</h2>
+   <p class="bc-muted">Crée ton compte pour rejoindre la communauté BOPE.</p>
+   <div class="bc-tabs">
+    <button type="button" id="bcSignupTab" class="active" onclick="bcShowForm('signup')">Créer un compte</button>
+    <button type="button" id="bcLoginTab" onclick="bcShowForm('login')">Connexion</button>
+   </div>
+   <form id="bcSignupForm">
+    <label class="bc-field"><span>Nom complet</span><input id="bcFullName" autocomplete="name" maxlength="70" required placeholder="Ton nom complet"></label>
+    <label class="bc-field"><span>Nom d'utilisateur</span><input id="bcUsername" autocomplete="username" maxlength="24" required pattern="[A-Za-z0-9_]{3,24}" placeholder="ex. alive_bope"><small class="bc-small">3 à 24 caractères : lettres, chiffres et _</small></label>
+    <label class="bc-field"><span>Adresse e-mail</span><input id="bcSignupEmail" type="email" autocomplete="email" required placeholder="exemple@email.com"></label>
+    <label class="bc-field"><span>Mot de passe</span><input id="bcSignupPassword" type="password" autocomplete="new-password" minlength="8" required placeholder="8 caractères minimum"></label>
+    <label class="bc-field"><span>Confirmer le mot de passe</span><input id="bcSignupConfirm" type="password" autocomplete="new-password" minlength="8" required placeholder="Répète ton mot de passe"></label>
+    <button class="bc-primary" type="submit" id="bcSignupButton">Créer mon compte</button>
+   </form>
+   <form id="bcLoginForm" style="display:none">
+    <label class="bc-field"><span>Adresse e-mail</span><input id="bcLoginEmail" type="email" autocomplete="email" required placeholder="Ton adresse e-mail"></label>
+    <label class="bc-field"><span>Mot de passe</span><input id="bcLoginPassword" type="password" autocomplete="current-password" required placeholder="Ton mot de passe"></label>
+    <button class="bc-primary" type="submit" id="bcLoginButton">Me connecter</button>
+    <button class="bc-secondary" type="button" onclick="bcForgotPassword()">Mot de passe oublié ?</button>
+   </form>
+   <div id="bcAuthMessage" class="bc-message" role="status" aria-live="polite"></div>
+   <p class="bc-small" style="margin-top:16px">En créant un compte, tu acceptes de respecter les règles de la communauté BOPE.</p>
+  </div>
+  <div class="bc-card bc-account" id="bcAccountCard">
+   <h2>Ton espace BOPE</h2>
+   <p class="bc-muted">Tu es connecté à BOPE CRÉATEURS.</p>
+   <div class="bc-profile"><strong id="bcAccountName">Utilisateur BOPE</strong><p id="bcAccountEmail" class="bc-muted" style="margin:5px 0 0"></p><div class="bc-small" id="bcAccountType">Compte personnel</div></div>
+   <button class="bc-primary" type="button" onclick="bcSignOut()">Se déconnecter</button>
+   <div id="bcAccountMessage" class="bc-message show">Le profil est connecté. Le fil d'actualité et les pages seront ajoutés ensuite.</div>
+  </div>
+ </div>
+</section>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+ let bcClient=null,bcReady=false,bcCurrentUser=null;
+ const byId=id=>document.getElementById(id);
+ function bcMessage(message,isError=false){const el=byId('bcAuthMessage');el.textContent=message;el.className='bc-message show'+(isError?' error':'');}
+ function bcBusy(id,busy,label){const b=byId(id);if(!b)return;b.disabled=busy;b.textContent=busy?'Patiente...':label;}
+ async function bcInit(){
+  if(bcReady)return true;
+  if(!window.supabase||!window.supabase.createClient){bcMessage('Le module de connexion ne s’est pas chargé. Vérifie Internet puis réessaie.',true);return false;}
+  try{
+   const response=await fetch('/api/supabase-config',{cache:'no-store'});
+   const config=await response.json();
+   if(!response.ok||!config.url||!config.publishableKey)throw new Error(config.error||'Configuration Supabase indisponible.');
+   bcClient=window.supabase.createClient(config.url,config.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+   bcReady=true;
+   const {data}=await bcClient.auth.getSession();
+   if(data&&data.session)await bcShowAccount(data.session.user);
+   bcClient.auth.onAuthStateChange((_event,session)=>{if(session&&session.user)bcShowAccount(session.user);else bcShowAuth();});
+   return true;
+  }catch(e){bcMessage(e.message||'Impossible de préparer la connexion.',true);return false;}
+ }
+ function bcShowAuth(){byId('bcAuthCard').style.display='block';byId('bcAccountCard').classList.remove('show');}
+ async function bcShowAccount(user){
+  bcCurrentUser=user;byId('bcAuthCard').style.display='none';byId('bcAccountCard').classList.add('show');
+  const meta=user.user_metadata||{};
+  byId('bcAccountName').textContent=meta.display_name||meta.full_name||'Utilisateur BOPE';
+  byId('bcAccountEmail').textContent=user.email||'';
+  if(bcClient){
+   const {data}=await bcClient.from('profiles').select('display_name,username,account_type').eq('id',user.id).maybeSingle();
+   if(data){byId('bcAccountName').textContent=data.display_name||byId('bcAccountName').textContent;byId('bcAccountType').textContent=data.account_type==='professional'?'Compte professionnel':'Compte personnel';}
+  }
+ }
+ window.openBopeCreators=async function(){byId('bopeCreatorsPage').classList.add('active');document.body.style.overflow='hidden';bcShowForm('signup');await bcInit();};
+ window.closeBopeCreators=function(){byId('bopeCreatorsPage').classList.remove('active');document.body.style.overflow='';};
+ window.bcShowForm=function(mode){
+  const signup=mode==='signup';byId('bcSignupForm').style.display=signup?'block':'none';byId('bcLoginForm').style.display=signup?'none':'block';
+  byId('bcSignupTab').classList.toggle('active',signup);byId('bcLoginTab').classList.toggle('active',!signup);byId('bcAuthMessage').className='bc-message';
+ };
+ byId('bcSignupForm').addEventListener('submit',async e=>{
+  e.preventDefault();if(!await bcInit())return;
+  const fullName=byId('bcFullName').value.trim(),username=byId('bcUsername').value.trim().toLowerCase(),email=byId('bcSignupEmail').value.trim(),password=byId('bcSignupPassword').value,confirm=byId('bcSignupConfirm').value;
+  if(password!==confirm){bcMessage('Les deux mots de passe ne correspondent pas.',true);return;}
+  bcBusy('bcSignupButton',true,'Créer mon compte');
+  try{
+   const {data,error}=await bcClient.auth.signUp({email,password,options:{data:{display_name:fullName,username}}});
+   if(error)throw error;
+   if(data.session&&data.user){
+    const {error:profileError}=await bcClient.from('profiles').update({username,display_name:fullName}).eq('id',data.user.id);
+    if(profileError)throw profileError;
+    await bcShowAccount(data.user);
+    bcMessage('Ton compte BOPE a été créé avec succès !');
+   }else{
+    bcMessage('Inscription enregistrée. Vérifie ta boîte e-mail et clique sur le lien de confirmation avant de te connecter. Ton profil sera finalisé lors de ta première connexion.');
+   }
+   byId('bcSignupForm').reset();
+  }catch(err){bcMessage(err.message||'Échec de l’inscription. Réessaie.',true);}
+  finally{bcBusy('bcSignupButton',false,'Créer mon compte');}
+ });
+ byId('bcLoginForm').addEventListener('submit',async e=>{
+  e.preventDefault();if(!await bcInit())return;
+  bcBusy('bcLoginButton',true,'Me connecter');
+  try{
+   const {data,error}=await bcClient.auth.signInWithPassword({email:byId('bcLoginEmail').value.trim(),password:byId('bcLoginPassword').value});
+   if(error)throw error;
+   await bcShowAccount(data.user);bcMessage('Connexion réussie.');
+  }catch(err){bcMessage(err.message||'Connexion impossible. Vérifie tes identifiants.',true);}
+  finally{bcBusy('bcLoginButton',false,'Me connecter');}
+ });
+ window.bcForgotPassword=async function(){
+  if(!await bcInit())return;
+  const email=byId('bcLoginEmail').value.trim();
+  if(!email){bcMessage('Entre d’abord ton adresse e-mail dans le champ ci-dessus.',true);return;}
+  try{const {error}=await bcClient.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin});if(error)throw error;bcMessage('Si cette adresse possède un compte, un e-mail de réinitialisation sera envoyé.');}
+  catch(err){bcMessage(err.message||'Impossible d’envoyer le lien.',true);}
+ };
+ window.bcSignOut=async function(){if(!bcClient)return;const {error}=await bcClient.auth.signOut();if(error){byId('bcAccountMessage').textContent=error.message;return;}bcCurrentUser=null;bcShowAuth();bcShowForm('login');};
+})();
+</script>
+</body></html>
