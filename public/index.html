@@ -116,6 +116,18 @@
 #studioDraftStatus{display:none;padding:12px;border:1px solid #477b60;border-radius:11px;background:#10251b;color:#c8f5d7;font-size:13px;line-height:1.5}
 @media(min-width:600px){.studio-screen{padding-top:28px}.studio-options{grid-template-columns:repeat(3,minmax(0,1fr))}}
 
+ /* BOPE AVATAR — préparation locale uniquement */
+ .avatar-card{padding:15px;margin:12px 0;border:1px solid #7a4b72;border-radius:17px;background:linear-gradient(145deg,#211326,#121019);box-shadow:0 8px 22px #0005}
+ .avatar-card h3{margin:0 0 8px;color:#ffd0ed;font-size:17px}
+ .avatar-intro{margin:0 0 12px;color:#c9b8c8;font-size:12px;line-height:1.5}
+ .avatar-field{display:block;width:100%;box-sizing:border-box;padding:12px;border:1px solid #59465a;border-radius:11px;background:#0e0d12;color:#fff;font:14px Arial,sans-serif}
+ .avatar-prompt{min-height:90px;resize:vertical;line-height:1.5}
+ #bopeAvatarPreview{display:none;max-width:100%;max-height:220px;object-fit:contain;margin:12px auto 6px;border-radius:12px;border:1px solid #76526f}
+ .avatar-clear{margin-top:8px;padding:8px 12px;border:1px solid #59465a;border-radius:9px;background:#29202c;color:#eee}
+ .avatar-submit{width:100%;margin-top:13px;padding:14px;border:0;border-radius:13px;background:linear-gradient(90deg,#7b2cbf,#c44b9b);color:#fff;font-weight:800;font-size:15px}
+ #bopeAvatarStatus{display:none;margin-top:12px;padding:12px;border:1px solid #477b60;border-radius:11px;background:#10251b;color:#c8f5d7;font-size:13px;line-height:1.5}
+ .avatar-privacy{margin:10px 2px 0;color:#b8aab2;font-size:11px;line-height:1.5}
+
 </style></head><body>
 
   <div class="topbar">
@@ -166,6 +178,21 @@
   <div class="studio-head">
    <button class="studio-back" type="button" onclick="closeStudio()">← Retour</button>
    <div class="studio-heading"><h2>🎬 BOPE STUDIO</h2><p>Ton espace de création vidéo • Made in Kikwit 🇨🇩</p></div>
+  </div>
+  <div class="avatar-card" aria-label="BOPE AVATAR">
+   <h3>🧑‍🎤 BOPE AVATAR</h3>
+   <p class="avatar-intro">Prépare une vidéo personnalisée à partir de ta photo : voyage, avion, voiture, ville, présentation et bien plus.</p>
+   <label class="studio-label" for="bopeAvatarPhoto">1. Choisis ta photo (JPG, PNG ou WEBP — 8 Mo maximum)</label>
+   <input class="avatar-field" id="bopeAvatarPhoto" type="file" accept="image/jpeg,image/png,image/webp" onchange="previewBopeAvatar(this)">
+   <img id="bopeAvatarPreview" alt="Aperçu local de ta photo">
+   <button class="avatar-clear" type="button" onclick="clearBopeAvatarPhoto()">Retirer la photo</button>
+   <label class="studio-label" for="bopeAvatarPrompt">2. Décris la scène que tu souhaites</label>
+   <textarea id="bopeAvatarPrompt" class="avatar-field avatar-prompt" maxlength="1200" placeholder="Ex. : Je suis assis près du hublot dans un avion privé, je regarde les nuages..."></textarea>
+   <label class="studio-label" for="bopeAvatarDuration">3. Durée du premier clip de préparation</label>
+   <select id="bopeAvatarDuration" class="avatar-field"><option value="5">5 secondes</option></select>
+   <button class="avatar-submit" type="button" onclick="prepareBopeAvatar()">📝 Préparer mon projet BOPE AVATAR</button>
+   <div id="bopeAvatarStatus" role="status" aria-live="polite"></div>
+   <p class="avatar-privacy">🔒 Pour cette première étape, la photo reste sur ton appareil : elle n’est pas envoyée au serveur. Aucun clip n’est généré et aucun frais n’est déclenché. La génération sera ajoutée après validation du moteur et des coûts.</p>
   </div>
   <div class="studio-card">
    <h3>1. Que veux-tu créer ?</h3>
@@ -307,6 +334,35 @@
   <script src="/socket.io/socket.io.js"></script>
   <script>
 
+
+
+  // BOPE AVATAR V1 : aperçu et préparation locale ; aucun envoi réseau.
+  let bopeAvatarObjectUrl = null;
+  function previewBopeAvatar(input){
+   const file=input.files&&input.files[0],preview=document.getElementById('bopeAvatarPreview'),status=document.getElementById('bopeAvatarStatus');
+   if(bopeAvatarObjectUrl){URL.revokeObjectURL(bopeAvatarObjectUrl);bopeAvatarObjectUrl=null;}
+   if(!file){preview.style.display='none';preview.removeAttribute('src');return;}
+   if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>8*1024*1024){
+    alert('Choisis une photo JPG, PNG ou WEBP de 8 Mo maximum.');input.value='';preview.style.display='none';preview.removeAttribute('src');return;
+   }
+   bopeAvatarObjectUrl=URL.createObjectURL(file);preview.src=bopeAvatarObjectUrl;preview.style.display='block';
+   status.style.display='block';status.textContent='Aperçu local affiché. Ta photo n’a pas été envoyée.';
+  }
+  function clearBopeAvatarPhoto(){
+   const input=document.getElementById('bopeAvatarPhoto'),preview=document.getElementById('bopeAvatarPreview');
+   if(bopeAvatarObjectUrl){URL.revokeObjectURL(bopeAvatarObjectUrl);bopeAvatarObjectUrl=null;}
+   input.value='';preview.style.display='none';preview.removeAttribute('src');
+  }
+  function prepareBopeAvatar(){
+   const input=document.getElementById('bopeAvatarPhoto'),file=input.files&&input.files[0],prompt=document.getElementById('bopeAvatarPrompt').value.trim(),status=document.getElementById('bopeAvatarStatus');
+   if(!file){alert('Choisis d’abord une photo.');input.focus();return;}
+   if(!prompt){alert('Décris la scène de ta vidéo personnalisée.');document.getElementById('bopeAvatarPrompt').focus();return;}
+   if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>8*1024*1024){alert('La photo doit être au format JPG, PNG ou WEBP et ne pas dépasser 8 Mo.');return;}
+   const project={mode:'avatar',prompt,durationSeconds:5,photoName:file.name,photoSize:file.size,createdAt:new Date().toISOString()};
+   try{localStorage.setItem('bope_avatar_draft',JSON.stringify(project));}catch(e){}
+   status.style.display='block';
+   status.textContent='✅ Projet BOPE AVATAR préparé sur cet appareil. 🔒 La photo n’a pas été transmise. Aucun clip généré, aucun frais engagé. Le serveur vidéo reste limité à 5 secondes et désactivé pour le moment.';
+  }
 
   function openStudio(){document.getElementById('studioPage').classList.add('show');}
   function closeStudio(){document.getElementById('studioPage').classList.remove('show');}
