@@ -108,8 +108,9 @@
 .studio-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
 .studio-option{padding:11px 8px;border:1px solid #51404a;border-radius:11px;background:#201822;color:#fff;text-align:center;font-size:13px}
 .studio-option:focus,.studio-option:active{border-color:#ff80b4;outline:2px solid #ff80b455}
-.montage-import-actions{grid-template-columns:1fr;gap:10px}
-.montage-import-actions .studio-option{min-height:52px;font-weight:800;font-size:14px;transition:filter .15s ease,transform .15s ease}
+.montage-import-actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.montage-import-actions .studio-option{min-height:40px;padding:8px 6px;font-weight:700;font-size:12px;transition:filter .15s ease,transform .15s ease}
+.montage-import-actions .montage-add-audio{grid-column:1/-1}
 .montage-import-actions .studio-option:active{filter:brightness(1.2);transform:scale(.985)}
 .montage-add-video{background:linear-gradient(110deg,#174a78,#247fc0);border-color:#4ca7e8}
 .montage-add-image{background:linear-gradient(110deg,#176044,#269b68);border-color:#54c994}
@@ -331,13 +332,13 @@
     <h3>1. 📂 Ajouter tes fichiers</h3>
     <label class="studio-label">Choisis ce que tu veux ajouter</label>
     <div class="studio-options montage-import-actions">
-     <button class="studio-option montage-add-video" type="button" onclick="openMontagePicker('video')">🎬 Ajouter des vidéos</button>
-     <button class="studio-option montage-add-image" type="button" onclick="openMontagePicker('image')">🖼️ Ajouter des photos</button>
-     <button class="studio-option montage-add-audio" type="button" onclick="openMontagePicker('audio')">🎵 Ajouter des sons</button>
+     <button class="studio-option montage-add-video" type="button" onclick="openMontagePicker('video')">🎬 Vidéos</button>
+     <button class="studio-option montage-add-image" type="button" onclick="openMontagePicker('image')">🖼️ Photos</button>
+     <button class="studio-option montage-add-audio" type="button" onclick="openMontagePicker('audio')">🎵 Sons audio</button>
     </div>
     <input id="montageVideoFiles" type="file" accept="video/*" multiple hidden onchange="montageLoadFiles(this)">
     <input id="montageImageFiles" type="file" accept="image/*" multiple hidden onchange="montageLoadFiles(this)">
-    <input id="montageAudioFiles" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.opus,.flac" multiple hidden onchange="montageLoadFiles(this)">
+    <input id="montageAudioFiles" type="file" accept="*/*" multiple hidden onchange="montageLoadFiles(this)">
     <p class="studio-note">Sur Android, le menu de sélection peut aussi proposer l'appareil photo selon les applications installées.</p>
     <p class="studio-note">Tes fichiers sont lus depuis ton appareil. Cette étape ne les envoie pas sur Internet.</p>
     <div id="montageFileList" class="montage-file-list"><div class="montage-empty">Aucun fichier ajouté pour le moment.</div></div>
@@ -525,7 +526,12 @@
    const incoming=Array.from(input.files||[]),maxFiles=30;
    for(const file of incoming){
     if(montageFiles.length>=maxFiles){alert('Maximum 30 fichiers par projet pour le moment.');break;}
-    if(!file.type.startsWith('video/')&&!file.type.startsWith('image/')&&!file.type.startsWith('audio/'))continue;
+    const ext=(file.name.split('.').pop()||'').toLowerCase();
+    const audioExt=['mp3','wav','m4a','aac','ogg','opus','flac','wma','aiff','mid','midi'];
+    const isAudio=file.type.startsWith('audio/')||audioExt.includes(ext);
+    const isVideo=file.type.startsWith('video/')||['mp4','mov','m4v','webm','mkv','3gp','avi'].includes(ext);
+    const isImage=file.type.startsWith('image/')||['jpg','jpeg','png','gif','webp','heic','heif','bmp'].includes(ext);
+    if(!isVideo&&!isImage&&!isAudio)continue;
     if(file.size>250*1024*1024){alert(file.name+' dépasse la limite de 250 Mo.');continue;}
     montageFiles.push({file,name:file.name,type:file.type,size:file.size,url:URL.createObjectURL(file),duration:null,trimStart:0,trimEnd:null});
    }
