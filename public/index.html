@@ -238,10 +238,10 @@
    <h3>2. Personnalise ta vidéo</h3>
    <label class="studio-label" for="studioDuration">Durée souhaitée</label>
    <select id="studioDuration" class="studio-select">
-    <option value="5">5 secondes</option><option value="15">15 secondes</option>
+    <option value="5">5 secondes</option><option value="10">10 secondes</option>
     <option value="30">30 secondes</option><option value="60">1 minute</option>
-    <option value="180">3 minutes</option><option value="300">5 minutes</option>
-    <option value="600">10 minutes</option>
+    <option value="300">5 minutes</option><option value="600">10 minutes</option>
+    <option value="900">15 minutes</option><option value="1200">20 minutes</option>
    </select>
    <label class="studio-label" for="studioRatio">Format vidéo</label>
    <select id="studioRatio" class="studio-select">
@@ -270,8 +270,13 @@
    <button class="avatar-clear" type="button" onclick="clearBopeAvatarPhoto()">Retirer la photo</button>
    <label class="studio-label" for="bopeAvatarPrompt">2. Décris la scène que tu souhaites</label>
    <textarea id="bopeAvatarPrompt" class="avatar-field avatar-prompt" maxlength="1200" placeholder="Ex. : Je suis assis près du hublot dans un avion privé, je regarde les nuages..."></textarea>
-   <label class="studio-label" for="bopeAvatarDuration">3. Durée du premier clip de préparation</label>
-   <select id="bopeAvatarDuration" class="avatar-field"><option value="5">5 secondes</option></select>
+   <label class="studio-label" for="bopeAvatarDuration">3. Durée souhaitée de la vidéo</label>
+   <select id="bopeAvatarDuration" class="avatar-field">
+    <option value="5">5 secondes</option><option value="10">10 secondes</option>
+    <option value="30">30 secondes</option><option value="60">1 minute</option>
+    <option value="300">5 minutes</option><option value="600">10 minutes</option>
+    <option value="900">15 minutes</option><option value="1200">20 minutes</option>
+   </select>
    <button class="avatar-submit" type="button" onclick="prepareBopeAvatar()">📝 Préparer mon projet BOPE AVATAR</button>
    <div id="bopeAvatarStatus" role="status" aria-live="polite"></div>
    <p class="avatar-privacy">🔒 Pour cette première étape, la photo reste sur ton appareil : elle n’est pas envoyée au serveur. Aucun clip n’est généré et aucun frais n’est déclenché. La génération sera ajoutée après validation du moteur et des coûts.</p>
@@ -411,10 +416,12 @@
    if(!file){alert('Choisis d’abord une photo.');input.focus();return;}
    if(!prompt){alert('Décris la scène de ta vidéo personnalisée.');document.getElementById('bopeAvatarPrompt').focus();return;}
    if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>8*1024*1024){alert('La photo doit être au format JPG, PNG ou WEBP et ne pas dépasser 8 Mo.');return;}
-   const project={mode:'avatar',prompt,durationSeconds:5,photoName:file.name,photoSize:file.size,createdAt:new Date().toISOString()};
+   const durationSeconds=Number(document.getElementById('bopeAvatarDuration').value);
+   const project={mode:'avatar',prompt,durationSeconds,photoName:file.name,photoSize:file.size,createdAt:new Date().toISOString()};
    try{localStorage.setItem('bope_avatar_draft',JSON.stringify(project));}catch(e){}
    status.style.display='block';
-   status.textContent='✅ Projet BOPE AVATAR préparé sur cet appareil. 🔒 La photo n’a pas été transmise. Aucun clip généré, aucun frais engagé. Le serveur vidéo reste limité à 5 secondes et désactivé pour le moment.';
+   const durationLabel=durationSeconds>=60?(durationSeconds/60)+' minute(s)':durationSeconds+' secondes';
+   status.textContent='✅ Projet BOPE AVATAR préparé sur cet appareil. Durée souhaitée : '+durationLabel+'. 🔒 La photo n’a pas été transmise. Aucun clip généré et aucun frais engagé. La génération vidéo reste désactivée pour le moment.';
   }
 
 
