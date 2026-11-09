@@ -1304,6 +1304,7 @@ function applyDRoute(route){
    <form id="bcSignupForm">
     <label class="bc-field"><span>Nom complet</span><input id="bcFullName" autocomplete="name" maxlength="70" required placeholder="Ton nom complet"></label>
     <label class="bc-field"><span>Nom d'utilisateur</span><input id="bcUsername" autocomplete="username" maxlength="24" required pattern="[A-Za-z0-9_]{3,24}" placeholder="ex. alive_bope"><small class="bc-small">3 à 24 caractères : lettres, chiffres et _</small></label>
+    <label class="bc-field"><span>Type de compte</span><select id="bcSignupAccountType" required style="width:100%;border:1px solid #d7dce5;border-radius:12px;padding:13px;font-size:16px;background:#fff;color:#172033"><option value="personal">👤 Compte personnel — pour mes amis et ma vie quotidienne</option><option value="professional">💼 Compte professionnel — pour mon activité et mon audience</option></select><small class="bc-small">Tu pourras modifier ce choix plus tard dans les paramètres de ton profil.</small></label>
     <label class="bc-field"><span>Adresse e-mail</span><input id="bcSignupEmail" type="email" autocomplete="email" required placeholder="exemple@email.com"></label>
     <label class="bc-field"><span>Mot de passe</span><input id="bcSignupPassword" type="password" autocomplete="new-password" minlength="8" required placeholder="8 caractères minimum"></label>
     <label class="bc-field"><span>Confirmer le mot de passe</span><input id="bcSignupConfirm" type="password" autocomplete="new-password" minlength="8" required placeholder="Répète ton mot de passe"></label>
@@ -1390,14 +1391,14 @@ function applyDRoute(route){
  };
  byId('bcSignupForm').addEventListener('submit',async e=>{
   e.preventDefault();if(!await bcInit())return;
-  const fullName=byId('bcFullName').value.trim(),username=byId('bcUsername').value.trim().toLowerCase(),email=byId('bcSignupEmail').value.trim(),password=byId('bcSignupPassword').value,confirm=byId('bcSignupConfirm').value;
+  const fullName=byId('bcFullName').value.trim(),username=byId('bcUsername').value.trim().toLowerCase(),accountType=byId('bcSignupAccountType').value,email=byId('bcSignupEmail').value.trim(),password=byId('bcSignupPassword').value,confirm=byId('bcSignupConfirm').value;
   if(password!==confirm){bcMessage('Les deux mots de passe ne correspondent pas.',true);return;}
   bcBusy('bcSignupButton',true,'Créer mon compte');
   try{
-   const {data,error}=await bcClient.auth.signUp({email,password,options:{data:{display_name:fullName,username}}});
+   const {data,error}=await bcClient.auth.signUp({email,password,options:{data:{display_name:fullName,username,account_type:accountType}}});
    if(error)throw error;
    if(data.session&&data.user){
-    const {error:profileError}=await bcClient.from('profiles').update({username,display_name:fullName}).eq('id',data.user.id);
+    const {error:profileError}=await bcClient.from('profiles').update({username,display_name:fullName,account_type:accountType}).eq('id',data.user.id);
     if(profileError)throw profileError;
     await bcShowAccount(data.user);
     bcMessage('Ton compte BOPE a été créé avec succès !');
