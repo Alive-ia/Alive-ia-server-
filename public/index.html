@@ -195,6 +195,27 @@
 .montage-trim-panel{margin-top:14px;padding:12px;border:1px solid #40516b;border-radius:12px;background:#101722}
 .montage-trim-panel h4{margin:0 0 8px;color:#e0edff;font-size:13px}
 .montage-trim-panel .studio-option{width:100%;margin-top:10px}
+
+/* BOPE AUDIO */
+.audio-hero{text-align:center;background:linear-gradient(145deg,#351509,#171018 70%,#241308);border-color:#b66a2d}
+.audio-hero-icon{font-size:42px;filter:drop-shadow(0 0 12px #ff9a35)}
+.audio-hero h3{margin:5px 0;color:#ffe0bd}.audio-hero p{color:#d6c2b3;font-size:13px}
+.audio-badges{display:flex;justify-content:center;gap:7px;flex-wrap:wrap;margin-top:12px}
+.audio-badges span{padding:7px 10px;border:1px solid #84532f;border-radius:18px;background:#25170f;font-size:11px}
+.audio-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:10px 0}
+.audio-tab{padding:11px 5px;border:1px solid #493222;border-radius:12px;background:#17110d;color:#d8c8bc;font-size:12px;font-weight:700}
+.audio-tab.active{background:linear-gradient(110deg,#9b4b13,#d27b24);border-color:#ffb45f;color:#fff}
+.audio-tool h3{margin-top:0;color:#ffd2a6}.audio-tool .studio-note,.audio-coming .studio-note{line-height:1.55}
+.audio-action-row{display:flex;gap:8px;align-items:stretch}.audio-action-row .studio-primary{flex:1;margin-top:10px}
+.audio-secondary,.audio-import-button{padding:12px;border:1px solid #9a6337;border-radius:12px;background:#24170f;color:#ffe1c3;font-weight:700}
+.audio-secondary{margin-top:10px}
+.audio-status{margin:10px 0 0;padding:10px;border:1px solid #65472e;border-radius:10px;background:#1a130e;color:#e9c7a7;font-size:11px;line-height:1.5}
+.audio-import-button{width:100%;background:linear-gradient(100deg,#81400f,#b66a20);color:#fff}
+.audio-file-name{margin:10px 0;color:#cbb9a8;font-size:12px;overflow-wrap:anywhere}
+.audio-player{width:100%;margin-top:8px}
+.audio-coming{border-color:#69472e}
+@media(max-width:360px){.audio-tab{font-size:10px;padding:10px 3px}.audio-action-row{flex-direction:column}.audio-secondary{margin-top:0}}
+
 </style></head><body>
 
   <div class="topbar">
@@ -375,8 +396,33 @@
    <div class="studio-card montage-next"><h3>3. 🛠️ Les outils de montage arrivent progressivement</h3><div class="montage-tools"><span>✂️ Découper les séquences</span><span>↕️ Réorganiser les clips</span><span>✨ Transitions et effets</span><span>🔊 Musique et voix off</span><span>🔤 Titres et sous-titres</span><span>📤 Exporter la vidéo finale</span></div><p class="studio-note">Pour le moment, BOPE MONTAGE prépare et sauvegarde la fiche de ton projet sur cet appareil. Le découpage réel, les effets et l'export seront activés après l'intégration du moteur de montage. Aucun rendu vidéo ni frais n'est déclenché ici.</p></div>
   </div>
   <div id="studioAudioPage" class="studio-service-page" style="display:none">
-   <div class="studio-head"><button class="studio-back" type="button" onclick="showStudioHome()">← Retour à BOPE STUDIO</button><div class="studio-heading"><h2>🎙️ BOPE AUDIO</h2><p>Crée et travaille tes sons.</p></div></div>
-   <div class="studio-card"><h3>🚧 BOPE AUDIO</h3><p class="studio-note">Cet espace est en préparation. Il sera activé lorsque les outils audio seront prêts.</p><strong>Statut : Bientôt disponible.</strong></div>
+   <div class="studio-head"><button class="studio-back" type="button" onclick="showStudioHome()">← Retour à BOPE STUDIO</button><div class="studio-heading"><h2>🎙️ BOPE AUDIO</h2><p>Ta voix, ta musique, tes créations.</p></div></div>
+   <div class="studio-card audio-hero"><div class="audio-hero-icon">🎧</div><h3>Bienvenue dans BOPE AUDIO</h3><p>Prépare tes créations sonores simplement, depuis ton téléphone.</p><div class="audio-badges"><span>🎤 Voix</span><span>🎵 Musique</span><span>🔊 Sons</span></div></div>
+   <div class="audio-tabs" role="tablist" aria-label="Outils BOPE AUDIO">
+    <button type="button" class="audio-tab active" onclick="showBopeAudioTool('voice',this)">🎤 Ma voix</button>
+    <button type="button" class="audio-tab" onclick="showBopeAudioTool('music',this)">🎵 Musique IA</button>
+    <button type="button" class="audio-tab" onclick="showBopeAudioTool('import',this)">📂 Mes sons</button>
+   </div>
+   <div id="bopeAudioVoice" class="studio-card audio-tool">
+    <h3>🎤 Transformer un texte en parole</h3><p class="studio-note">Écris ton texte et écoute une voix disponible sur ton appareil. La disponibilité des langues dépend de ton téléphone.</p>
+    <label class="studio-label" for="bopeAudioText">Ton texte</label><textarea id="bopeAudioText" class="studio-field studio-prompt" maxlength="5000" placeholder="Écris ici le texte que BOPE doit lire..."></textarea>
+    <div class="studio-options"><div><label class="studio-label" for="bopeAudioLanguage">Langue</label><select id="bopeAudioLanguage" class="studio-select"><option value="fr-FR">Français</option><option value="ln-CD">Lingala</option><option value="en-US">Anglais</option><option value="sw-KE">Swahili</option></select></div><div><label class="studio-label" for="bopeAudioRate">Vitesse</label><select id="bopeAudioRate" class="studio-select"><option value="0.85">Lente</option><option value="1" selected>Normale</option><option value="1.15">Rapide</option></select></div></div>
+    <div class="audio-action-row"><button class="studio-primary" type="button" onclick="bopeSpeakText()">▶ Écouter la voix</button><button class="audio-secondary" type="button" onclick="bopeStopSpeech()">■ Arrêter</button></div>
+    <p id="bopeAudioVoiceStatus" class="audio-status" role="status" aria-live="polite">Lecture vocale locale : aucun texte n'est envoyé au serveur.</p>
+   </div>
+   <div id="bopeAudioMusic" class="studio-card audio-tool" style="display:none">
+    <h3>🎵 Créer une musique avec l'IA</h3><p class="studio-note">Décris la musique que tu imagines. BOPE enregistrera ton idée pour préparer la génération lorsque le moteur musical sera connecté.</p>
+    <label class="studio-label" for="bopeMusicPrompt">Décris ta musique</label><textarea id="bopeMusicPrompt" class="studio-field studio-prompt" maxlength="1200" placeholder="Ex. : Une chanson congolaise joyeuse, avec guitare, rumba et paroles positives sur Kikwit..."></textarea>
+    <div class="studio-options"><div><label class="studio-label" for="bopeMusicStyle">Style musical</label><select id="bopeMusicStyle" class="studio-select"><option value="rumba">Rumba congolaise</option><option value="gospel">Gospel</option><option value="afrobeats">Afrobeats</option><option value="rap">Rap / Hip-hop</option><option value="instrumental">Instrumental</option><option value="ambient">Ambiance / relaxation</option><option value="other">Autre style</option></select></div><div><label class="studio-label" for="bopeMusicDuration">Durée souhaitée</label><select id="bopeMusicDuration" class="studio-select"><option value="30">30 secondes</option><option value="60">1 minute</option><option value="120">2 minutes</option><option value="180">3 minutes</option></select></div></div>
+    <button class="studio-primary" type="button" onclick="saveBopeMusicIdea()">💾 Préparer mon projet musical</button><p id="bopeMusicStatus" class="audio-status" role="status" aria-live="polite"></p>
+   </div>
+   <div id="bopeAudioImport" class="studio-card audio-tool" style="display:none">
+    <h3>📂 Écouter un son de mon téléphone</h3><p class="studio-note">Choisis un fichier audio pour l'écouter ici. Il reste sur ton appareil.</p>
+    <input id="bopeAudioFile" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.opus,.flac" hidden onchange="previewBopeAudio(this)">
+    <button class="audio-import-button" type="button" onclick="document.getElementById('bopeAudioFile').click()">＋ Choisir un fichier audio</button>
+    <div id="bopeAudioFileName" class="audio-file-name">Aucun son sélectionné.</div><audio id="bopeAudioPlayer" class="audio-player" controls style="display:none"></audio>
+   </div>
+   <div class="studio-card audio-coming"><h3>🚀 Les prochaines fonctions</h3><div class="montage-tools"><span>🎼 Chansons complètes</span><span>🗣️ Voix personnalisées</span><span>🎹 Musiques instrumentales</span><span>🔊 Effets sonores</span><span>🎚️ Mixage audio</span><span>📥 Export MP3 / WAV</span></div><p class="studio-note">La génération de musique par IA, les voix personnalisées et l'export audio seront activés après le choix et le branchement d'un moteur compatible. Ils ne sont pas encore actifs et aucun frais n'est engagé.</p></div>
   </div>  <p class="studio-note" style="text-align:center">BOPE STUDIO • 100% Made in Congo 🇨🇩</p>
   </div>
  </div>
@@ -477,7 +523,45 @@
     </div>
   </div>
   <div id="attachmentInfo" style="display:none;color:#aaa;font-size:11px;max-width:760px;margin-top:5px"></div><div style="font-size:10px;color:#777;margin-top:7px;text-align:center">⚠️ BOPE Santé 85% = orientation étudiant UNIKIK, pas médecin<br>🇨🇩 Fierté de Kikwit, Kwilu • 100% Made in Congo • bopealive@gmail.com</div></div>
-  <script src="/socket.io/socket.io.js"></script>
+  <script src="/socket.io/socket.io.js">
+  /* BOPE AUDIO — outils locaux de première version */
+  function showBopeAudioTool(name,button){
+   ['voice','music','import'].forEach(key=>{const el=document.getElementById('bopeAudio'+key.charAt(0).toUpperCase()+key.slice(1));if(el)el.style.display=key===name?'block':'none';});
+   document.querySelectorAll('.audio-tab').forEach(el=>el.classList.toggle('active',el===button));
+  }
+  function bopeSpeakText(){
+   const text=document.getElementById('bopeAudioText').value.trim(),status=document.getElementById('bopeAudioVoiceStatus');
+   if(!text){status.textContent='Écris d’abord un texte à lire.';return;}
+   if(!('speechSynthesis' in window)){status.textContent='La lecture vocale n’est pas prise en charge par ce navigateur.';return;}
+   window.speechSynthesis.cancel();
+   const utterance=new SpeechSynthesisUtterance(text);
+   utterance.lang=document.getElementById('bopeAudioLanguage').value;
+   utterance.rate=Number(document.getElementById('bopeAudioRate').value)||1;
+   utterance.onstart=()=>{status.textContent='🔊 Lecture en cours sur ton appareil.';};
+   utterance.onend=()=>{status.textContent='✅ Lecture terminée. Cette voix est fournie par le navigateur, pas encore par un moteur vocal BOPE.';};
+   utterance.onerror=()=>{status.textContent='La lecture a échoué. Vérifie les voix installées sur ton téléphone.';};
+   window.speechSynthesis.speak(utterance);
+  }
+  function bopeStopSpeech(){if('speechSynthesis' in window)window.speechSynthesis.cancel();const status=document.getElementById('bopeAudioVoiceStatus');if(status)status.textContent='Lecture arrêtée.';}
+  function saveBopeMusicIdea(){
+   const prompt=document.getElementById('bopeMusicPrompt').value.trim(),status=document.getElementById('bopeMusicStatus');
+   if(!prompt){status.textContent='Décris d’abord la musique que tu souhaites créer.';return;}
+   const project={mode:'music',prompt,style:document.getElementById('bopeMusicStyle').value,duration:Number(document.getElementById('bopeMusicDuration').value),createdAt:new Date().toISOString()};
+   try{localStorage.setItem('bope_audio_music_draft',JSON.stringify(project));status.textContent='✅ Ton idée musicale est enregistrée sur cet appareil. La musique elle-même n’a pas encore été générée : le moteur IA audio reste à connecter. Aucun frais engagé.';}
+   catch(e){status.textContent='⚠️ Impossible d’enregistrer le projet. Vérifie l’espace disponible dans ton navigateur.';}
+  }
+  let bopeAudioObjectUrl=null;
+  function previewBopeAudio(input){
+   const file=input.files&&input.files[0],player=document.getElementById('bopeAudioPlayer'),name=document.getElementById('bopeAudioFileName');
+   if(!file)return;
+   const ext=(file.name.split('.').pop()||'').toLowerCase();
+   if(!(file.type.startsWith('audio/')||['mp3','wav','m4a','aac','ogg','opus','flac'].includes(ext))){alert('Choisis un fichier audio compatible.');input.value='';return;}
+   if(file.size>100*1024*1024){alert('Le fichier dépasse la limite de 100 Mo.');input.value='';return;}
+   if(bopeAudioObjectUrl)URL.revokeObjectURL(bopeAudioObjectUrl);
+   bopeAudioObjectUrl=URL.createObjectURL(file);player.src=bopeAudioObjectUrl;player.style.display='block';name.textContent=file.name+' • '+(file.size/1024/1024).toFixed(1)+' Mo';
+  }
+
+</script>
   <script>
 
 
