@@ -269,6 +269,24 @@
 .bc-tab-panel h3{margin:0 0 8px;color:#1e3260;font-size:18px}.bc-tab-panel p{margin:0 auto;max-width:360px;color:#667085;font-size:13px;line-height:1.55}
 @media(max-width:360px){.bc-main-nav{margin-left:-10px;margin-right:-10px}.bc-main-nav button span{font-size:22px}}
 
+/* BOPE CRÉATEURS : interface du fil d'actualité */
+.bc-feed{display:none;margin:0 0 18px}
+.bc-feed.show{display:block}
+.bc-compose-card,.bc-feed-placeholder{background:#fff;border:1px solid #e4e7ec;border-radius:15px;padding:13px;margin:0 0 12px;box-shadow:0 2px 8px rgba(16,24,40,.04)}
+.bc-compose-top{display:flex;align-items:center;gap:10px}
+.bc-compose-avatar{width:42px;height:42px;flex:0 0 42px;border-radius:50%;display:grid;place-items:center;background:#e8efff;color:#2455a6;font-size:21px;font-weight:800}
+.bc-compose-open{flex:1;min-width:0;text-align:left;border:1px solid #e4e7ec;border-radius:24px;background:#f5f6f7;color:#65676b;padding:12px 15px;font-size:14px}
+.bc-compose-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:12px;padding-top:10px;border-top:1px solid #edf0f3}
+.bc-compose-actions button{min-width:0;border:0;background:transparent;border-radius:9px;padding:9px 2px;color:#475467;font-size:12px;font-weight:700}
+.bc-compose-actions button span{display:block;font-size:20px;margin-bottom:4px}
+.bc-feed-heading{display:flex;align-items:center;justify-content:space-between;margin:18px 2px 10px}
+.bc-feed-heading strong{font-size:16px;color:#1d2939}
+.bc-feed-heading small{font-size:11px;color:#667085}
+.bc-feed-placeholder{text-align:center;padding:25px 16px}
+.bc-feed-placeholder .bc-empty-icon{font-size:34px;margin-bottom:8px}
+.bc-feed-placeholder strong{display:block;color:#344054;font-size:15px;margin-bottom:6px}
+.bc-feed-placeholder p{margin:0;color:#667085;font-size:12px;line-height:1.5}
+@media(max-width:360px){.bc-compose-actions button{font-size:10px}.bc-compose-actions button span{font-size:18px}}
 @media(min-width:600px){.bc-shell{padding-top:30px}}
 </style></head><body>
 
@@ -1370,6 +1388,25 @@ function applyDRoute(route){
     <button type="button" data-bc-tab="messages" onclick="bcNavigate('messages')" aria-label="Messages" title="Messages"><span>▱</span><small>Messages</small></button>
     <button type="button" data-bc-tab="menu" onclick="bcNavigate('menu')" aria-label="Menu" title="Menu"><span>☰</span><small>Menu</small></button>
    </nav>
+   <section class="bc-feed show" id="bcFeedSection" aria-label="Fil d’actualité BOPE">
+    <div class="bc-compose-card">
+     <div class="bc-compose-top">
+      <div class="bc-compose-avatar" id="bcComposeAvatar">👤</div>
+      <button type="button" class="bc-compose-open" onclick="bcOpenComposer()">À quoi penses-tu ?</button>
+     </div>
+     <div class="bc-compose-actions">
+      <button type="button" onclick="bcOpenComposer('photo')"><span>🖼️</span>Photo</button>
+      <button type="button" onclick="bcOpenComposer('video')"><span>🎬</span>Vidéo</button>
+      <button type="button" onclick="bcOpenComposer()"><span>✍️</span>Publication</button>
+     </div>
+    </div>
+    <div class="bc-feed-heading"><strong>Fil d’actualité</strong><small>BOPE • Communauté</small></div>
+    <div class="bc-feed-placeholder">
+     <div class="bc-empty-icon">🇨🇩</div>
+     <strong>Bienvenue dans ton fil BOPE !</strong>
+     <p>Les publications de tes amis et des pages que tu suis apparaîtront ici. La création et l’affichage des publications seront activés à la prochaine étape.</p>
+    </div>
+   </section>
    <section class="bc-tab-panel" id="bcTabPanel" aria-live="polite">
     <div class="bc-panel-icon" id="bcPanelIcon">🇨🇩</div>
     <h3 id="bcPanelTitle">Bienvenue sur BOPE CRÉATEURS</h3>
@@ -1457,6 +1494,11 @@ function applyDRoute(route){
    }
   }
  }
+ window.bcOpenComposer=function(type){
+  const labels={photo:'La publication avec photo sera activée à la prochaine étape.',video:'La publication vidéo sera activée à la prochaine étape.'};
+  const message=labels[type]||'Le formulaire de publication sera activé à la prochaine étape.';
+  byId('bcAccountMessage').textContent=message;
+ };
  window.bcNavigate=function(tab){
   const tabs={
    home:{icon:'🏠',title:'Accueil BOPE',text:'Ton fil d’actualité prendra place ici : publications, photos, vidéos et recommandations intelligentes.'},
@@ -1473,7 +1515,8 @@ function applyDRoute(route){
    if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');
   });
   byId('bcProfileSection').style.display=tab==='menu'?'block':'none';
-  byId('bcTabPanel').style.display=tab==='menu'?'none':'block';
+  byId('bcFeedSection').classList.toggle('show',tab==='home');
+  byId('bcTabPanel').style.display=(tab==='menu'||tab==='home')?'none':'block';
   byId('bcPanelIcon').textContent=item.icon;
   byId('bcPanelTitle').textContent=item.title;
   byId('bcPanelText').textContent=item.text;
