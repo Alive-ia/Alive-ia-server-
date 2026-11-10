@@ -1903,7 +1903,7 @@ function applyDRoute(route){
     await bcShowAccount(data.user);
     bcMessage('Ton compte BOPE a été créé avec succès !');
    }else{
-    bcMessage('Inscription enregistrée. Vérifie ta boîte e-mail et clique sur le lien de confirmation avant de te connecter. Ton profil sera finalisé lors de ta première connexion.');
+    bcMessage('Inscription enregistrée, mais la connexion automatique n’a pas abouti. Vérifie que la confirmation des e-mails est bien désactivée dans Supabase, puis réessaie.');
    }
    byId('bcSignupForm').reset();
   }catch(err){bcMessage(err.message||'Échec de l’inscription. Réessaie.',true);}
