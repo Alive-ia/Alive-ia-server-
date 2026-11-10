@@ -314,6 +314,15 @@
 .bc-post-avatar{width:38px;height:38px;flex:0 0 38px;border-radius:50%;object-fit:cover;background:#e8efff;display:grid;place-items:center;color:#2455a6}
 .bc-post-author strong{display:block;font-size:13px}.bc-post-author small{display:block;color:#65676b;font-size:10px;margin-top:3px}
 .bc-post-text{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.45;margin:8px 0}
+.bc-reaction-area{border-top:1px solid #e4e6eb;margin-top:10px;padding-top:8px}
+.bc-reaction-summary{font-size:12px;color:#65676b;min-height:20px;margin-bottom:7px}
+.bc-reaction-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.bc-reaction-main{border:0;background:#f0f2f5;border-radius:18px;padding:7px 12px;color:#444;font-size:12px;font-weight:600}
+.bc-reaction-main.selected{color:#1877f2;background:#e7f3ff}
+.bc-reaction-tray{display:none;gap:5px;flex-wrap:wrap;padding:8px 5px;margin-bottom:7px;background:#f0f2f5;border-radius:20px}
+.bc-reaction-tray.show{display:flex}
+.bc-reaction-choice{border:0;background:transparent;border-radius:50%;font-size:23px;line-height:1;padding:4px;transition:transform .12s}
+.bc-reaction-choice:active{transform:scale(1.25)}
 .bc-post-media{display:block;width:calc(100% + 22px);max-width:none;margin:8px -11px 0;max-height:520px;object-fit:contain;background:#111}
 
 .bc-feed-heading{display:flex;align-items:center;justify-content:space-between;padding:13px 10px 9px;margin:0;background:#fff}
@@ -1589,7 +1598,21 @@ function applyDRoute(route){
  });
  byId('bcRemoveMedia').addEventListener('click',function(){byId('bcPostFile').value='';bcClearMediaPreview();});
  function bcSafeDate(value){const d=new Date(value);return Number.isNaN(d.getTime())?'À l’instant':d.toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'});}
- function bcRenderPosts(posts){
+ const bcReactionEmojis=['👍','👎','🫶','❤️','😍','😂','🤣','😮','😢','😭','😡','🤔','💔','💋','🤜','🤲','🫲','🫱','🫴','🫳','✊','👊','🤛'];
+ window.bcReactToPost=async function(postId,emoji){
+  if(!bcClient||!bcCurrentUser){alert('Connecte-toi pour réagir à une publication.');return;}
+  const {data:existing,error:readError}=await bcClient.from('bope_post_reactions').select('reaction_type').eq('post_id',postId).eq('user_id',bcCurrentUser.id).maybeSingle();
+  if(readError){alert('Impossible de vérifier ta réaction : '+readError.message);return;}
+  let result;
+  if(existing&&existing.reaction_type===emoji){
+   result=await bcClient.from('bope_post_reactions').delete().eq('post_id',postId).eq('user_id',bcCurrentUser.id);
+  }else{
+   result=await bcClient.from('bope_post_reactions').upsert({post_id:postId,user_id:bcCurrentUser.id,reaction_type:emoji},{onConflict:'post_id,user_id'});
+  }
+  if(result.error){alert('La réaction n’a pas pu être enregistrée : '+result.error.message);return;}
+  await bcLoadPosts();
+ };
+ function bcRenderPosts(posts,reactions){
   const list=byId('bcPostsList');list.replaceChildren();
   byId('bcPostsEmpty').style.display=posts.length?'none':'block';
   posts.forEach(post=>{
@@ -1602,6 +1625,20 @@ function applyDRoute(route){
    meta.append(name,date);head.appendChild(meta);card.appendChild(head);
    if(post.content){const body=document.createElement('p');body.className='bc-post-text';body.textContent=post.content;card.appendChild(body);}
    if(post.media_url){let media;if(post.media_type==='video'){media=document.createElement('video');media.controls=true;media.playsInline=true;}else{media=document.createElement('img');media.alt='Photo publiée sur BOPE';}media.className='bc-post-media';media.src=post.media_url;card.appendChild(media);}
+   const postReactions=(reactions||[]).filter(r=>r.post_id===post.id);
+   const counts={};postReactions.forEach(r=>{counts[r.reaction_type]=(counts[r.reaction_type]||0)+1;});
+   const mine=bcCurrentUser?postReactions.find(r=>r.user_id===bcCurrentUser.id):null;
+   const area=document.createElement('div');area.className='bc-reaction-area';
+   const summary=document.createElement('div');summary.className='bc-reaction-summary';
+   const summaryItems=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+   summary.textContent=summaryItems.length?summaryItems.map(([emoji,count])=>emoji+' '+count).join('  '):'Sois le premier à réagir';
+   area.appendChild(summary);
+   const tray=document.createElement('div');tray.className='bc-reaction-tray';
+   bcReactionEmojis.forEach(emoji=>{const choice=document.createElement('button');choice.type='button';choice.className='bc-reaction-choice';choice.textContent=emoji;choice.title='Réagir avec '+emoji;choice.setAttribute('aria-label','Réagir avec '+emoji);choice.addEventListener('click',()=>window.bcReactToPost(post.id,emoji));tray.appendChild(choice);});
+   area.appendChild(tray);
+   const actions=document.createElement('div');actions.className='bc-reaction-actions';
+   const main=document.createElement('button');main.type='button';main.className='bc-reaction-main'+(mine?' selected':'');main.textContent=mine?mine.reaction_type+' Réaction':'👍 Réagir';main.addEventListener('click',()=>tray.classList.toggle('show'));
+   actions.appendChild(main);area.appendChild(actions);card.appendChild(area);
    list.appendChild(card);
   });
  }
@@ -1609,7 +1646,13 @@ function applyDRoute(route){
   if(!bcClient)return;
   const {data,error}=await bcClient.from('bope_posts').select('id,content,media_url,media_type,created_at,profiles(display_name,username,avatar_url)').order('created_at',{ascending:false}).limit(50);
   if(error){byId('bcPostStatus').textContent='Impossible de charger les publications : '+error.message;return;}
-  bcRenderPosts(data||[]);
+  const posts=data||[];let reactions=[];
+  if(posts.length){
+   const {data:reactionData,error:reactionError}=await bcClient.from('bope_post_reactions').select('post_id,user_id,reaction_type').in('post_id',posts.map(p=>p.id));
+   if(reactionError){byId('bcPostStatus').textContent='Publications chargées, mais réactions indisponibles : '+reactionError.message;bcRenderPosts(posts,[]);return;}
+   reactions=reactionData||[];
+  }
+  bcRenderPosts(posts,reactions);
  };
  window.bcPublishPost=async function(){
   if(!bcClient||!bcCurrentUser){byId('bcPostStatus').textContent='Connecte-toi pour publier.';return;}
