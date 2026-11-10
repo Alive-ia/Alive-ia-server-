@@ -1916,7 +1916,8 @@ function applyDRoute(route){
    const name=document.createElement('strong');name.textContent=person.display_name||'Utilisateur BOPE';name.style.cssText='display:block;color:#1d2939;font-size:14px';
    const handle=document.createElement('small');handle.textContent='@'+(person.username||'utilisateur');handle.style.color='#667085';
    info.append(name,handle);
-   const view=document.createElement('button');view.type='button';view.textContent='Voir profil';view.style.cssText='border:0;border-radius:18px;padding:8px 11px;background:#e7f0ff;color:#1877f2;font-size:12px;font-weight:700;white-space:nowrap';
+   const actions=document.createElement('div');actions.style.cssText='display:flex;align-items:center;gap:6px;flex:0 0 auto';
+   const view=document.createElement('button');view.type='button';view.textContent='Voir profil';view.style.cssText='border:0;border-radius:18px;padding:8px 10px;background:#e7f0ff;color:#1877f2;font-size:12px;font-weight:700;white-space:nowrap';
    view.addEventListener('click',()=>{
     let detail=card.querySelector('.bc-friend-detail');
     if(detail){detail.remove();view.textContent='Voir profil';return;}
@@ -1924,7 +1925,15 @@ function applyDRoute(route){
     detail.textContent=person.bio||'Cet utilisateur n’a pas encore ajouté de présentation.';
     card.style.flexWrap='wrap';card.appendChild(detail);view.textContent='Masquer';
    });
-   card.append(avatar,info,view);box.appendChild(card);
+   const remove=document.createElement('button');remove.type='button';remove.textContent='Retirer';remove.style.cssText='border:0;border-radius:18px;padding:8px 10px;background:#fce8e8;color:#c62828;font-size:12px;font-weight:700;white-space:nowrap';
+   remove.addEventListener('click',async()=>{
+    if(!window.confirm('Retirer '+(person.display_name||'cet ami')+' de ta liste d’amis ? Cette personne ne sera plus dans tes amis BOPE.'))return;
+    remove.disabled=true;remove.textContent='…';
+    const {error:deleteError}=await bcClient.from('bope_friendships').delete().eq('id',rows.find(f=>(f.user_one===bcCurrentUser.id?f.user_two:f.user_one)===person.id)?.id);
+    if(deleteError){window.alert('Impossible de retirer cet ami : '+deleteError.message);remove.disabled=false;remove.textContent='Retirer';return;}
+    await window.bcLoadFriends();
+   });
+   actions.append(view,remove);card.append(avatar,info,actions);box.appendChild(card);
   });
  };
  window.bcSearchPeople=async function(term){
