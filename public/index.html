@@ -1826,18 +1826,43 @@ function applyDRoute(route){
   const items=data||[],unread=items.filter(n=>!n.is_read).length,badge=byId('bcNotificationBadge');
   if(badge){badge.textContent=unread>99?'99+':String(unread);badge.style.display=unread?'block':'none';}
   const box=byId('bcNotificationsList');if(!box)return;box.replaceChildren();
-  if(!items.length){const empty=document.createElement('div');empty.className='bc-notification-empty';empty.textContent='Tu n’as pas encore de notification. Les réactions et commentaires reçus apparaîtront ici.';box.appendChild(empty);return;}
+  if(!items.length){const empty=document.createElement('div');empty.className='bc-notification-empty';empty.textContent='Tu n’as pas encore de notification. Les demandes d’amitié, réactions et commentaires apparaîtront ici.';box.appendChild(empty);return;}
   const actorIds=[...new Set(items.map(n=>n.actor_id))];
   const {data:profiles}=await bcClient.from('profiles').select('id,display_name,avatar_url').in('id',actorIds);
   const profileMap={};(profiles||[]).forEach(p=>profileMap[p.id]=p);
+  const {data:pendingRequests, error:requestsError}=await bcClient.from('bope_friend_requests').select('id,sender_id,recipient_id,status').eq('recipient_id',bcCurrentUser.id).eq('status','pending');
+  if(requestsError){console.error('Demandes d’amitié:',requestsError.message);}
+  const requestMap={};(pendingRequests||[]).forEach(r=>requestMap[r.sender_id]=r);
   items.forEach(n=>{
    const profile=profileMap[n.actor_id]||{},row=document.createElement('div');row.className='bc-notification-item'+(n.is_read?'':' unread');
    const avatar=profile.avatar_url?document.createElement('img'):document.createElement('div');avatar.className='bc-notification-avatar';
-   if(profile.avatar_url){avatar.src=profile.avatar_url;avatar.alt='';avatar.style.objectFit='cover';}else avatar.textContent=n.notification_type==='reaction'?'❤️':'💬';
+   if(profile.avatar_url){avatar.src=profile.avatar_url;avatar.alt='';avatar.style.objectFit='cover';}else avatar.textContent=n.notification_type==='reaction'?'❤️':n.notification_type==='friend_request'?'👥':'💬';
    const copy=document.createElement('div');copy.className='bc-notification-copy';
    const strong=document.createElement('strong');strong.textContent=profile.display_name||'Un utilisateur BOPE';
-   const msg=document.createElement('span');msg.textContent=' '+(n.message||(n.notification_type==='reaction'?'a réagi à ta publication.':'a commenté ta publication.'));
+   const defaultMessage=n.notification_type==='reaction'?'a réagi à ta publication.':n.notification_type==='friend_request'?'t’a envoyé une demande d’amitié.':'a commenté ta publication.';
+   const msg=document.createElement('span');msg.textContent=' '+(n.message||defaultMessage);
    const date=document.createElement('small');date.textContent=bcSafeDate(n.created_at);copy.append(strong,msg,date);row.append(avatar,copy);
+   const request=n.notification_type==='friend_request'?requestMap[n.actor_id]:null;
+   if(request){
+    const actions=document.createElement('div');actions.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin:9px 0 2px 48px';
+    const accept=document.createElement('button');accept.type='button';accept.textContent='Accepter';accept.style.cssText='border:0;border-radius:18px;padding:8px 15px;background:#1877f2;color:#fff;font-weight:700';
+    const reject=document.createElement('button');reject.type='button';reject.textContent='Refuser';reject.style.cssText='border:1px solid #555;border-radius:18px;padding:8px 15px;background:#252525;color:#fff';
+    accept.addEventListener('click',async e=>{
+     e.stopPropagation();accept.disabled=true;reject.disabled=true;accept.textContent='Acceptation…';
+     const {error:updateError}=await bcClient.from('bope_friend_requests').update({status:'accepted'}).eq('id',request.id).eq('recipient_id',bcCurrentUser.id).eq('status','pending');
+     if(updateError){accept.disabled=false;reject.disabled=false;accept.textContent='Accepter';byId('bcAccountMessage').textContent='Impossible d’accepter : '+updateError.message;return;}
+     await bcClient.from('bope_notifications').update({is_read:true}).eq('id',n.id).eq('recipient_id',bcCurrentUser.id);
+     await window.bcLoadNotifications();
+    });
+    reject.addEventListener('click',async e=>{
+     e.stopPropagation();accept.disabled=true;reject.disabled=true;reject.textContent='Refus…';
+     const {error:updateError}=await bcClient.from('bope_friend_requests').update({status:'rejected'}).eq('id',request.id).eq('recipient_id',bcCurrentUser.id).eq('status','pending');
+     if(updateError){accept.disabled=false;reject.disabled=false;reject.textContent='Refuser';byId('bcAccountMessage').textContent='Impossible de refuser : '+updateError.message;return;}
+     await bcClient.from('bope_notifications').update({is_read:true}).eq('id',n.id).eq('recipient_id',bcCurrentUser.id);
+     await window.bcLoadNotifications();
+    });
+    actions.append(accept,reject);copy.appendChild(actions);
+   }
    row.addEventListener('click',async()=>{if(!n.is_read)await bcClient.from('bope_notifications').update({is_read:true}).eq('id',n.id).eq('recipient_id',bcCurrentUser.id);if(n.post_id)window.location.href='/publication/'+n.post_id;else window.bcLoadNotifications();});
    box.appendChild(row);
   });
