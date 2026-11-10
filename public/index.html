@@ -253,6 +253,17 @@
 .bc-profile-note{font-size:12px;color:#667085;line-height:1.45;margin:10px 0 0}
 @media(max-width:360px){.bc-upload-row{grid-template-columns:1fr}.bc-profile-cover{height:100px}}
 
+
+/* Navigation principale BOPE CRÉATEURS */
+.bc-main-nav{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;margin:14px 0 16px;padding:7px;border:1px solid #e4eaf5;border-radius:16px;background:#f7f9fd}
+.bc-main-nav button{min-width:0;padding:9px 2px 8px;border:0;border-radius:11px;background:transparent;color:#64748b;display:flex;flex-direction:column;align-items:center;gap:5px}
+.bc-main-nav button span{font-size:21px;line-height:1.1}.bc-main-nav button small{font-size:10px;font-weight:800;white-space:nowrap}
+.bc-main-nav button.active{background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;box-shadow:0 4px 12px #5145cd33}
+.bc-tab-panel{min-height:180px;margin:0 0 16px;padding:22px 16px;border:1px solid #e2e9f5;border-radius:17px;background:linear-gradient(145deg,#fff,#f4f7ff);text-align:center}
+.bc-panel-icon{width:54px;height:54px;margin:0 auto 10px;border-radius:17px;display:grid;place-items:center;background:linear-gradient(135deg,#dbeafe,#ede9fe);font-size:27px}
+.bc-tab-panel h3{margin:0 0 8px;color:#1e3260;font-size:18px}.bc-tab-panel p{margin:0 auto;max-width:360px;color:#667085;font-size:13px;line-height:1.55}
+@media(max-width:360px){.bc-main-nav{gap:2px;padding:5px}.bc-main-nav button small{font-size:9px}.bc-main-nav button span{font-size:19px}}
+
 @media(min-width:600px){.bc-shell{padding-top:30px}}
 </style></head><body>
 
@@ -1345,7 +1356,21 @@ function applyDRoute(route){
   </div>
   <div class="bc-card bc-account" id="bcAccountCard">
    <h2>Ton espace BOPE</h2>
-   <p class="bc-muted">Tu es connecté à BOPE CRÉATEURS.</p>
+   <p class="bc-muted">Bienvenue dans ton réseau social BOPE.</p>
+   <nav class="bc-main-nav" aria-label="Navigation BOPE CRÉATEURS">
+    <button type="button" class="active" data-bc-tab="home" onclick="bcNavigate('home')" aria-current="page"><span>🏠</span><small>Accueil</small></button>
+    <button type="button" data-bc-tab="friends" onclick="bcNavigate('friends')"><span>👥</span><small>Amis</small></button>
+    <button type="button" data-bc-tab="videos" onclick="bcNavigate('videos')"><span>🎬</span><small>Vidéos</small></button>
+    <button type="button" data-bc-tab="notifications" onclick="bcNavigate('notifications')"><span>🔔</span><small>Alertes</small></button>
+    <button type="button" data-bc-tab="messages" onclick="bcNavigate('messages')"><span>💬</span><small>Messages</small></button>
+    <button type="button" data-bc-tab="menu" onclick="bcNavigate('menu')"><span>☰</span><small>Menu</small></button>
+   </nav>
+   <section class="bc-tab-panel" id="bcTabPanel" aria-live="polite">
+    <div class="bc-panel-icon" id="bcPanelIcon">🇨🇩</div>
+    <h3 id="bcPanelTitle">Bienvenue sur BOPE CRÉATEURS</h3>
+    <p id="bcPanelText">Ton fil d’actualité BOPE prendra place ici. Nous le construirons avec les publications, photos, vidéos et recommandations intelligentes.</p>
+   </section>
+   <div id="bcProfileSection" style="display:none">
    <div class="bc-profile" style="padding:12px">
     <div class="bc-profile-cover" id="bcCoverPreview"></div>
     <div class="bc-profile-head">
@@ -1369,6 +1394,7 @@ function applyDRoute(route){
    </div>
    <div class="bc-profile-actions">
     <button class="bc-secondary" type="button" onclick="bcSignOut()">Se déconnecter</button>
+   </div>
    </div>
    <div id="bcAccountMessage" class="bc-message show">Bienvenue dans ton espace BOPE CRÉATEURS.</div>
   </div>
@@ -1403,6 +1429,7 @@ function applyDRoute(route){
  function bcShowAuth(){byId('bcAuthCard').style.display='block';byId('bcAccountCard').classList.remove('show');}
  async function bcShowAccount(user){
   bcCurrentUser=user;byId('bcAuthCard').style.display='none';byId('bcAccountCard').classList.add('show');
+  window.bcNavigate('home');
   const meta=user.user_metadata||{};
   byId('bcAccountName').textContent=meta.display_name||meta.full_name||'Utilisateur BOPE';
   byId('bcAccountEmail').textContent=user.email||'';
@@ -1425,6 +1452,27 @@ function applyDRoute(route){
    }
   }
  }
+ window.bcNavigate=function(tab){
+  const tabs={
+   home:{icon:'🏠',title:'Accueil BOPE',text:'Ton fil d’actualité prendra place ici : publications, photos, vidéos et recommandations intelligentes.'},
+   friends:{icon:'👥',title:'Amis et communautés',text:'Tu pourras retrouver tes amis, découvrir des personnes et rejoindre des communautés. Cette partie sera développée ensuite.'},
+   videos:{icon:'🎬',title:'BOPE Vidéos',text:'Un espace pour découvrir les vidéos courtes et longues des créateurs BOPE. Le lecteur et les recommandations seront ajoutés ensuite.'},
+   notifications:{icon:'🔔',title:'Notifications',text:'Tu retrouveras ici les nouvelles réactions, commentaires, invitations et activités de ton compte.'},
+   messages:{icon:'💬',title:'Messagerie BOPE',text:'Les conversations privées et de groupe seront réunies ici. Nous construirons la messagerie après la navigation.'},
+   menu:{icon:'☰',title:'Mon espace et paramètres',text:'Retrouve les informations de ton compte et la modification de ton profil.'}
+  };
+  const item=tabs[tab]||tabs.home;
+  document.querySelectorAll('#bopeCreatorsPage [data-bc-tab]').forEach(button=>{
+   const active=button.dataset.bcTab===tab;
+   button.classList.toggle('active',active);
+   if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');
+  });
+  byId('bcProfileSection').style.display=tab==='menu'?'block':'none';
+  byId('bcTabPanel').style.display=tab==='menu'?'none':'block';
+  byId('bcPanelIcon').textContent=item.icon;
+  byId('bcPanelTitle').textContent=item.title;
+  byId('bcPanelText').textContent=item.text;
+ };
  window.openBopeCreators=async function(){byId('bopeCreatorsPage').classList.add('active');document.body.style.overflow='hidden';bcShowForm('signup');await bcInit();};
  window.closeBopeCreators=function(){byId('bopeCreatorsPage').classList.remove('active');document.body.style.overflow='';};
  function bcShowResetForm(){
