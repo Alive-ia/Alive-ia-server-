@@ -1660,7 +1660,7 @@ function applyDRoute(route){
   }
  };
  window.bcSharePost=async function(post){
-  const shareUrl=post.media_url||window.location.href;
+  const shareUrl=new URL('/publication/'+encodeURIComponent(post.id),window.location.origin).href;
   const text=(post.content||'Découvre cette publication sur BOPE CRÉATEURS')+' — BOPE CRÉATEURS';
   try{
    if(navigator.share){await navigator.share({title:'BOPE CRÉATEURS',text,url:shareUrl});}
@@ -1677,7 +1677,7 @@ function applyDRoute(route){
   const list=byId('bcPostsList');list.replaceChildren();
   byId('bcPostsEmpty').style.display=posts.length?'none':'block';
   posts.forEach(post=>{
-   const card=document.createElement('article');card.className='bc-post-card';
+   const card=document.createElement('article');card.className='bc-post-card';card.dataset.postId=post.id;
    const head=document.createElement('div');head.className='bc-post-author';
    if(post.profiles&&post.profiles.avatar_url){const avatar=document.createElement('img');avatar.className='bc-post-avatar';avatar.src=post.profiles.avatar_url;avatar.alt='';head.appendChild(avatar);}
    else{const avatar=document.createElement('div');avatar.className='bc-post-avatar';avatar.textContent='👤';head.appendChild(avatar);}
@@ -1739,7 +1739,11 @@ function applyDRoute(route){
  }
  window.bcLoadPosts=async function(){
   if(!bcClient)return;
-  const {data,error}=await bcClient.from('bope_posts').select('id,content,media_url,media_type,created_at,profiles(display_name,username,avatar_url)').order('created_at',{ascending:false}).limit(50);
+  const sharedParts=window.location.pathname.split('/').filter(Boolean);
+  const sharedPostId=sharedParts.length===2&&sharedParts[0]==='publication'&&/^[0-9a-f-]{36}$/i.test(sharedParts[1])?sharedParts[1]:null;
+  let postsQuery=bcClient.from('bope_posts').select('id,content,media_url,media_type,created_at,profiles(display_name,username,avatar_url)').order('created_at',{ascending:false});
+  if(sharedPostId)postsQuery=postsQuery.eq('id',sharedPostId);else postsQuery=postsQuery.limit(50);
+  const {data,error}=await postsQuery;
   if(error){byId('bcPostStatus').textContent='Impossible de charger les publications : '+error.message;return;}
   const posts=data||[],ids=posts.map(p=>p.id);let reactions=[],comments=[],commentProfiles={};
   if(ids.length){
@@ -1759,6 +1763,14 @@ function applyDRoute(route){
    }
   }
   bcRenderPosts(posts,reactions,comments,commentProfiles);
+  if(sharedPostId){
+   if(posts.length){
+    byId('bcPostStatus').textContent='Publication partagée — tu consultes son emplacement original sur BOPE CRÉATEURS.';
+    setTimeout(()=>{const target=document.querySelector('[data-post-id="'+sharedPostId+'"]');if(target)target.scrollIntoView({behavior:'smooth',block:'start'});},120);
+   }else{
+    byId('bcPostStatus').textContent='Cette publication est introuvable ou n’est plus accessible.';
+   }
+  }
  };
  window.bcPublishPost=async function(){
   if(!bcClient||!bcCurrentUser){byId('bcPostStatus').textContent='Connecte-toi pour publier.';return;}
