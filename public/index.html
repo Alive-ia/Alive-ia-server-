@@ -236,6 +236,23 @@
 .bc-secondary{width:100%;border:0;border-radius:12px;background:linear-gradient(135deg,#e0f2fe,#ede9fe);color:#4f46a5;padding:13px 8px;font-weight:800;margin-top:7px;transition:transform .16s,filter .16s}
 #bopeCreatorsPage button:not(:disabled){cursor:pointer}#bopeCreatorsPage button:not(:disabled):active{transform:scale(.97);filter:brightness(.96)}#bopeCreatorsPage button:focus-visible{outline:3px solid rgba(59,130,246,.35);outline-offset:2px}#bopeCreatorsPage button:disabled{opacity:.65;cursor:wait}
 .bc-message{display:none;margin-top:14px;border-radius:12px;padding:12px;font-size:14px;line-height:1.45;background:#eef5ff;color:#214477}.bc-message.show{display:block}.bc-message.error{background:#fff0f0;color:#9d2424}.bc-account{display:none}.bc-account.show{display:block}.bc-profile{border-radius:14px;background:#f5f7fb;padding:14px;margin:14px 0}.bc-small{font-size:12px;color:#667085}
+
+.bc-profile-cover{height:116px;border-radius:15px;background:linear-gradient(120deg,#164eaa,#7048e8,#c13c9b);background-size:cover;background-position:center;position:relative;margin:-2px -2px 0}
+.bc-profile-avatar{width:82px;height:82px;border-radius:50%;border:4px solid #fff;background:#e8edfa;object-fit:cover;display:grid;place-items:center;font-size:34px;margin:-42px 0 10px 14px;position:relative}
+.bc-profile-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+.bc-profile-info{min-width:0;overflow-wrap:anywhere}
+.bc-profile-info strong{font-size:19px}.bc-profile-info .bc-handle{display:block;color:#667085;font-size:13px;margin-top:3px}
+.bc-edit-card{margin-top:14px;padding:16px;border:1px solid #e5eaf3;border-radius:16px;background:#fbfcff}
+.bc-edit-card h3{margin:0 0 10px;font-size:17px}
+.bc-upload-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bc-upload-label{display:block;padding:11px 8px;text-align:center;border-radius:11px;background:#edf2ff;color:#3154a4;font-size:12px;font-weight:800}
+.bc-upload-label input{display:block;width:100%;margin-top:7px;font-size:11px}
+.bc-field textarea{width:100%;box-sizing:border-box;min-height:82px;resize:vertical;border:1px solid #d7dce5;border-radius:12px;padding:13px;font:16px Arial,sans-serif;background:#fff;color:#172033}
+.bc-profile-actions{display:flex;gap:8px;flex-wrap:wrap}
+.bc-profile-actions .bc-primary{flex:1;min-width:150px}
+.bc-profile-note{font-size:12px;color:#667085;line-height:1.45;margin:10px 0 0}
+@media(max-width:360px){.bc-upload-row{grid-template-columns:1fr}.bc-profile-cover{height:100px}}
+
 @media(min-width:600px){.bc-shell{padding-top:30px}}
 </style></head><body>
 
@@ -1329,9 +1346,31 @@ function applyDRoute(route){
   <div class="bc-card bc-account" id="bcAccountCard">
    <h2>Ton espace BOPE</h2>
    <p class="bc-muted">Tu es connecté à BOPE CRÉATEURS.</p>
-   <div class="bc-profile"><strong id="bcAccountName">Utilisateur BOPE</strong><p id="bcAccountEmail" class="bc-muted" style="margin:5px 0 0"></p><div class="bc-small" id="bcAccountType">Compte personnel</div></div>
-   <button class="bc-primary" type="button" onclick="bcSignOut()">Se déconnecter</button>
-   <div id="bcAccountMessage" class="bc-message show">Le profil est connecté. Le fil d'actualité et les pages seront ajoutés ensuite.</div>
+   <div class="bc-profile" style="padding:12px">
+    <div class="bc-profile-cover" id="bcCoverPreview"></div>
+    <div class="bc-profile-head">
+     <div class="bc-profile-info"><img class="bc-profile-avatar" id="bcAvatarPreview" src="" alt="Photo de profil"><strong id="bcAccountName">Utilisateur BOPE</strong><span class="bc-handle" id="bcAccountUsername">@utilisateur</span></div>
+     <span class="bc-small" id="bcAccountType">Compte personnel</span>
+    </div>
+    <p id="bcAccountBio" class="bc-muted" style="margin:10px 0 0">Ajoute une petite présentation à ton profil.</p>
+    <p id="bcAccountEmail" class="bc-small" style="margin:8px 0 0"></p>
+   </div>
+   <div class="bc-edit-card">
+    <h3>✏️ Modifier mon profil</h3>
+    <label class="bc-field"><span>Nom affiché</span><input id="bcEditName" maxlength="70" placeholder="Ton nom complet"></label>
+    <label class="bc-field"><span>Nom d'utilisateur</span><input id="bcEditUsername" maxlength="24" placeholder="ex. alive_bope"></label>
+    <label class="bc-field"><span>À propos de moi</span><textarea id="bcEditBio" maxlength="250" placeholder="Présente-toi en quelques mots..."></textarea></label>
+    <div class="bc-upload-row">
+     <label class="bc-upload-label">📷 Photo de profil<input id="bcAvatarFile" type="file" accept="image/png,image/jpeg,image/webp"></label>
+     <label class="bc-upload-label">🌄 Photo de couverture<input id="bcCoverFile" type="file" accept="image/png,image/jpeg,image/webp"></label>
+    </div>
+    <p class="bc-profile-note">Images JPG, PNG ou WebP, 5 Mo maximum chacune. Enregistre pour appliquer les changements.</p>
+    <button class="bc-primary" type="button" id="bcSaveProfileButton" onclick="bcSaveProfile()">Enregistrer mon profil</button>
+   </div>
+   <div class="bc-profile-actions">
+    <button class="bc-secondary" type="button" onclick="bcSignOut()">Se déconnecter</button>
+   </div>
+   <div id="bcAccountMessage" class="bc-message show">Bienvenue dans ton espace BOPE CRÉATEURS.</div>
   </div>
  </div>
 </section>
@@ -1368,12 +1407,22 @@ function applyDRoute(route){
   byId('bcAccountName').textContent=meta.display_name||meta.full_name||'Utilisateur BOPE';
   byId('bcAccountEmail').textContent=user.email||'';
   if(bcClient){
-   let {data}=await bcClient.from('profiles').select('display_name,username,account_type').eq('id',user.id).maybeSingle();
+   let {data}=await bcClient.from('profiles').select('display_name,username,bio,avatar_url,cover_url,account_type').eq('id',user.id).maybeSingle();
    const profilePatch={};
    if(meta.display_name&&(!data||!data.display_name||data.display_name==='Utilisateur BOPE'))profilePatch.display_name=meta.display_name;
    if(meta.username&&(!data||!data.username))profilePatch.username=String(meta.username).toLowerCase();
-   if(Object.keys(profilePatch).length){const {error}=await bcClient.from('profiles').update(profilePatch).eq('id',user.id);if(!error){const result=await bcClient.from('profiles').select('display_name,username,account_type').eq('id',user.id).maybeSingle();data=result.data;}}
-   if(data){byId('bcAccountName').textContent=data.display_name||byId('bcAccountName').textContent;byId('bcAccountType').textContent=data.account_type==='professional'?'Compte professionnel':'Compte personnel';}
+   if(Object.keys(profilePatch).length){const {error}=await bcClient.from('profiles').update(profilePatch).eq('id',user.id);if(!error){const result=await bcClient.from('profiles').select('display_name,username,bio,avatar_url,cover_url,account_type').eq('id',user.id).maybeSingle();data=result.data;}}
+   if(data){
+    byId('bcAccountName').textContent=data.display_name||byId('bcAccountName').textContent;
+    byId('bcAccountType').textContent=data.account_type==='professional'?'Compte professionnel':'Compte personnel';
+    byId('bcAccountUsername').textContent='@'+(data.username||'utilisateur');
+    byId('bcAccountBio').textContent=data.bio||'Ajoute une petite présentation à ton profil.';
+    byId('bcEditName').value=data.display_name||meta.display_name||'';
+    byId('bcEditUsername').value=data.username||meta.username||'';
+    byId('bcEditBio').value=data.bio||'';
+    byId('bcAvatarPreview').src=data.avatar_url||'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" rx="50" fill="#e8edfa"/><text x="50" y="63" text-anchor="middle" font-size="48">👤</text></svg>');
+    byId('bcCoverPreview').style.backgroundImage=data.cover_url?'url("'+data.cover_url.replace(/"/g,'%22')+'")':'';
+   }
   }
  }
  window.openBopeCreators=async function(){byId('bopeCreatorsPage').classList.add('active');document.body.style.overflow='hidden';bcShowForm('signup');await bcInit();};
@@ -1447,6 +1496,36 @@ function applyDRoute(route){
   }catch(err){bcMessage(err.message||'Impossible de modifier le mot de passe. Ouvre à nouveau le lien reçu par e-mail.',true);}
   finally{bcBusy('bcResetPasswordButton',false,'Enregistrer le nouveau mot de passe');}
  });
+ window.bcSaveProfile=async function(){
+  if(!bcCurrentUser||!bcClient)return;
+  const display_name=byId('bcEditName').value.trim();
+  const username=byId('bcEditUsername').value.trim().toLowerCase();
+  const bio=byId('bcEditBio').value.trim();
+  if(!display_name){byId('bcAccountMessage').textContent='Entre ton nom affiché.';return;}
+  if(!/^[a-z0-9_]{3,24}$/.test(username)){byId('bcAccountMessage').textContent='Le nom d’utilisateur doit contenir 3 à 24 caractères : lettres, chiffres ou _.';return;}
+  const avatarFile=byId('bcAvatarFile').files[0],coverFile=byId('bcCoverFile').files[0];
+  for(const file of [avatarFile,coverFile]){if(file&&(file.size>5*1024*1024||!/^image\/(jpeg|png|webp)$/.test(file.type))){byId('bcAccountMessage').textContent='Chaque image doit être JPG, PNG ou WebP et faire 5 Mo maximum.';return;}}
+  bcBusy('bcSaveProfileButton',true,'Enregistrement...');
+  try{
+   const patch={display_name,username,bio};
+   async function uploadProfileImage(file,kind){
+    if(!file)return null;
+    const ext=file.type==='image/png'?'png':file.type==='image/webp'?'webp':'jpg';
+    const path=bcCurrentUser.id+'/'+kind+'-'+Date.now()+'.'+ext;
+    const {error}=await bcClient.storage.from('bope-profiles').upload(path,file,{upsert:true,contentType:file.type});
+    if(error)throw new Error('Stockage des photos : '+error.message+' (vérifie le bucket public « bope-profiles » dans Supabase).');
+    return bcClient.storage.from('bope-profiles').getPublicUrl(path).data.publicUrl;
+   }
+   if(avatarFile)patch.avatar_url=await uploadProfileImage(avatarFile,'avatar');
+   if(coverFile)patch.cover_url=await uploadProfileImage(coverFile,'cover');
+   const {error}=await bcClient.from('profiles').update(patch).eq('id',bcCurrentUser.id);
+   if(error)throw error;
+   await bcShowAccount(bcCurrentUser);
+   byId('bcAvatarFile').value='';byId('bcCoverFile').value='';
+   byId('bcAccountMessage').textContent='Ton profil a été mis à jour avec succès !';
+  }catch(err){byId('bcAccountMessage').textContent=err.message||'Impossible d’enregistrer le profil.';}
+  finally{bcBusy('bcSaveProfileButton',false,'Enregistrer mon profil');}
+ };
  window.bcSignOut=async function(){if(!bcClient)return;const {error}=await bcClient.auth.signOut();if(error){byId('bcAccountMessage').textContent=error.message;return;}bcCurrentUser=null;bcShowAuth();bcShowForm('login');};
 })();
 </script>
