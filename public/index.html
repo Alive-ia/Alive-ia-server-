@@ -297,6 +297,23 @@
 .bc-compose-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;margin-top:10px;padding-top:8px;border-top:1px solid #e4e6eb}
 .bc-compose-actions button{min-width:0;border:0;background:transparent;border-radius:7px;padding:7px 1px;color:#4b4f56;font-size:11px;font-weight:700}
 .bc-compose-actions button span{display:block;font-size:19px;margin-bottom:3px}
+
+.bc-post-composer{display:none;background:#fff;padding:13px 11px;border-bottom:7px solid #f0f2f5;color:#1c1e21}
+.bc-post-composer.show{display:block}.bc-post-composer h3{margin:0 0 10px;font-size:16px}
+.bc-post-composer textarea{width:100%;min-height:105px;resize:vertical;border:0;outline:0;font:15px/1.5 Arial,sans-serif;color:#1c1e21;padding:8px 2px}
+.bc-post-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-top:1px solid #e4e6eb;padding-top:10px}
+.bc-post-tools label,.bc-post-tools button{border:1px solid #dfe3e8;background:#f0f2f5;color:#3b5998;border-radius:18px;padding:8px 12px;font-size:12px;font-weight:700}
+.bc-post-tools input{max-width:100%;font-size:11px;color:#65676b}
+.bc-post-submit{margin-left:auto!important;background:#1877f2!important;color:#fff!important;border:0!important}
+.bc-post-cancel{background:#e4e6eb!important;color:#333!important}
+.bc-post-status{font-size:12px;color:#65676b;margin:8px 0 0;min-height:16px}
+.bc-post-card{background:#fff;color:#1c1e21;padding:12px 11px;margin:0 0 7px;border-bottom:7px solid #f0f2f5}
+.bc-post-author{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.bc-post-avatar{width:38px;height:38px;flex:0 0 38px;border-radius:50%;object-fit:cover;background:#e8efff;display:grid;place-items:center;color:#2455a6}
+.bc-post-author strong{display:block;font-size:13px}.bc-post-author small{display:block;color:#65676b;font-size:10px;margin-top:3px}
+.bc-post-text{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.45;margin:8px 0}
+.bc-post-media{display:block;width:calc(100% + 22px);max-width:none;margin:8px -11px 0;max-height:520px;object-fit:contain;background:#111}
+
 .bc-feed-heading{display:flex;align-items:center;justify-content:space-between;padding:13px 10px 9px;margin:0;background:#fff}
 .bc-feed-heading strong{font-size:15px;color:#1c1e21}
 .bc-feed-heading small{font-size:11px;color:#65676b}
@@ -1431,10 +1448,21 @@ function applyDRoute(route){
      </div>
     </div>
     <div class="bc-feed-heading"><strong>Fil d’actualité</strong><small>BOPE • Communauté</small></div>
-    <div class="bc-feed-placeholder">
+    <div class="bc-post-composer" id="bcPostComposer">
+     <h3 id="bcPostTitle">Créer une publication</h3>
+     <textarea id="bcPostText" maxlength="5000" placeholder="À quoi penses-tu ?"></textarea>
+     <div class="bc-post-tools">
+      <label>📎 Ajouter photo/vidéo<input id="bcPostFile" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"></label>
+      <button type="button" class="bc-post-cancel" onclick="bcCloseComposer()">Annuler</button>
+      <button type="button" class="bc-post-submit" id="bcPostSubmit" onclick="bcPublishPost()">Publier</button>
+     </div>
+     <p class="bc-post-status" id="bcPostStatus">Texte, photo ou vidéo • 50 Mo maximum pour un média.</p>
+    </div>
+    <div id="bcPostsList"></div>
+    <div class="bc-feed-placeholder" id="bcPostsEmpty">
      <div class="bc-empty-icon">🇨🇩</div>
      <strong>Bienvenue dans ton fil BOPE !</strong>
-     <p>Les publications de tes amis et des pages que tu suis apparaîtront ici. La création et l’affichage des publications seront activés à la prochaine étape.</p>
+     <p>Les publications de la communauté BOPE apparaîtront ici.</p>
     </div>
    </section>
    <section class="bc-tab-panel" id="bcTabPanel" aria-live="polite">
@@ -1503,6 +1531,7 @@ function applyDRoute(route){
   bcCurrentUser=user;byId('bcAuthCard').style.display='none';byId('bcAccountCard').classList.add('show');
   window.bcNavigate('home');
   const meta=user.user_metadata||{};
+  window.bcLoadPosts();
   byId('bcAccountName').textContent=meta.display_name||meta.full_name||'Utilisateur BOPE';
   byId('bcAccountEmail').textContent=user.email||'';
   if(bcClient){
@@ -1525,9 +1554,73 @@ function applyDRoute(route){
   }
  }
  window.bcOpenComposer=function(type){
-  const labels={photo:'La publication avec photo sera activée à la prochaine étape.',video:'La publication vidéo sera activée à la prochaine étape.',story:'La création des Stories BOPE sera activée à la prochaine étape.',live:'La diffusion en direct sera ajoutée dans une prochaine étape.'};
-  const message=labels[type]||'Le formulaire de publication sera activé à la prochaine étape.';
-  byId('bcAccountMessage').textContent=message;
+  if(type==='story'||type==='live'){
+   byId('bcAccountMessage').textContent=type==='story'?'La création des Stories sera ajoutée après les publications classiques.':'La diffusion en direct sera développée dans une prochaine étape.';
+   return;
+  }
+  byId('bcPostComposer').classList.add('show');
+  byId('bcPostTitle').textContent=type==='photo'?'Publier une photo':type==='video'?'Publier une vidéo':'Créer une publication';
+  byId('bcPostText').focus();
+  if(type==='photo')byId('bcPostFile').accept='image/jpeg,image/png,image/webp';
+  else if(type==='video')byId('bcPostFile').accept='video/mp4,video/webm';
+  else byId('bcPostFile').accept='image/jpeg,image/png,image/webp,video/mp4,video/webm';
+ };
+ window.bcCloseComposer=function(){
+  byId('bcPostComposer').classList.remove('show');
+  byId('bcPostText').value='';byId('bcPostFile').value='';
+  byId('bcPostStatus').textContent='Texte, photo ou vidéo • 50 Mo maximum pour un média.';
+ };
+ function bcSafeDate(value){const d=new Date(value);return Number.isNaN(d.getTime())?'À l’instant':d.toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'});}
+ function bcRenderPosts(posts){
+  const list=byId('bcPostsList');list.replaceChildren();
+  byId('bcPostsEmpty').style.display=posts.length?'none':'block';
+  posts.forEach(post=>{
+   const card=document.createElement('article');card.className='bc-post-card';
+   const head=document.createElement('div');head.className='bc-post-author';
+   if(post.profiles&&post.profiles.avatar_url){const avatar=document.createElement('img');avatar.className='bc-post-avatar';avatar.src=post.profiles.avatar_url;avatar.alt='';head.appendChild(avatar);}
+   else{const avatar=document.createElement('div');avatar.className='bc-post-avatar';avatar.textContent='👤';head.appendChild(avatar);}
+   const meta=document.createElement('div');const name=document.createElement('strong');name.textContent=(post.profiles&&post.profiles.display_name)||'Utilisateur BOPE';
+   const date=document.createElement('small');date.textContent=bcSafeDate(post.created_at)+(post.profiles&&post.profiles.username?' • @'+post.profiles.username:'');
+   meta.append(name,date);head.appendChild(meta);card.appendChild(head);
+   if(post.content){const body=document.createElement('p');body.className='bc-post-text';body.textContent=post.content;card.appendChild(body);}
+   if(post.media_url){let media;if(post.media_type==='video'){media=document.createElement('video');media.controls=true;media.playsInline=true;}else{media=document.createElement('img');media.alt='Photo publiée sur BOPE';}media.className='bc-post-media';media.src=post.media_url;card.appendChild(media);}
+   list.appendChild(card);
+  });
+ }
+ window.bcLoadPosts=async function(){
+  if(!bcClient)return;
+  const {data,error}=await bcClient.from('bope_posts').select('id,content,media_url,media_type,created_at,profiles(display_name,username,avatar_url)').order('created_at',{ascending:false}).limit(50);
+  if(error){byId('bcPostStatus').textContent='Impossible de charger les publications : '+error.message;return;}
+  bcRenderPosts(data||[]);
+ };
+ window.bcPublishPost=async function(){
+  if(!bcClient||!bcCurrentUser){byId('bcPostStatus').textContent='Connecte-toi pour publier.';return;}
+  const content=byId('bcPostText').value.trim(),file=byId('bcPostFile').files[0];
+  if(!content&&!file){byId('bcPostStatus').textContent='Écris un message ou ajoute une photo/vidéo.';return;}
+  if(file){
+   const allowed=['image/jpeg','image/png','image/webp','video/mp4','video/webm'];
+   if(!allowed.includes(file.type)||file.size>50*1024*1024){byId('bcPostStatus').textContent='Format non accepté ou fichier supérieur à 50 Mo.';return;}
+  }
+  const button=byId('bcPostSubmit');button.disabled=true;button.textContent='Publication...';
+  try{
+   let media_url=null,media_type='none';
+   if(file){
+    media_type=file.type.startsWith('video/')?'video':'image';
+    const ext=(file.name.split('.').pop()||'file').toLowerCase().replace(/[^a-z0-9]/g,'')||'file';
+    const path=bcCurrentUser.id+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+'.'+ext;
+    const {error:uploadError}=await bcClient.storage.from('bope-posts').upload(path,file,{upsert:false,contentType:file.type});
+    if(uploadError)throw new Error('Envoi du média impossible : '+uploadError.message);
+    media_url=bcClient.storage.from('bope-posts').getPublicUrl(path).data.publicUrl;
+   }
+   const {error}=await bcClient.from('bope_posts').insert({author_id:bcCurrentUser.id,content,media_url,media_type});
+   if(error)throw error;
+   byId('bcPostStatus').textContent='Publication envoyée avec succès !';
+   byId('bcPostText').value='';byId('bcPostFile').value='';
+   await bcLoadPosts();
+   byId('bcPostComposer').classList.remove('show');
+   byId('bcAccountMessage').textContent='Ta publication est maintenant visible dans le fil BOPE.';
+  }catch(error){byId('bcPostStatus').textContent=error.message||'Une erreur est survenue pendant la publication.';}
+  finally{button.disabled=false;button.textContent='Publier';}
  };
  window.bcNavigate=function(tab){
   const tabs={
