@@ -1517,7 +1517,14 @@ function applyDRoute(route){
     <div id="bcNotificationsList"><p style="color:#667085;font-size:13px">Chargement des notifications…</p></div>
    </section>
    <section id="bcFriendsPanel" class="bc-tab-panel" style="display:none;text-align:left">
-    <h3 style="margin:0 0 6px;color:#1e3260">👥 Trouver des amis</h3>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px">
+     <h3 style="margin:0;color:#1e3260">👥 Mes amis</h3>
+     <span id="bcFriendsCount" style="border-radius:16px;padding:5px 10px;background:#e7f0ff;color:#1877f2;font-size:12px;font-weight:700">0 ami</span>
+    </div>
+    <div id="bcFriendsList" aria-live="polite" style="margin-bottom:20px">
+     <div style="padding:14px;border-radius:12px;background:#f2f4f7;color:#667085;font-size:13px;text-align:center">Chargement de ta liste d’amis…</div>
+    </div>
+    <h3 style="margin:0 0 6px;color:#1e3260">🔎 Trouver des amis</h3>
     <p style="margin:0 0 12px;color:#667085;font-size:13px">Recherche une personne par son nom ou son nom d’utilisateur BOPE.</p>
     <form id="bcPeopleSearchForm" style="display:flex;gap:8px;margin-bottom:14px">
      <input id="bcPeopleSearchInput" type="search" maxlength="40" placeholder="Nom ou @utilisateur" autocomplete="off" style="flex:1;min-width:0;border:1px solid #d0d5dd;border-radius:20px;padding:11px 14px;font-size:14px">
@@ -1884,6 +1891,42 @@ function applyDRoute(route){
   if(!term){byId('bcPeopleResults').textContent='Entre un nom ou un nom d’utilisateur.';return;}
   await window.bcSearchPeople(term);
  });
+ window.bcLoadFriends=async function(){
+  const box=byId('bcFriendsList'),count=byId('bcFriendsCount');
+  if(!bcClient||!bcCurrentUser){box.textContent='Connecte-toi pour voir tes amis.';return;}
+  box.textContent='Chargement…';
+  const {data:links,error}=await bcClient.from('bope_friendships').select('id,user_one,user_two').or('user_one.eq.'+bcCurrentUser.id+',user_two.eq.'+bcCurrentUser.id);
+  if(error){box.textContent='Impossible de charger tes amis : '+error.message;return;}
+  const rows=links||[],friendIds=rows.map(f=>f.user_one===bcCurrentUser.id?f.user_two:f.user_one);
+  count.textContent=friendIds.length+' ami'+(friendIds.length>1?'s':'');
+  box.replaceChildren();
+  if(!friendIds.length){
+   const empty=document.createElement('div');empty.style.cssText='padding:16px 12px;border-radius:12px;background:#f2f4f7;color:#667085;text-align:center;font-size:13px;line-height:1.5';
+   empty.textContent='Tu n’as pas encore d’amis sur BOPE. Quand quelqu’un acceptera ta demande ou t’ajoutera, son profil apparaîtra ici. 🇨🇩';
+   box.appendChild(empty);return;
+  }
+  const {data:profiles,error:profileError}=await bcClient.from('profiles').select('id,display_name,username,avatar_url,bio').in('id',friendIds);
+  if(profileError){box.textContent='Impossible de charger les profils : '+profileError.message;return;}
+  (profiles||[]).forEach(person=>{
+   const card=document.createElement('div');card.style.cssText='display:flex;align-items:center;gap:10px;padding:11px 2px;border-bottom:1px solid #e4e7ec';
+   const avatar=person.avatar_url?document.createElement('img'):document.createElement('div');
+   avatar.style.cssText='width:48px;height:48px;flex:0 0 48px;border-radius:50%;object-fit:cover;background:#e7efff;display:grid;place-items:center';
+   if(person.avatar_url){avatar.src=person.avatar_url;avatar.alt='Photo de profil';}else avatar.textContent='👤';
+   const info=document.createElement('div');info.style.cssText='flex:1;min-width:0';
+   const name=document.createElement('strong');name.textContent=person.display_name||'Utilisateur BOPE';name.style.cssText='display:block;color:#1d2939;font-size:14px';
+   const handle=document.createElement('small');handle.textContent='@'+(person.username||'utilisateur');handle.style.color='#667085';
+   info.append(name,handle);
+   const view=document.createElement('button');view.type='button';view.textContent='Voir profil';view.style.cssText='border:0;border-radius:18px;padding:8px 11px;background:#e7f0ff;color:#1877f2;font-size:12px;font-weight:700;white-space:nowrap';
+   view.addEventListener('click',()=>{
+    let detail=card.querySelector('.bc-friend-detail');
+    if(detail){detail.remove();view.textContent='Voir profil';return;}
+    detail=document.createElement('div');detail.className='bc-friend-detail';detail.style.cssText='flex-basis:100%;margin:7px 0 0 58px;padding:10px;border-radius:10px;background:#f2f4f7;color:#475467;font-size:12px';
+    detail.textContent=person.bio||'Cet utilisateur n’a pas encore ajouté de présentation.';
+    card.style.flexWrap='wrap';card.appendChild(detail);view.textContent='Masquer';
+   });
+   card.append(avatar,info,view);box.appendChild(card);
+  });
+ };
  window.bcSearchPeople=async function(term){
   const box=byId('bcPeopleResults');
   if(!bcClient||!bcCurrentUser){box.textContent='Connecte-toi pour rechercher des amis.';return;}
@@ -1953,7 +1996,7 @@ function applyDRoute(route){
   byId('bcFriendsPanel').style.display=tab==='friends'?'block':'none';
   byId('bcTabPanel').style.display=(tab==='menu'||tab==='home'||tab==='notifications'||tab==='friends')?'none':'block';
   if(tab==='notifications')window.bcLoadNotifications();
-  if(tab==='friends')byId('bcPeopleSearchInput').focus();
+  if(tab==='friends'){window.bcLoadFriends();byId('bcPeopleSearchInput').focus();}
   byId('bcPanelIcon').textContent=item.icon;
   byId('bcPanelTitle').textContent=item.title;
   byId('bcPanelText').textContent=item.text;
