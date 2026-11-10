@@ -316,8 +316,12 @@
 .bc-post-text{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.45;margin:8px 0}
 .bc-reaction-area{border-top:1px solid #e4e6eb;margin-top:10px;padding-top:8px}
 .bc-reaction-summary{font-size:12px;color:#65676b;min-height:20px;margin-bottom:7px}
-.bc-reaction-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.bc-reaction-main{border:0;background:#f0f2f5;border-radius:18px;padding:7px 12px;color:#444;font-size:12px;font-weight:600}
+.bc-reaction-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;align-items:stretch;margin-top:5px}
+.bc-reaction-action{display:flex;align-items:center;justify-content:center;gap:5px;min-width:0;min-height:38px;padding:7px 2px;border:0;border-radius:7px;background:transparent;color:#65676b;font-size:11px;font-weight:600;white-space:nowrap}
+.bc-reaction-action:active{background:#f0f2f5}.bc-reaction-main{border:0;background:transparent;border-radius:7px;padding:7px 2px;color:#65676b;font-size:11px;font-weight:600;min-width:0;min-height:38px;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap}
+.bc-reaction-main.selected{color:#1877f2;background:#e7f3ff}
+.bc-download-action{color:#1877f2}.bc-comment-toggle{display:none}
+@media(max-width:360px){.bc-reaction-action,.bc-reaction-main{font-size:10px;gap:3px;padding-left:0;padding-right:0}}
 .bc-reaction-main.selected{color:#1877f2;background:#e7f3ff}
 .bc-reaction-tray{display:none;gap:5px;flex-wrap:wrap;padding:8px 5px;margin-bottom:7px;background:#f0f2f5;border-radius:20px}
 .bc-reaction-tray.show{display:flex}
@@ -1639,6 +1643,31 @@ function applyDRoute(route){
   const {error}=await bcClient.from('bope_post_comments').update({content:clean,updated_at:new Date().toISOString()}).eq('id',commentId).eq('author_id',bcCurrentUser.id);
   if(error){alert('Modification impossible : '+error.message);return;}await bcLoadPosts();
  };
+ window.bcDownloadPostMedia=async function(url,mediaType,postId){
+  if(!url)return;
+  const extMatch=url.split('?')[0].match(/\.([a-z0-9]{2,5})$/i);
+  const ext=extMatch?extMatch[1].toLowerCase():(mediaType==='video'?'mp4':'jpg');
+  const filename='bope-publication-'+String(postId||'media').slice(0,8)+'.'+ext;
+  try{
+   const response=await fetch(url);
+   if(!response.ok)throw new Error('Téléchargement indisponible');
+   const blob=await response.blob();
+   const objectUrl=URL.createObjectURL(blob);
+   const link=document.createElement('a');link.href=objectUrl;link.download=filename;document.body.appendChild(link);link.click();link.remove();
+   setTimeout(()=>URL.revokeObjectURL(objectUrl),1500);
+  }catch(error){
+   const link=document.createElement('a');link.href=url;link.target='_blank';link.rel='noopener';link.download=filename;document.body.appendChild(link);link.click();link.remove();
+  }
+ };
+ window.bcSharePost=async function(post){
+  const shareUrl=post.media_url||window.location.href;
+  const text=(post.content||'Découvre cette publication sur BOPE CRÉATEURS')+' — BOPE CRÉATEURS';
+  try{
+   if(navigator.share){await navigator.share({title:'BOPE CRÉATEURS',text,url:shareUrl});}
+   else if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(shareUrl);alert('Lien de la publication copié.');}
+   else{window.prompt('Copie le lien de cette publication :',shareUrl);}
+  }catch(error){if(error&&error.name!=='AbortError')alert('Partage impossible pour le moment.');}
+ };
  window.bcDeleteComment=async function(commentId){
   if(!confirm('Supprimer ce commentaire ?'))return;
   const {error}=await bcClient.from('bope_post_comments').delete().eq('id',commentId).eq('author_id',bcCurrentUser.id);
@@ -1668,12 +1697,18 @@ function applyDRoute(route){
    const tray=document.createElement('div');tray.className='bc-reaction-tray';
    bcReactionEmojis.forEach(emoji=>{const choice=document.createElement('button');choice.type='button';choice.className='bc-reaction-choice';choice.textContent=emoji;choice.title='Réagir avec '+emoji;choice.setAttribute('aria-label','Réagir avec '+emoji);choice.addEventListener('click',()=>window.bcReactToPost(post.id,emoji));tray.appendChild(choice);});
    area.appendChild(tray);
-   const actions=document.createElement('div');actions.className='bc-reaction-actions';
-   const main=document.createElement('button');main.type='button';main.className='bc-reaction-main'+(mine?' selected':'');main.textContent=mine?mine.reaction_type+' Réaction':'👍 Réagir';main.addEventListener('click',()=>tray.classList.toggle('show'));
-   actions.appendChild(main);area.appendChild(actions);card.appendChild(area);
    const postComments=(comments||[]).filter(c=>c.post_id===post.id);
    const commentArea=document.createElement('div');commentArea.className='bc-comment-area';
-   const toggle=document.createElement('button');toggle.type='button';toggle.className='bc-comment-toggle';toggle.textContent='💬 Commentaires ('+postComments.length+')';commentArea.appendChild(toggle);
+   const actions=document.createElement('div');actions.className='bc-reaction-actions';
+   const main=document.createElement('button');main.type='button';main.className='bc-reaction-main'+(mine?' selected':'');main.textContent=mine?mine.reaction_type+' Réagir':'👍 J’aime';main.addEventListener('click',()=>tray.classList.toggle('show'));
+   const toggle=document.createElement('button');toggle.type='button';toggle.className='bc-reaction-action';toggle.textContent='💬 Commenter ('+postComments.length+')';
+   toggle.addEventListener('click',()=>{form.classList.toggle('show');if(form.classList.contains('show'))input.focus();});
+   const download=document.createElement('button');download.type='button';download.className='bc-reaction-action bc-download-action';download.textContent='⬇️ Télécharger';download.disabled=!post.media_url;
+   download.style.opacity=post.media_url?'1':'.4';
+   download.addEventListener('click',()=>window.bcDownloadPostMedia(post.media_url,post.media_type,post.id));
+   const share=document.createElement('button');share.type='button';share.className='bc-reaction-action';share.textContent='↗️ Partager';
+   share.addEventListener('click',()=>window.bcSharePost(post));
+   actions.append(main,toggle,download,share);area.appendChild(actions);card.appendChild(area);
    const commentsList=document.createElement('div');commentsList.className='bc-comments-list';
    postComments.forEach(comment=>{
     const profile=(commentProfiles||{})[comment.author_id]||{};
@@ -1698,7 +1733,6 @@ function applyDRoute(route){
    const send=document.createElement('button');send.className='bc-comment-send';send.type='submit';send.textContent='Envoyer';
    form.append(input,send);form.addEventListener('submit',e=>{e.preventDefault();window.bcSubmitComment(post.id,input,send);});
    commentArea.appendChild(form);
-   toggle.addEventListener('click',()=>{form.classList.toggle('show');if(form.classList.contains('show'))input.focus();});
    card.appendChild(commentArea);
    list.appendChild(card);
   });
