@@ -307,6 +307,8 @@
 .bc-post-submit{margin-left:auto!important;background:#1877f2!important;color:#fff!important;border:0!important}
 .bc-post-cancel{background:#e4e6eb!important;color:#333!important}
 .bc-post-status{font-size:12px;color:#65676b;margin:8px 0 0;min-height:16px}
+.bc-media-preview{position:relative;display:flex;align-items:center;gap:10px;margin:8px 0 12px;padding:8px;border:1px solid #e4e6eb;border-radius:10px;background:#f7f8fa;min-width:0}.bc-media-preview img,.bc-media-preview video{display:block;width:76px;height:76px;flex:0 0 76px;object-fit:cover;border-radius:7px;background:#111}.bc-media-preview-info{display:flex;flex-direction:column;gap:4px;min-width:0;color:#1c1e21}.bc-media-preview-info strong{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bc-media-preview-info small{font-size:11px;color:#65676b}.bc-media-preview button{margin-left:auto;flex:0 0 30px;width:30px;height:30px;border:0;border-radius:50%;background:#e4e6eb;color:#333;font-size:15px}
+.bc-post-card{animation:bcPostAppear .38s ease-out both}@keyframes bcPostAppear{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 .bc-post-card{background:#fff;color:#1c1e21;padding:12px 11px;margin:0 0 7px;border-bottom:7px solid #f0f2f5}
 .bc-post-author{display:flex;align-items:center;gap:9px;margin-bottom:9px}
 .bc-post-avatar{width:38px;height:38px;flex:0 0 38px;border-radius:50%;object-fit:cover;background:#e8efff;display:grid;place-items:center;color:#2455a6}
@@ -1451,6 +1453,7 @@ function applyDRoute(route){
     <div class="bc-post-composer" id="bcPostComposer">
      <h3 id="bcPostTitle">Créer une publication</h3>
      <textarea id="bcPostText" maxlength="5000" placeholder="À quoi penses-tu ?"></textarea>
+     <div class="bc-media-preview" id="bcMediaPreview" aria-live="polite" style="display:none"><img id="bcMediaPreviewImage" alt="Aperçu de la photo sélectionnée"><video id="bcMediaPreviewVideo" controls playsinline style="display:none"></video><div class="bc-media-preview-info"><strong id="bcMediaPreviewName"></strong><small id="bcMediaPreviewSize"></small></div><button type="button" id="bcRemoveMedia" aria-label="Retirer le média">✕</button></div>
      <div class="bc-post-tools">
       <label>📎 Ajouter photo/vidéo<input id="bcPostFile" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"></label>
       <button type="button" class="bc-post-cancel" onclick="bcCloseComposer()">Annuler</button>
@@ -1567,9 +1570,24 @@ function applyDRoute(route){
  };
  window.bcCloseComposer=function(){
   byId('bcPostComposer').classList.remove('show');
-  byId('bcPostText').value='';byId('bcPostFile').value='';
+  byId('bcPostText').value='';byId('bcPostFile').value='';bcClearMediaPreview();
   byId('bcPostStatus').textContent='Texte, photo ou vidéo • 50 Mo maximum pour un média.';
  };
+ function bcClearMediaPreview(){
+  const box=byId('bcMediaPreview'),img=byId('bcMediaPreviewImage'),video=byId('bcMediaPreviewVideo');
+  if(img.dataset.objectUrl)URL.revokeObjectURL(img.dataset.objectUrl);
+  if(video.dataset.objectUrl)URL.revokeObjectURL(video.dataset.objectUrl);
+  img.removeAttribute('src');video.pause();video.removeAttribute('src');video.load();
+  delete img.dataset.objectUrl;delete video.dataset.objectUrl;img.style.display='none';video.style.display='none';box.style.display='none';
+  byId('bcMediaPreviewName').textContent='';byId('bcMediaPreviewSize').textContent='';
+ }
+ byId('bcPostFile').addEventListener('change',function(){
+  bcClearMediaPreview();const file=this.files&&this.files[0];if(!file)return;
+  const box=byId('bcMediaPreview'),isVideo=file.type.startsWith('video/'),url=URL.createObjectURL(file);
+  const media=isVideo?byId('bcMediaPreviewVideo'):byId('bcMediaPreviewImage');media.src=url;media.dataset.objectUrl=url;media.style.display='block';
+  byId('bcMediaPreviewName').textContent=file.name;byId('bcMediaPreviewSize').textContent=(file.size/1024/1024).toFixed(2)+' Mo';box.style.display='flex';
+ });
+ byId('bcRemoveMedia').addEventListener('click',function(){byId('bcPostFile').value='';bcClearMediaPreview();});
  function bcSafeDate(value){const d=new Date(value);return Number.isNaN(d.getTime())?'À l’instant':d.toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'});}
  function bcRenderPosts(posts){
   const list=byId('bcPostsList');list.replaceChildren();
@@ -1605,6 +1623,7 @@ function applyDRoute(route){
   try{
    let media_url=null,media_type='none';
    if(file){
+    byId('bcPostStatus').textContent='⏳ Envoi de ton média en cours… garde BOPE ouvert quelques instants.';
     media_type=file.type.startsWith('video/')?'video':'image';
     const ext=(file.name.split('.').pop()||'file').toLowerCase().replace(/[^a-z0-9]/g,'')||'file';
     const path=bcCurrentUser.id+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+'.'+ext;
@@ -1614,8 +1633,8 @@ function applyDRoute(route){
    }
    const {error}=await bcClient.from('bope_posts').insert({author_id:bcCurrentUser.id,content,media_url,media_type});
    if(error)throw error;
-   byId('bcPostStatus').textContent='Publication envoyée avec succès !';
-   byId('bcPostText').value='';byId('bcPostFile').value='';
+   byId('bcPostStatus').textContent='✓ Publication envoyée ! Actualisation du fil…';
+   byId('bcPostText').value='';byId('bcPostFile').value='';bcClearMediaPreview();
    await bcLoadPosts();
    byId('bcPostComposer').classList.remove('show');
    byId('bcAccountMessage').textContent='Ta publication est maintenant visible dans le fil BOPE.';
