@@ -269,6 +269,12 @@
 .bc-tab-panel h3{margin:0 0 8px;color:#1e3260;font-size:18px}.bc-tab-panel p{margin:0 auto;max-width:360px;color:#667085;font-size:13px;line-height:1.55}
 @media(max-width:360px){.bc-main-nav{margin-left:-10px;margin-right:-10px}.bc-main-nav button span{font-size:22px}}
 
+.bc-notification-item{display:flex;gap:10px;align-items:flex-start;padding:11px 9px;border-bottom:1px solid #edf0f4;border-radius:9px;cursor:pointer}
+.bc-notification-item.unread{background:#edf5ff}
+.bc-notification-avatar{width:36px;height:36px;flex:0 0 36px;border-radius:50%;display:grid;place-items:center;background:#e5edff;font-size:18px}
+.bc-notification-copy{min-width:0;flex:1;color:#344054;font-size:13px;line-height:1.4}
+.bc-notification-copy small{display:block;color:#8992a2;font-size:11px;margin-top:4px}
+.bc-notification-empty{padding:22px 8px;text-align:center;color:#667085;font-size:13px}
 /* BOPE CRÉATEURS : accueil léger inspiré de Facebook Lite */
 .bc-shell{max-width:520px;padding:10px 8px 28px}
 .bc-top{margin:0 4px 12px}
@@ -1451,7 +1457,7 @@ function applyDRoute(route){
     <button type="button" class="active" data-bc-tab="home" onclick="bcNavigate('home')" aria-label="Accueil" title="Accueil" aria-current="page"><span>⌂</span><small>Accueil</small></button>
     <button type="button" data-bc-tab="friends" onclick="bcNavigate('friends')" aria-label="Amis" title="Amis"><span>♧</span><small>Amis</small></button>
     <button type="button" data-bc-tab="videos" onclick="bcNavigate('videos')" aria-label="Vidéos" title="Vidéos"><span>▣</span><small>Vidéos</small></button>
-    <button type="button" data-bc-tab="notifications" onclick="bcNavigate('notifications')" aria-label="Notifications" title="Notifications"><span>♧</span><small>Notifications</small></button>
+    <button type="button" data-bc-tab="notifications" onclick="bcNavigate('notifications')" aria-label="Notifications" title="Notifications"><span style="position:relative">🔔<b id="bcNotificationBadge" style="display:none;position:absolute;top:-5px;right:-13px;min-width:16px;height:16px;padding:0 4px;border-radius:10px;background:#e41e3f;color:white;font:10px/16px Arial;text-align:center"></b></span><small>Notifications</small></button>
     <button type="button" data-bc-tab="messages" onclick="bcNavigate('messages')" aria-label="Messages" title="Messages"><span>▱</span><small>Messages</small></button>
     <button type="button" data-bc-tab="menu" onclick="bcNavigate('menu')" aria-label="Menu" title="Menu"><span>☰</span><small>Menu</small></button>
    </nav>
@@ -1500,6 +1506,13 @@ function applyDRoute(route){
     <div class="bc-panel-icon" id="bcPanelIcon">🇨🇩</div>
     <h3 id="bcPanelTitle">Bienvenue sur BOPE CRÉATEURS</h3>
     <p id="bcPanelText">Ton fil d’actualité BOPE prendra place ici. Nous le construirons avec les publications, photos, vidéos et recommandations intelligentes.</p>
+   </section>
+   <section id="bcNotificationsPanel" class="bc-tab-panel" style="display:none;text-align:left">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px">
+     <h3 style="margin:0;color:#1e3260">🔔 Tes notifications</h3>
+     <button type="button" onclick="bcMarkAllNotificationsRead()" style="border:0;border-radius:16px;padding:7px 10px;background:#e7f0ff;color:#1877f2;font-size:11px;font-weight:700">Tout marquer comme lu</button>
+    </div>
+    <div id="bcNotificationsList"><p style="color:#667085;font-size:13px">Chargement des notifications…</p></div>
    </section>
    <div id="bcProfileSection" style="display:none">
    <div class="bc-profile" style="padding:12px">
@@ -1563,6 +1576,9 @@ function applyDRoute(route){
   window.bcNavigate('home');
   const meta=user.user_metadata||{};
   window.bcLoadPosts();
+  window.bcLoadNotifications();
+  if(bcNotificationTimer)clearInterval(bcNotificationTimer);
+  bcNotificationTimer=setInterval(()=>window.bcLoadNotifications(),30000);
   byId('bcAccountName').textContent=meta.display_name||meta.full_name||'Utilisateur BOPE';
   byId('bcAccountEmail').textContent=user.email||'';
   if(bcClient){
@@ -1802,6 +1818,35 @@ function applyDRoute(route){
   }catch(error){byId('bcPostStatus').textContent=error.message||'Une erreur est survenue pendant la publication.';}
   finally{button.disabled=false;button.textContent='Publier';}
  };
+ let bcNotificationTimer=null;
+ window.bcLoadNotifications=async function(){
+  if(!bcClient||!bcCurrentUser)return;
+  const {data,error}=await bcClient.from('bope_notifications').select('id,actor_id,post_id,notification_type,message,is_read,created_at').eq('recipient_id',bcCurrentUser.id).order('created_at',{ascending:false}).limit(40);
+  if(error){const box=byId('bcNotificationsList');if(box)box.textContent='Impossible de charger les notifications : '+error.message;return;}
+  const items=data||[],unread=items.filter(n=>!n.is_read).length,badge=byId('bcNotificationBadge');
+  if(badge){badge.textContent=unread>99?'99+':String(unread);badge.style.display=unread?'block':'none';}
+  const box=byId('bcNotificationsList');if(!box)return;box.replaceChildren();
+  if(!items.length){const empty=document.createElement('div');empty.className='bc-notification-empty';empty.textContent='Tu n’as pas encore de notification. Les réactions et commentaires reçus apparaîtront ici.';box.appendChild(empty);return;}
+  const actorIds=[...new Set(items.map(n=>n.actor_id))];
+  const {data:profiles}=await bcClient.from('profiles').select('id,display_name,avatar_url').in('id',actorIds);
+  const profileMap={};(profiles||[]).forEach(p=>profileMap[p.id]=p);
+  items.forEach(n=>{
+   const profile=profileMap[n.actor_id]||{},row=document.createElement('div');row.className='bc-notification-item'+(n.is_read?'':' unread');
+   const avatar=profile.avatar_url?document.createElement('img'):document.createElement('div');avatar.className='bc-notification-avatar';
+   if(profile.avatar_url){avatar.src=profile.avatar_url;avatar.alt='';avatar.style.objectFit='cover';}else avatar.textContent=n.notification_type==='reaction'?'❤️':'💬';
+   const copy=document.createElement('div');copy.className='bc-notification-copy';
+   const strong=document.createElement('strong');strong.textContent=profile.display_name||'Un utilisateur BOPE';
+   const msg=document.createElement('span');msg.textContent=' '+(n.message||(n.notification_type==='reaction'?'a réagi à ta publication.':'a commenté ta publication.'));
+   const date=document.createElement('small');date.textContent=bcSafeDate(n.created_at);copy.append(strong,msg,date);row.append(avatar,copy);
+   row.addEventListener('click',async()=>{if(!n.is_read)await bcClient.from('bope_notifications').update({is_read:true}).eq('id',n.id).eq('recipient_id',bcCurrentUser.id);if(n.post_id)window.location.href='/publication/'+n.post_id;else window.bcLoadNotifications();});
+   box.appendChild(row);
+  });
+ };
+ window.bcMarkAllNotificationsRead=async function(){
+  if(!bcClient||!bcCurrentUser)return;
+  const {error}=await bcClient.from('bope_notifications').update({is_read:true}).eq('recipient_id',bcCurrentUser.id).eq('is_read',false);
+  if(error){byId('bcNotificationsList').textContent='Impossible de mettre à jour : '+error.message;return;}await window.bcLoadNotifications();
+ };
  window.bcNavigate=function(tab){
   const tabs={
    home:{icon:'🏠',title:'Accueil BOPE',text:'Ton fil d’actualité prendra place ici : publications, photos, vidéos et recommandations intelligentes.'},
@@ -1819,7 +1864,9 @@ function applyDRoute(route){
   });
   byId('bcProfileSection').style.display=tab==='menu'?'block':'none';
   byId('bcFeedSection').classList.toggle('show',tab==='home');
-  byId('bcTabPanel').style.display=(tab==='menu'||tab==='home')?'none':'block';
+  byId('bcNotificationsPanel').style.display=tab==='notifications'?'block':'none';
+  byId('bcTabPanel').style.display=(tab==='menu'||tab==='home'||tab==='notifications')?'none':'block';
+  if(tab==='notifications')window.bcLoadNotifications();
   byId('bcPanelIcon').textContent=item.icon;
   byId('bcPanelTitle').textContent=item.title;
   byId('bcPanelText').textContent=item.text;
