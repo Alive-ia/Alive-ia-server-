@@ -1514,6 +1514,15 @@ function applyDRoute(route){
     </div>
     <div id="bcNotificationsList"><p style="color:#667085;font-size:13px">Chargement des notifications…</p></div>
    </section>
+   <section id="bcFriendsPanel" class="bc-tab-panel" style="display:none;text-align:left">
+    <h3 style="margin:0 0 6px;color:#1e3260">👥 Trouver des amis</h3>
+    <p style="margin:0 0 12px;color:#667085;font-size:13px">Recherche une personne par son nom ou son nom d’utilisateur BOPE.</p>
+    <form id="bcPeopleSearchForm" style="display:flex;gap:8px;margin-bottom:14px">
+     <input id="bcPeopleSearchInput" type="search" maxlength="40" placeholder="Nom ou @utilisateur" autocomplete="off" style="flex:1;min-width:0;border:1px solid #d0d5dd;border-radius:20px;padding:11px 14px;font-size:14px">
+     <button type="submit" style="border:0;border-radius:20px;padding:0 17px;background:#1877f2;color:#fff;font-weight:700">Rechercher</button>
+    </form>
+    <div id="bcPeopleResults" aria-live="polite"><p style="color:#667085;font-size:13px">Entre un nom pour découvrir des utilisateurs BOPE.</p></div>
+   </section>
    <div id="bcProfileSection" style="display:none">
    <div class="bc-profile" style="padding:12px">
     <div class="bc-profile-cover" id="bcCoverPreview"></div>
@@ -1867,6 +1876,55 @@ function applyDRoute(route){
    box.appendChild(row);
   });
  };
+ byId('bcPeopleSearchForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const term=byId('bcPeopleSearchInput').value.trim().replace(/^@/,'');
+  if(!term){byId('bcPeopleResults').textContent='Entre un nom ou un nom d’utilisateur.';return;}
+  await window.bcSearchPeople(term);
+ });
+ window.bcSearchPeople=async function(term){
+  const box=byId('bcPeopleResults');
+  if(!bcClient||!bcCurrentUser){box.textContent='Connecte-toi pour rechercher des amis.';return;}
+  box.textContent='Recherche en cours…';
+  const safe=String(term||'').replace(/[%_]/g,' ').replace(/[(),]/g,' ').trim();
+  if(!safe){box.textContent='Entre un nom valide.';return;}
+  const {data:people,error}=await bcClient.from('profiles').select('id,display_name,username,avatar_url,bio').or('display_name.ilike.%'+safe+'%,username.ilike.%'+safe+'%').neq('id',bcCurrentUser.id).limit(20);
+  if(error){box.textContent='Recherche impossible : '+error.message;return;}
+  if(!people||!people.length){box.textContent='Aucun utilisateur trouvé pour cette recherche.';return;}
+  const ids=people.map(p=>p.id);
+  const [{data:requests,error:requestError},{data:friendships,error:friendError}]=await Promise.all([
+   bcClient.from('bope_friend_requests').select('id,sender_id,recipient_id,status').or('sender_id.eq.'+bcCurrentUser.id+',recipient_id.eq.'+bcCurrentUser.id).in('status',['pending','accepted']),
+   bcClient.from('bope_friendships').select('user_one,user_two').or('user_one.eq.'+bcCurrentUser.id+',user_two.eq.'+bcCurrentUser.id)
+  ]);
+  if(requestError){box.textContent='Impossible de vérifier les demandes : '+requestError.message;return;}
+  if(friendError){box.textContent='Impossible de vérifier les amitiés : '+friendError.message;return;}
+  box.replaceChildren();
+  people.forEach(person=>{
+   const card=document.createElement('div');card.style.cssText='display:flex;align-items:center;gap:10px;padding:11px 2px;border-bottom:1px solid #e4e7ec';
+   const avatar=person.avatar_url?document.createElement('img'):document.createElement('div');
+   avatar.style.cssText='width:46px;height:46px;flex:0 0 46px;border-radius:50%;object-fit:cover;background:#e7efff;display:grid;place-items:center';
+   if(person.avatar_url){avatar.src=person.avatar_url;avatar.alt='Photo de profil';}else avatar.textContent='👤';
+   const info=document.createElement('div');info.style.cssText='flex:1;min-width:0';
+   const name=document.createElement('strong');name.textContent=person.display_name||'Utilisateur BOPE';name.style.cssText='display:block;color:#1d2939;font-size:14px';
+   const handle=document.createElement('small');handle.textContent='@'+(person.username||'utilisateur');handle.style.color='#667085';
+   info.append(name,handle);
+   if(person.bio){const bio=document.createElement('small');bio.textContent=person.bio;bio.style.cssText='display:block;color:#667085;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:190px';info.appendChild(bio);}
+   const action=document.createElement('button');action.type='button';action.style.cssText='border:0;border-radius:18px;padding:8px 11px;font-size:12px;font-weight:700;white-space:nowrap';
+   const relation=(friendships||[]).some(f=>f.user_one===person.id||f.user_two===person.id);
+   const sent=(requests||[]).find(r=>r.sender_id===bcCurrentUser.id&&r.recipient_id===person.id&&r.status==='pending');
+   const received=(requests||[]).find(r=>r.sender_id===person.id&&r.recipient_id===bcCurrentUser.id&&r.status==='pending');
+   if(relation){action.textContent='✓ Amis';action.disabled=true;action.style.background='#e8f5e9';action.style.color='#26733b';}
+   else if(sent){action.textContent='Demande envoyée';action.disabled=true;action.style.background='#eef2f6';action.style.color='#475467';}
+   else if(received){action.textContent='Voir invitation';action.style.background='#e7f0ff';action.style.color='#1877f2';action.addEventListener('click',()=>window.bcNavigate('notifications'));}
+   else{action.textContent='Ajouter';action.style.background='#1877f2';action.style.color='#fff';action.addEventListener('click',async()=>{
+    action.disabled=true;action.textContent='Envoi…';
+    const {error:sendError}=await bcClient.from('bope_friend_requests').insert({sender_id:bcCurrentUser.id,recipient_id:person.id,status:'pending'});
+    if(sendError){action.disabled=false;action.textContent='Ajouter';byId('bcAccountMessage').textContent=sendError.code==='23505'?'Une demande existe déjà.':'Envoi impossible : '+sendError.message;return;}
+    action.textContent='Demande envoyée';action.style.background='#eef2f6';action.style.color='#475467';
+   });}
+   card.append(avatar,info,action);box.appendChild(card);
+  });
+ };
  window.bcMarkAllNotificationsRead=async function(){
   if(!bcClient||!bcCurrentUser)return;
   const {error}=await bcClient.from('bope_notifications').update({is_read:true}).eq('recipient_id',bcCurrentUser.id).eq('is_read',false);
@@ -1875,7 +1933,7 @@ function applyDRoute(route){
  window.bcNavigate=function(tab){
   const tabs={
    home:{icon:'🏠',title:'Accueil BOPE',text:'Ton fil d’actualité prendra place ici : publications, photos, vidéos et recommandations intelligentes.'},
-   friends:{icon:'👥',title:'Amis et communautés',text:'Tu pourras retrouver tes amis, découvrir des personnes et rejoindre des communautés. Cette partie sera développée ensuite.'},
+   friends:{icon:'👥',title:'Amis et communautés',text:'Recherche des utilisateurs BOPE et envoie-leur une demande d’amitié.'},
    videos:{icon:'🎬',title:'BOPE Vidéos',text:'Un espace pour découvrir les vidéos courtes et longues des créateurs BOPE. Le lecteur et les recommandations seront ajoutés ensuite.'},
    notifications:{icon:'🔔',title:'Notifications',text:'Tu retrouveras ici les nouvelles réactions, commentaires, invitations et activités de ton compte.'},
    messages:{icon:'💬',title:'Messagerie BOPE',text:'Les conversations privées et de groupe seront réunies ici. Nous construirons la messagerie après la navigation.'},
@@ -1890,8 +1948,10 @@ function applyDRoute(route){
   byId('bcProfileSection').style.display=tab==='menu'?'block':'none';
   byId('bcFeedSection').classList.toggle('show',tab==='home');
   byId('bcNotificationsPanel').style.display=tab==='notifications'?'block':'none';
-  byId('bcTabPanel').style.display=(tab==='menu'||tab==='home'||tab==='notifications')?'none':'block';
+  byId('bcFriendsPanel').style.display=tab==='friends'?'block':'none';
+  byId('bcTabPanel').style.display=(tab==='menu'||tab==='home'||tab==='notifications'||tab==='friends')?'none':'block';
   if(tab==='notifications')window.bcLoadNotifications();
+  if(tab==='friends')byId('bcPeopleSearchInput').focus();
   byId('bcPanelIcon').textContent=item.icon;
   byId('bcPanelTitle').textContent=item.title;
   byId('bcPanelText').textContent=item.text;
