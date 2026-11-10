@@ -322,12 +322,14 @@
 .bc-post-text{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.45;margin:8px 0}
 .bc-reaction-area{border-top:1px solid #e4e6eb;margin-top:10px;padding-top:8px}
 .bc-reaction-summary{font-size:12px;color:#65676b;min-height:20px;margin-bottom:7px}
-.bc-reaction-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;align-items:stretch;margin-top:5px}
-.bc-reaction-action{display:flex;align-items:center;justify-content:center;gap:5px;min-width:0;min-height:38px;padding:7px 2px;border:0;border-radius:7px;background:transparent;color:#65676b;font-size:11px;font-weight:600;white-space:nowrap}
-.bc-reaction-action:active{background:#f0f2f5}.bc-reaction-main{border:0;background:transparent;border-radius:7px;padding:7px 2px;color:#65676b;font-size:11px;font-weight:600;min-width:0;min-height:38px;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap}
+/* Barre d’actions BOPE : quatre boutons arrondis, inspirés de Facebook Lite */
+.bc-reaction-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;align-items:stretch;margin-top:7px}
+.bc-reaction-action,.bc-reaction-main{display:flex;align-items:center;justify-content:center;gap:4px;min-width:0;min-height:42px;padding:7px 3px;border:0;border-radius:28px;background:#e4e6eb;color:#4b4f56;font-size:10.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bc-reaction-action:active,.bc-reaction-main:active{background:#d8dadf}
+.bc-reaction-main{border:0;background:#e4e6eb}
 .bc-reaction-main.selected{color:#1877f2;background:#e7f3ff}
 .bc-download-action{color:#1877f2}.bc-comment-toggle{display:none}
-@media(max-width:360px){.bc-reaction-action,.bc-reaction-main{font-size:10px;gap:3px;padding-left:0;padding-right:0}}
+@media(max-width:380px){.bc-reaction-actions{gap:4px}.bc-reaction-action,.bc-reaction-main{font-size:9px;gap:2px;padding-left:1px;padding-right:1px;min-height:40px}}
 .bc-reaction-main.selected{color:#1877f2;background:#e7f3ff}
 .bc-reaction-tray{display:none;gap:5px;flex-wrap:wrap;padding:8px 5px;margin-bottom:7px;background:#f0f2f5;border-radius:20px}
 .bc-reaction-tray.show{display:flex}
