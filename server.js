@@ -211,7 +211,21 @@ app.get('/', (req, res) => {
   res.type('html').send(page);
 });
 
-// Sert les ressources statiques du dossier public après la route d'accueil.
+// Lien BOPE CRÉATEURS : ouvre la page BOPE sur une publication précise.
+app.get('/publication/:id', (req, res) => {
+  const postId = String(req.params.id || '');
+  if (!/^[0-9a-f-]{36}$/i.test(postId)) {
+    return res.status(404).type('text').send('Publication BOPE introuvable.');
+  }
+  const indexPath = path.join(__dirname, 'public', 'index.html');
+  const page = fs.readFileSync(indexPath, 'utf8')
+    .replace('__VISIT_TOTAL__', String(visitStats.total))
+    .replace('__VISIT_TODAY__', String(visitStats.today));
+  res.set('Cache-Control', 'no-store');
+  res.type('html').send(page);
+});
+
+// Sert les ressources statiques du dossier public après les routes BOPE.
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.post('/chat', async (req, res) => {
