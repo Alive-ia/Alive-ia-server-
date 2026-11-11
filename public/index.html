@@ -316,6 +316,19 @@
 .bc-post-status{font-size:12px;color:#65676b;margin:8px 0 0;min-height:16px}
 .bc-media-preview{position:relative;display:flex;align-items:center;gap:10px;margin:8px 0 12px;padding:8px;border:1px solid #e4e6eb;border-radius:10px;background:#f7f8fa;min-width:0}.bc-media-preview img,.bc-media-preview video{display:block;width:76px;height:76px;flex:0 0 76px;object-fit:cover;border-radius:7px;background:#111}.bc-media-preview-info{display:flex;flex-direction:column;gap:4px;min-width:0;color:#1c1e21}.bc-media-preview-info strong{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bc-media-preview-info small{font-size:11px;color:#65676b}.bc-media-preview button{margin-left:auto;flex:0 0 30px;width:30px;height:30px;border:0;border-radius:50%;background:#e4e6eb;color:#333;font-size:15px}
 .bc-post-card{animation:bcPostAppear .38s ease-out both}@keyframes bcPostAppear{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+.bc-story-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.bc-story-card .bc-story-shade{position:absolute;inset:45% 0 0;background:linear-gradient(transparent,rgba(0,0,0,.72))}
+.bc-story-card .bc-story-name{position:relative;z-index:1;color:#fff;text-shadow:0 1px 3px #000}
+.bc-story-modal{display:none;position:fixed;z-index:99999;inset:0;background:rgba(0,0,0,.82);padding:18px;align-items:center;justify-content:center}
+.bc-story-modal.show{display:flex}.bc-story-dialog{position:relative;width:min(100%,420px);max-height:92vh;overflow:auto;background:#fff;border-radius:18px;padding:18px;color:#1c1e21}
+.bc-story-close{position:absolute;right:12px;top:10px;width:34px;height:34px;border:0;border-radius:50%;background:#f0f2f5;font-size:18px;z-index:2}
+.bc-story-form h3{margin:2px 40px 14px 0;color:#b91c1c}.bc-story-form label{display:block;font-size:13px;font-weight:700;margin:10px 0 6px}
+.bc-story-form input[type=file],.bc-story-form textarea{width:100%;box-sizing:border-box;padding:10px;border:1px solid #dfe3e8;border-radius:10px;font:14px Arial}
+.bc-story-form textarea{min-height:76px;resize:vertical}.bc-story-preview{width:100%;max-height:260px;object-fit:contain;background:#111;border-radius:12px;margin-top:10px;display:none}
+.bc-story-submit{width:100%;border:0;border-radius:22px;padding:12px;background:#c62828;color:#fff;font-weight:700;margin-top:12px}
+.bc-story-view-media{display:block;width:100%;max-height:68vh;object-fit:contain;background:#111;border-radius:12px}
+.bc-story-view-caption{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;margin:12px 2px}.bc-story-view-meta{font-size:12px;color:#777;margin:4px 0 10px}
 .bc-post-card{background:#fff;color:#1c1e21;padding:12px 11px;margin:0 0 7px;border-bottom:7px solid #f0f2f5}
 .bc-post-author{display:flex;align-items:center;gap:9px;margin-bottom:9px}
 .bc-post-avatar{width:38px;height:38px;flex:0 0 38px;border-radius:50%;object-fit:cover;background:#e8efff;display:grid;place-items:center;color:#2455a6}
@@ -1473,13 +1486,12 @@ function applyDRoute(route){
    <section class="bc-feed show" id="bcFeedSection" aria-label="Fil d’actualité BOPE">
     <div class="bc-stories">
      <div class="bc-stories-title"><strong>Stories</strong><small>Découvre les moments</small></div>
-     <div class="bc-stories-row">
+     <div class="bc-stories-row" id="bcStoriesRow">
       <button type="button" class="bc-story-card create" onclick="bcOpenComposer('story')"><span class="bc-story-create-art">＋</span><span class="bc-story-create-label">Créer une story</span></button>
       <div class="bc-story-card community"><span class="bc-story-note">🇨🇩</span>La communauté BOPE</div>
-      <div class="bc-story-card">Les actualités de BOPE</div>
-      <div class="bc-story-card">Les créateurs congolais</div>
      </div>
     </div>
+    <div class="bc-story-modal" id="bcStoryModal" aria-hidden="true"><div class="bc-story-dialog"><button type="button" class="bc-story-close" onclick="bcCloseStoryModal()" aria-label="Fermer">✕</button><div id="bcStoryModalContent"></div></div></div>
     <div class="bc-compose-card">
      <div class="bc-compose-top">
       <div class="bc-compose-avatar" id="bcComposeAvatar">👤</div>
@@ -1689,6 +1701,7 @@ function applyDRoute(route){
   window.bcNavigate('home');
   const meta=user.user_metadata||{};
   window.bcLoadPosts();
+  window.bcLoadStories();
   window.bcLoadNotifications();
   if(bcNotificationTimer)clearInterval(bcNotificationTimer);
   bcNotificationTimer=setInterval(()=>window.bcLoadNotifications(),30000);
@@ -1717,8 +1730,9 @@ function applyDRoute(route){
   }
  }
  window.bcOpenComposer=function(type){
-  if(type==='story'||type==='live'){
-   byId('bcAccountMessage').textContent=type==='story'?'La création des Stories sera ajoutée après les publications classiques.':'La diffusion en direct sera développée dans une prochaine étape.';
+  if(type==='story'){window.bcOpenStoryComposer();return;}
+  if(type==='live'){
+   byId('bcAccountMessage').textContent='La diffusion en direct sera développée dans une prochaine étape.';
    return;
   }
   byId('bcPostComposer').classList.add('show');
@@ -1944,6 +1958,38 @@ function applyDRoute(route){
    byId('bcAccountMessage').textContent='Ta publication est maintenant visible dans le fil BOPE.';
   }catch(error){byId('bcPostStatus').textContent=error.message||'Une erreur est survenue pendant la publication.';}
   finally{button.disabled=false;button.textContent='Publier';}
+ };
+
+ window.bcLoadStories=async function(){
+  if(!bcClient)return;const row=byId('bcStoriesRow');if(!row)return;
+  const {data,error}=await bcClient.from('bope_stories').select('id,author_id,media_url,media_type,caption,created_at,expires_at,profiles(display_name,username,avatar_url)').gt('expires_at',new Date().toISOString()).order('created_at',{ascending:false}).limit(40);
+  if(error){console.warn('Stories BOPE:',error.message);return;}
+  row.replaceChildren();const create=document.createElement('button');create.type='button';create.className='bc-story-card create';create.innerHTML='<span class="bc-story-create-art">＋</span><span class="bc-story-create-label">Créer une story</span>';create.onclick=()=>window.bcOpenStoryComposer();row.appendChild(create);
+  (data||[]).forEach(story=>{const card=document.createElement('button');card.type='button';card.className='bc-story-card';card.onclick=()=>window.bcViewStory(story);const img=document.createElement('img');img.src=story.media_url;img.alt='Story';card.appendChild(img);const shade=document.createElement('span');shade.className='bc-story-shade';card.appendChild(shade);const note=document.createElement('span');note.className='bc-story-note';note.textContent='🇨🇩';card.appendChild(note);const name=document.createElement('span');name.className='bc-story-name';name.textContent=(story.profiles&&story.profiles.display_name)||'Utilisateur BOPE';card.appendChild(name);row.appendChild(card);});
+ };
+ window.bcOpenStoryComposer=function(){
+  const modal=byId('bcStoryModal'),content=byId('bcStoryModalContent');if(!modal||!content)return;
+  content.innerHTML='<form class="bc-story-form" id="bcStoryForm"><h3>Créer une Story BOPE</h3><p style="font-size:12px;color:#687080">Ta Story sera visible pendant 24 h 30 min.</p><label for="bcStoryFile">Photo ou vidéo</label><input id="bcStoryFile" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" required><img id="bcStoryPreview" class="bc-story-preview" alt="Aperçu"><video id="bcStoryVideoPreview" class="bc-story-preview" controls playsinline></video><label for="bcStoryCaption">Ajouter un texte (facultatif)</label><textarea id="bcStoryCaption" maxlength="500" placeholder="Écris quelque chose..."></textarea><p id="bcStoryStatus" style="font-size:12px;color:#687080"></p><button class="bc-story-submit" id="bcStorySubmit" type="submit">Partager ma Story</button></form>';
+  modal.classList.add('show');modal.setAttribute('aria-hidden','false');
+  byId('bcStoryFile').addEventListener('change',()=>{const input=byId('bcStoryFile'),file=input.files&&input.files[0],img=byId('bcStoryPreview'),video=byId('bcStoryVideoPreview');img.style.display='none';video.style.display='none';if(!file)return;if(!['image/jpeg','image/png','image/webp','video/mp4','video/webm'].includes(file.type)||file.size>50*1024*1024){byId('bcStoryStatus').textContent='Format non accepté ou fichier supérieur à 50 Mo.';input.value='';return;}const url=URL.createObjectURL(file);if(file.type.startsWith('video/')){video.src=url;video.style.display='block';}else{img.src=url;img.style.display='block';}});
+  byId('bcStoryForm').addEventListener('submit',window.bcPublishStory);
+ };
+ window.bcCloseStoryModal=function(){const modal=byId('bcStoryModal');if(modal){modal.classList.remove('show');modal.setAttribute('aria-hidden','true');}const v=byId('bcStoryVideoPreview');if(v){v.pause();v.removeAttribute('src');v.load();}};
+ window.bcPublishStory=async function(event){
+  event.preventDefault();if(!bcClient||!bcCurrentUser){byId('bcStoryStatus').textContent='Connecte-toi pour partager une Story.';return;}
+  const input=byId('bcStoryFile'),file=input.files&&input.files[0],status=byId('bcStoryStatus'),button=byId('bcStorySubmit');if(!file){status.textContent='Choisis une photo ou une vidéo.';return;}
+  if(!['image/jpeg','image/png','image/webp','video/mp4','video/webm'].includes(file.type)||file.size>50*1024*1024){status.textContent='Format non accepté ou fichier supérieur à 50 Mo.';return;}
+  button.disabled=true;button.textContent='Envoi en cours…';status.textContent='Envoi de ta Story…';
+  try{const ext=(file.name.split('.').pop()||'file').toLowerCase().replace(/[^a-z0-9]/g,'')||'file';const path=bcCurrentUser.id+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+'.'+ext;const {error:uploadError}=await bcClient.storage.from('bope-stories').upload(path,file,{upsert:false,contentType:file.type});if(uploadError)throw uploadError;const media_url=bcClient.storage.from('bope-stories').getPublicUrl(path).data.publicUrl;const media_type=file.type.startsWith('video/')?'video':'image';const caption=byId('bcStoryCaption').value.trim();const {error}=await bcClient.from('bope_stories').insert({author_id:bcCurrentUser.id,media_url,media_type,caption});if(error)throw error;window.bcCloseStoryModal();await window.bcLoadStories();byId('bcAccountMessage').textContent='Ta Story BOPE est publiée pour 24 h 30 min.';}catch(error){status.textContent='Publication impossible : '+(error.message||'erreur inconnue');}finally{button.disabled=false;button.textContent='Partager ma Story';}
+ };
+ window.bcViewStory=function(story){
+  const modal=byId('bcStoryModal'),content=byId('bcStoryModalContent');if(!modal||!content)return;content.replaceChildren();
+  const title=document.createElement('h3');title.textContent=(story.profiles&&story.profiles.display_name)||'Story BOPE';title.style.margin='0 42px 8px 0';content.appendChild(title);
+  const meta=document.createElement('p');meta.className='bc-story-view-meta';const remaining=Math.max(0,new Date(story.expires_at)-Date.now());meta.textContent='Expire dans '+Math.floor(remaining/3600000)+' h '+Math.floor((remaining%3600000)/60000)+' min';content.appendChild(meta);
+  let media;if(story.media_type==='video'){media=document.createElement('video');media.controls=true;media.playsInline=true;}else{media=document.createElement('img');media.alt='Story BOPE';}media.className='bc-story-view-media';media.src=story.media_url;content.appendChild(media);
+  if(story.caption){const caption=document.createElement('p');caption.className='bc-story-view-caption';caption.textContent=story.caption;content.appendChild(caption);}
+  if(bcCurrentUser&&story.author_id===bcCurrentUser.id){const del=document.createElement('button');del.type='button';del.className='bc-story-submit';del.textContent='Supprimer ma Story';del.onclick=async()=>{if(!confirm('Supprimer cette Story ?'))return;const {error}=await bcClient.from('bope_stories').delete().eq('id',story.id);if(error){alert('Suppression impossible : '+error.message);return;}window.bcCloseStoryModal();await window.bcLoadStories();};content.appendChild(del);}
+  modal.classList.add('show');modal.setAttribute('aria-hidden','false');
  };
  let bcNotificationTimer=null;
  window.bcLoadNotifications=async function(){
