@@ -1985,17 +1985,11 @@ function applyDRoute(route){
   button.disabled=true;button.textContent='Envoi en cours…';status.textContent='Envoi de ta Story…';
   try{const ext=(file.name.split('.').pop()||'file').toLowerCase().replace(/[^a-z0-9]/g,'')||'file';const path=bcCurrentUser.id+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+'.'+ext;const {error:uploadError}=await bcClient.storage.from('bope-stories').upload(path,file,{upsert:false,contentType:file.type});if(uploadError)throw uploadError;const media_url=bcClient.storage.from('bope-stories').getPublicUrl(path).data.publicUrl;const media_type=file.type.startsWith('video/')?'video':'image';const caption=byId('bcStoryCaption').value.trim();const {error}=await bcClient.from('bope_stories').insert({author_id:bcCurrentUser.id,media_url,media_type,caption});if(error)throw error;window.bcCloseStoryModal();await window.bcLoadStories();byId('bcAccountMessage').textContent='Ta Story BOPE est publiée pour 24 h 30 min.';}catch(error){status.textContent='Publication impossible : '+(error.message||'erreur inconnue');}finally{button.disabled=false;button.textContent='Partager ma Story';}
  };
- window.bcStoryNotify=async function(story,notificationType,message){
-  if(!bcClient||!bcCurrentUser||!story||story.author_id===bcCurrentUser.id)return;
-  const {error}=await bcClient.from('bope_notifications').insert({recipient_id:story.author_id,actor_id:bcCurrentUser.id,notification_type:notificationType,message,post_id:null});
-  if(error)console.warn('Notification Story non enregistrée :',error.message);
- };
- window.bcStoryReact=async function(story,emoji){
+  window.bcStoryReact=async function(story,emoji){
   if(!bcClient||!bcCurrentUser){alert('Connecte-toi pour réagir à une Story.');return;}
   if(story.author_id===bcCurrentUser.id){alert('Tu ne peux pas réagir à ta propre Story.');return;}
   const {error}=await bcClient.from('bope_story_reactions').upsert({story_id:story.id,user_id:bcCurrentUser.id,reaction_type:emoji},{onConflict:'story_id,user_id'});
   if(error){alert('Réaction impossible : '+error.message);return;}
-  await window.bcStoryNotify(story,'story_reaction','a réagi '+emoji+' à ta Story.');
   const status=byId('bcStoryInteractionStatus');if(status)status.textContent='Réaction '+emoji+' envoyée.';
   if(window.bcLoadNotifications)window.bcLoadNotifications();
  };
@@ -2006,7 +2000,6 @@ function applyDRoute(route){
   button.disabled=true;button.textContent='Envoi…';
   const {error}=await bcClient.from('bope_story_replies').insert({story_id:story.id,sender_id:bcCurrentUser.id,content});
   if(error){alert('Réponse impossible : '+error.message);button.disabled=false;button.textContent='Envoyer';return;}
-  await window.bcStoryNotify(story,'story_reply','a répondu à ta Story : « '+content.slice(0,180)+' »');
   input.value='';button.disabled=false;button.textContent='Envoyer';
   const status=byId('bcStoryInteractionStatus');if(status)status.textContent='Ta réponse a été envoyée.';
   if(window.bcLoadNotifications)window.bcLoadNotifications();
