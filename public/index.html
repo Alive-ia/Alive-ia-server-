@@ -1985,13 +1985,68 @@ function applyDRoute(route){
   button.disabled=true;button.textContent='Envoi en cours…';status.textContent='Envoi de ta Story…';
   try{const ext=(file.name.split('.').pop()||'file').toLowerCase().replace(/[^a-z0-9]/g,'')||'file';const path=bcCurrentUser.id+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+'.'+ext;const {error:uploadError}=await bcClient.storage.from('bope-stories').upload(path,file,{upsert:false,contentType:file.type});if(uploadError)throw uploadError;const media_url=bcClient.storage.from('bope-stories').getPublicUrl(path).data.publicUrl;const media_type=file.type.startsWith('video/')?'video':'image';const caption=byId('bcStoryCaption').value.trim();const {error}=await bcClient.from('bope_stories').insert({author_id:bcCurrentUser.id,media_url,media_type,caption});if(error)throw error;window.bcCloseStoryModal();await window.bcLoadStories();byId('bcAccountMessage').textContent='Ta Story BOPE est publiée pour 24 h 30 min.';}catch(error){status.textContent='Publication impossible : '+(error.message||'erreur inconnue');}finally{button.disabled=false;button.textContent='Partager ma Story';}
  };
+ window.bcStoryNotify=async function(story,notificationType,message){
+  if(!bcClient||!bcCurrentUser||!story||story.author_id===bcCurrentUser.id)return;
+  const {error}=await bcClient.from('bope_notifications').insert({recipient_id:story.author_id,actor_id:bcCurrentUser.id,notification_type:notificationType,message,post_id:null});
+  if(error)console.warn('Notification Story non enregistrée :',error.message);
+ };
+ window.bcStoryReact=async function(story,emoji){
+  if(!bcClient||!bcCurrentUser){alert('Connecte-toi pour réagir à une Story.');return;}
+  if(story.author_id===bcCurrentUser.id){alert('Tu ne peux pas réagir à ta propre Story.');return;}
+  const {error}=await bcClient.from('bope_story_reactions').upsert({story_id:story.id,user_id:bcCurrentUser.id,reaction_type:emoji},{onConflict:'story_id,user_id'});
+  if(error){alert('Réaction impossible : '+error.message);return;}
+  await window.bcStoryNotify(story,'story_reaction','a réagi '+emoji+' à ta Story.');
+  const status=byId('bcStoryInteractionStatus');if(status)status.textContent='Réaction '+emoji+' envoyée.';
+  if(window.bcLoadNotifications)window.bcLoadNotifications();
+ };
+ window.bcStorySendReply=async function(story,input,button){
+  if(!bcClient||!bcCurrentUser){alert('Connecte-toi pour répondre à une Story.');return;}
+  const content=input.value.trim();if(!content)return;
+  if(story.author_id===bcCurrentUser.id){alert('Tu ne peux pas répondre à ta propre Story.');return;}
+  button.disabled=true;button.textContent='Envoi…';
+  const {error}=await bcClient.from('bope_story_replies').insert({story_id:story.id,sender_id:bcCurrentUser.id,content});
+  if(error){alert('Réponse impossible : '+error.message);button.disabled=false;button.textContent='Envoyer';return;}
+  await window.bcStoryNotify(story,'story_reply','a répondu à ta Story : « '+content.slice(0,180)+' »');
+  input.value='';button.disabled=false;button.textContent='Envoyer';
+  const status=byId('bcStoryInteractionStatus');if(status)status.textContent='Ta réponse a été envoyée.';
+  if(window.bcLoadNotifications)window.bcLoadNotifications();
+ };
+ window.bcLoadStoryViews=async function(story,container){
+  const {data,error}=await bcClient.from('bope_story_views').select('viewer_id,viewed_at').eq('story_id',story.id).order('viewed_at',{ascending:false});
+  if(error){container.textContent='Impossible de charger les vues : '+error.message;return;}
+  const views=data||[];const count=document.createElement('strong');count.textContent='👁️ '+views.length+' vue'+(views.length>1?'s':'');container.appendChild(count);
+  if(!views.length){const empty=document.createElement('p');empty.textContent='Personne n’a encore vu cette Story.';container.appendChild(empty);return;}
+  const ids=[...new Set(views.map(v=>v.viewer_id))];
+  const {data:profiles}=await bcClient.from('profiles').select('id,display_name,avatar_url').in('id',ids);
+  const map={};(profiles||[]).forEach(p=>map[p.id]=p);
+  views.forEach(view=>{const p=map[view.viewer_id]||{},line=document.createElement('div');line.style.cssText='display:flex;align-items:center;gap:9px;padding:7px 0;border-top:1px solid #eee';
+   if(p.avatar_url){const img=document.createElement('img');img.src=p.avatar_url;img.alt='';img.style.cssText='width:32px;height:32px;border-radius:50%;object-fit:cover';line.appendChild(img);}
+   const name=document.createElement('span');name.textContent=(p.display_name||'Utilisateur BOPE')+' • '+bcSafeDate(view.viewed_at);name.style.fontSize='12px';line.appendChild(name);container.appendChild(line);
+  });
+ };
  window.bcViewStory=function(story){
   const modal=byId('bcStoryModal'),content=byId('bcStoryModalContent');if(!modal||!content)return;content.replaceChildren();
   const title=document.createElement('h3');title.textContent=(story.profiles&&story.profiles.display_name)||'Story BOPE';title.style.margin='0 42px 8px 0';content.appendChild(title);
   const meta=document.createElement('p');meta.className='bc-story-view-meta';const remaining=Math.max(0,new Date(story.expires_at)-Date.now());meta.textContent='Expire dans '+Math.floor(remaining/3600000)+' h '+Math.floor((remaining%3600000)/60000)+' min';content.appendChild(meta);
   let media;if(story.media_type==='video'){media=document.createElement('video');media.controls=true;media.playsInline=true;}else{media=document.createElement('img');media.alt='Story BOPE';}media.className='bc-story-view-media';media.src=story.media_url;content.appendChild(media);
   if(story.caption){const caption=document.createElement('p');caption.className='bc-story-view-caption';caption.textContent=story.caption;content.appendChild(caption);}
-  if(bcCurrentUser&&story.author_id===bcCurrentUser.id){const del=document.createElement('button');del.type='button';del.className='bc-story-submit';del.textContent='Supprimer ma Story';del.onclick=async()=>{if(!confirm('Supprimer cette Story ?'))return;const {error}=await bcClient.from('bope_stories').delete().eq('id',story.id);if(error){alert('Suppression impossible : '+error.message);return;}window.bcCloseStoryModal();await window.bcLoadStories();};content.appendChild(del);}
+  const isOwner=bcCurrentUser&&story.author_id===bcCurrentUser.id;
+  if(bcCurrentUser&&!isOwner){
+   bcClient.from('bope_story_views').upsert({story_id:story.id,viewer_id:bcCurrentUser.id,viewed_at:new Date().toISOString()},{onConflict:'story_id,viewer_id'}).then(({error})=>{if(error)console.warn('Vue Story non enregistrée :',error.message);});
+   const interactions=document.createElement('div');interactions.style.cssText='margin-top:14px;padding:12px;border-radius:14px;background:#fff7f2;border:1px solid #f3d5c7';
+   const reactionTitle=document.createElement('strong');reactionTitle.textContent='Réagir à cette Story';reactionTitle.style.cssText='display:block;margin-bottom:8px;color:#9f2626';interactions.appendChild(reactionTitle);
+   const tray=document.createElement('div');tray.style.cssText='display:flex;justify-content:space-between;gap:5px;flex-wrap:wrap';
+   ['❤️','😍','😂','😮','😢','😡','👍'].forEach(emoji=>{const b=document.createElement('button');b.type='button';b.textContent=emoji;b.setAttribute('aria-label','Réagir '+emoji);b.style.cssText='border:1px solid #f0d0c5;border-radius:20px;background:#fff;padding:7px 9px;font-size:20px';b.onclick=()=>window.bcStoryReact(story,emoji);tray.appendChild(b);});interactions.appendChild(tray);
+   const form=document.createElement('form');form.style.cssText='display:flex;gap:7px;margin-top:12px';
+   const input=document.createElement('input');input.type='text';input.maxLength=2000;input.placeholder='Répondre à cette Story…';input.style.cssText='flex:1;min-width:0;border:1px solid #e7c9c0;border-radius:20px;padding:10px 12px;font-size:13px';
+   const send=document.createElement('button');send.type='submit';send.textContent='Envoyer';send.style.cssText='border:0;border-radius:20px;padding:0 14px;background:#c62828;color:#fff;font-weight:700';
+   form.append(input,send);form.onsubmit=e=>{e.preventDefault();window.bcStorySendReply(story,input,send);};interactions.appendChild(form);
+   const status=document.createElement('small');status.id='bcStoryInteractionStatus';status.style.cssText='display:block;margin-top:8px;color:#9f2626';interactions.appendChild(status);content.appendChild(interactions);
+  }
+  if(isOwner){
+   const views=document.createElement('div');views.style.cssText='margin:12px 0;padding:12px;border-radius:12px;background:#f7f7f8;font-size:13px';views.textContent='Chargement des vues…';content.appendChild(views);window.bcLoadStoryViews(story,views);
+   const del=document.createElement('button');del.type='button';del.className='bc-story-submit';del.textContent='Supprimer ma Story';del.onclick=async()=>{if(!confirm('Supprimer cette Story ?'))return;const {error}=await bcClient.from('bope_stories').delete().eq('id',story.id);if(error){alert('Suppression impossible : '+error.message);return;}window.bcCloseStoryModal();await window.bcLoadStories();};content.appendChild(del);
+  }
   modal.classList.add('show');modal.setAttribute('aria-hidden','false');
  };
  let bcNotificationTimer=null;
