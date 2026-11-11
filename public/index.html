@@ -2073,6 +2073,17 @@ function applyDRoute(route){
    const defaultMessage=n.notification_type==='reaction'?'a réagi à ta publication.':n.notification_type==='friend_request'?'t’a envoyé une demande d’amitié.':'a commenté ta publication.';
    const msg=document.createElement('span');msg.textContent=' '+(n.message||defaultMessage);
    const date=document.createElement('small');date.textContent=bcSafeDate(n.created_at);copy.append(strong,msg,date);row.append(avatar,copy);
+   if(n.notification_type==='story_reply'||n.notification_type==='story_reaction'){
+    const reply=document.createElement('button');reply.type='button';reply.textContent='Répondre en privé';reply.style.cssText='display:block;margin:9px 0 2px 48px;border:0;border-radius:18px;padding:8px 14px;background:#c62828;color:#fff;font-weight:700';
+    reply.addEventListener('click',async e=>{
+     e.stopPropagation();
+     if(!profile.id){byId('bcAccountMessage').textContent='Profil de cet utilisateur introuvable.';return;}
+     await bcClient.from('bope_notifications').update({is_read:true}).eq('id',n.id).eq('recipient_id',bcCurrentUser.id);
+     window.bcNavigate('messages');
+     await window.bcOpenConversation(profile);
+    });
+    copy.appendChild(reply);
+   }
    const request=n.notification_type==='friend_request'?requestMap[n.actor_id]:null;
    if(request){
     const actions=document.createElement('div');actions.style.cssText='display:flex;gap:8px;flex-wrap:wrap;margin:9px 0 2px 48px';
