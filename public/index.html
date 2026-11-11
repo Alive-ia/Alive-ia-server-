@@ -320,7 +320,7 @@
 .bc-post-author{display:flex;align-items:center;gap:9px;margin-bottom:9px}
 .bc-post-avatar{width:38px;height:38px;flex:0 0 38px;border-radius:50%;object-fit:cover;background:#e8efff;display:grid;place-items:center;color:#2455a6}
 .bc-post-author strong{display:block;font-size:13px}.bc-post-author small{display:block;color:#65676b;font-size:10px;margin-top:3px}
-.bc-post-text{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.45;margin:8px 0}.bc-post-text[class*="bc-post-bg-"]{padding:22px 14px;border-radius:12px;text-align:center;font-weight:700;font-size:17px;min-height:90px;display:flex;align-items:center;justify-content:center}.bc-post-bg-red{background:#d32f2f;color:#fff}.bc-post-bg-blue{background:#1877f2;color:#fff}.bc-post-bg-green{background:#16834a;color:#fff}.bc-post-bg-black{background:#171717;color:#fff}.bc-post-bg-yellow{background:#ffdf55;color:#282828}.bc-post-bg-purple{background:#7137a8;color:#fff}.bc-post-bg-orange{background:#ef7d24;color:#fff}.bc-post-bg-stars{background:radial-gradient(circle at 15% 25%,#ffe66d 0 2px,transparent 3px),radial-gradient(circle at 80% 70%,#ffe66d 0 2px,transparent 3px),linear-gradient(135deg,#263b86,#8b3f9e);color:#fff}
+.bc-post-text{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.45;margin:8px 0}.bc-post-text[class*="bc-post-bg-"],.bc-post-style-preview[class*="bc-post-bg-"]{padding:22px 14px;border-radius:12px;text-align:center;font-weight:700;font-size:17px;min-height:90px;display:flex;align-items:center;justify-content:center}.bc-post-bg-red{background:#d32f2f;color:#fff}.bc-post-bg-blue{background:#1877f2;color:#fff}.bc-post-bg-green{background:#16834a;color:#fff}.bc-post-bg-black{background:#171717;color:#fff}.bc-post-bg-yellow{background:#ffdf55;color:#282828}.bc-post-bg-purple{background:#7137a8;color:#fff}.bc-post-bg-orange{background:#ef7d24;color:#fff}.bc-post-bg-stars{background:radial-gradient(circle at 15% 25%,#ffe66d 0 2px,transparent 3px),radial-gradient(circle at 80% 70%,#ffe66d 0 2px,transparent 3px),linear-gradient(135deg,#263b86,#8b3f9e);color:#fff}
 .bc-reaction-area{border-top:1px solid #e4e6eb;margin-top:10px;padding-top:8px}
 .bc-reaction-summary{font-size:12px;color:#65676b;min-height:20px;margin-bottom:7px}
 /* Barre d’actions BOPE : quatre boutons arrondis, inspirés de Facebook Lite */
@@ -1815,6 +1815,7 @@ function applyDRoute(route){
   if(preview){preview.className='bc-post-style-preview'+(style==='default'?'':' show');preview.textContent=textarea&&textarea.value.trim()?textarea.value.trim():'Aperçu du style de ta publication';if(style!=='default')preview.classList.add('bc-post-bg-'+style);}
   if(textarea){textarea.style.background=backgrounds[style]||'transparent';textarea.style.color=style==='yellow'?'#282828':style==='default'?'#1c1e21':'#fff';textarea.style.borderRadius=style==='default'?'0':'10px';textarea.style.padding=style==='default'?'8px 2px':'12px';}
  };
+ const bcStyleTextInput=byId('bcPostText');if(bcStyleTextInput)bcStyleTextInput.addEventListener('input',()=>window.bcChoosePostStyle(bcSelectedPostStyle));
  function bcRenderPosts(posts,reactions,comments,commentProfiles){
   const list=byId('bcPostsList');list.replaceChildren();
   byId('bcPostsEmpty').style.display=posts.length?'none':'block';
