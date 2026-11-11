@@ -1553,6 +1553,7 @@ function applyDRoute(route){
     <div id="bcConversationList"><p style="color:#667085;font-size:13px;padding:12px">Chargement des discussions…</p></div>
     <div id="bcConversationView" style="display:none">
      <div class="bc-chat-head"><button type="button" class="bc-chat-back" onclick="bcCloseConversation()" aria-label="Retour aux discussions">←</button><img id="bcChatAvatar" src="" alt=""><strong id="bcChatName">Conversation</strong></div>
+     <div id="bcStoryReplyContext" style="display:none"></div>
      <div id="bcChatMessages" aria-live="polite"></div>
      <form id="bcChatForm"><input id="bcChatInput" type="text" maxlength="5000" placeholder="Écris un message…" autocomplete="off"><button type="submit">Envoyer</button></form>
     </div>
@@ -2050,7 +2051,7 @@ function applyDRoute(route){
  let bcNotificationTimer=null;
  window.bcLoadNotifications=async function(){
   if(!bcClient||!bcCurrentUser)return;
-  const {data,error}=await bcClient.from('bope_notifications').select('id,actor_id,post_id,notification_type,message,is_read,created_at').eq('recipient_id',bcCurrentUser.id).order('created_at',{ascending:false}).limit(40);
+  const {data,error}=await bcClient.from('bope_notifications').select('id,actor_id,post_id,notification_type,message,is_read,created_at,story_id,story_reply_id').eq('recipient_id',bcCurrentUser.id).order('created_at',{ascending:false}).limit(40);
   if(error){const box=byId('bcNotificationsList');if(box)box.textContent='Impossible de charger les notifications : '+error.message;return;}
   const items=data||[],unread=items.filter(n=>!n.is_read).length,badge=byId('bcNotificationBadge');
   if(badge){badge.textContent=unread>99?'99+':String(unread);badge.style.display=unread?'block':'none';}
@@ -2077,8 +2078,17 @@ function applyDRoute(route){
      e.stopPropagation();
      if(!profile.id){byId('bcAccountMessage').textContent='Profil de cet utilisateur introuvable.';return;}
      await bcClient.from('bope_notifications').update({is_read:true}).eq('id',n.id).eq('recipient_id',bcCurrentUser.id);
+     let storyContext=null;
+     if(n.notification_type==='story_reply'&&n.story_reply_id){
+      const {data:replyData}=await bcClient.from('bope_story_replies').select('id,story_id,sender_id,content,created_at').eq('id',n.story_reply_id).maybeSingle();
+      if(replyData){
+       let storyData=null;
+       if(replyData.story_id){const result=await bcClient.from('bope_stories').select('media_url,media_type,caption').eq('id',replyData.story_id).maybeSingle();storyData=result.data;}
+       storyContext={reply:replyData,story:storyData};
+      }
+     }
      window.bcNavigate('messages');
-     await window.bcOpenConversation(profile);
+     await window.bcOpenConversation(profile,storyContext);
     });
     copy.appendChild(reply);
    }
@@ -2258,11 +2268,26 @@ function applyDRoute(route){
    row.append(avatar,info,arrow);row.onclick=()=>window.bcOpenConversation(person);box.appendChild(row);
   });
  };
- window.bcOpenConversation=async function(person){
+ window.bcOpenConversation=async function(person,storyContext){
   bcActiveChat=person;byId('bcConversationView').style.display='block';byId('bcChatName').textContent=person.display_name||'Utilisateur BOPE';byId('bcChatAvatar').src=person.avatar_url||'';
+  const contextBox=byId('bcStoryReplyContext');
+  if(contextBox){contextBox.replaceChildren();contextBox.style.display=storyContext?'block':'none';
+   if(storyContext&&storyContext.reply){
+    contextBox.style.cssText='display:block;padding:10px 12px;background:#fff1ed;border-bottom:1px solid #f3c8bd;color:#7f1d1d;font-size:13px';
+    const label=document.createElement('strong');label.textContent='↪ Réponse à votre Story';label.style.display='block';contextBox.appendChild(label);
+    const quote=document.createElement('div');quote.textContent='« '+(storyContext.reply.content||'')+' »';quote.style.cssText='margin-top:5px;color:#292524';contextBox.appendChild(quote);
+    if(storyContext.story&&storyContext.story.media_url){
+     let media;
+     if(storyContext.story.media_type==='video'){media=document.createElement('video');media.src=storyContext.story.media_url;media.muted=true;media.playsInline=true;}
+     else{media=document.createElement('img');media.src=storyContext.story.media_url;media.alt='Story concernée';}
+     media.style.cssText='display:block;max-width:100%;max-height:110px;object-fit:cover;border-radius:9px;margin-top:7px';contextBox.appendChild(media);
+    }
+    if(storyContext.story&&storyContext.story.caption){const caption=document.createElement('small');caption.textContent=storyContext.story.caption;caption.style.cssText='display:block;margin-top:4px;color:#78534b';contextBox.appendChild(caption);}
+   }
+  }
   await window.bcLoadChatMessages();byId('bcChatInput').focus();
  };
- window.bcCloseConversation=function(){bcActiveChat=null;byId('bcConversationView').style.display='none';};
+ window.bcCloseConversation=function(){bcActiveChat=null;const contextBox=byId('bcStoryReplyContext');if(contextBox){contextBox.replaceChildren();contextBox.style.display='none';}byId('bcConversationView').style.display='none';};
  window.bcLoadChatMessages=async function(){
   if(!bcActiveChat||!bcClient||!bcCurrentUser)return;
   const box=byId('bcChatMessages');
