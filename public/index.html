@@ -1510,12 +1510,29 @@ function applyDRoute(route){
     <p id="bcPanelText">Ton fil d’actualité BOPE prendra place ici. Nous le construirons avec les publications, photos, vidéos et recommandations intelligentes.</p>
    </section>
    <section id="bcMessagesPanel" class="bc-tab-panel" style="display:none;text-align:left">
-    <h3 style="margin:0 0 12px;color:#1e3260">💬 Messagerie BOPE</h3>
-    <div id="bcConversationList"><p style="color:#667085;font-size:13px">Chargement des contacts…</p></div>
-    <div id="bcConversationView" style="display:none;margin-top:14px;border:1px solid #e4e7ec;border-radius:14px;overflow:hidden">
-     <div style="display:flex;align-items:center;gap:9px;padding:11px;background:#f2f4f7"><button type="button" onclick="bcCloseConversation()" style="border:0;background:transparent;color:#1877f2;font-size:20px">←</button><img id="bcChatAvatar" src="" alt="" style="width:38px;height:38px;border-radius:50%;object-fit:cover"><strong id="bcChatName" style="color:#1d2939;font-size:14px">Conversation</strong></div>
-     <div id="bcChatMessages" aria-live="polite" style="height:300px;overflow-y:auto;padding:12px;background:#fff"></div>
-     <form id="bcChatForm" style="display:flex;gap:7px;padding:9px;border-top:1px solid #e4e7ec;background:#fff"><input id="bcChatInput" type="text" maxlength="5000" placeholder="Écris un message…" autocomplete="off" style="flex:1;min-width:0;border:1px solid #d0d5dd;border-radius:20px;padding:11px 13px;font-size:14px"><button type="submit" style="border:0;border-radius:20px;padding:0 16px;background:#1877f2;color:#fff;font-weight:700">Envoyer</button></form>
+    <style>
+     #bcMessagesPanel .bc-msg-title{margin:0 0 4px;color:#b91c1c;font-size:21px}
+     #bcMessagesPanel .bc-msg-subtitle{margin:0 0 14px;color:#8a929e;font-size:12px}
+     #bcMessagesPanel #bcConversationList{background:#fff;border:1px solid #eceef1;border-radius:14px;overflow:hidden}
+     #bcMessagesPanel #bcConversationView{margin-top:14px;border:1px solid #f0d6d6;border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 4px 16px rgba(120,20,20,.06)}
+     #bcMessagesPanel .bc-chat-head{display:flex;align-items:center;gap:10px;padding:12px;background:#fff7ed;border-bottom:2px solid #f59e0b}
+     #bcMessagesPanel .bc-chat-back{border:0;background:transparent;color:#b91c1c;font-size:23px;padding:3px 7px}
+     #bcMessagesPanel #bcChatAvatar{width:40px;height:40px;border-radius:50%;object-fit:cover;background:#ffe4e6}
+     #bcMessagesPanel #bcChatName{color:#292524;font-size:14px}
+     #bcMessagesPanel #bcChatMessages{height:330px;overflow-y:auto;padding:14px;background:#fffaf7}
+     #bcMessagesPanel #bcChatForm{display:flex;gap:8px;padding:10px;border-top:1px solid #f1e5df;background:#fff}
+     #bcMessagesPanel #bcChatInput{flex:1;min-width:0;border:1px solid #e5caca;border-radius:22px;padding:11px 14px;font-size:14px;outline:none}
+     #bcMessagesPanel #bcChatInput:focus{border-color:#f59e0b;box-shadow:0 0 0 2px rgba(245,158,11,.15)}
+     #bcMessagesPanel #bcChatForm button{border:0;border-radius:22px;padding:0 17px;background:#c62828;color:#fff;font-weight:700}
+     #bcMessagesPanel #bcChatForm button:disabled{opacity:.6}
+    </style>
+    <h3 class="bc-msg-title">💬 BOPE Messages</h3>
+    <p class="bc-msg-subtitle">Tes discussions privées, simplement. 🇨🇩</p>
+    <div id="bcConversationList"><p style="color:#667085;font-size:13px;padding:12px">Chargement des discussions…</p></div>
+    <div id="bcConversationView" style="display:none">
+     <div class="bc-chat-head"><button type="button" class="bc-chat-back" onclick="bcCloseConversation()" aria-label="Retour aux discussions">←</button><img id="bcChatAvatar" src="" alt=""><strong id="bcChatName">Conversation</strong></div>
+     <div id="bcChatMessages" aria-live="polite"></div>
+     <form id="bcChatForm"><input id="bcChatInput" type="text" maxlength="5000" placeholder="Écris un message…" autocomplete="off"><button type="submit">Envoyer</button></form>
     </div>
    </section>
    <section id="bcNotificationsPanel" class="bc-tab-panel" style="display:none;text-align:left">
@@ -2072,7 +2089,7 @@ function applyDRoute(route){
   if(error){box.textContent='Impossible de charger les messages : '+error.message;return;}
   box.replaceChildren();
   if(!(data||[]).length){const empty=document.createElement('p');empty.textContent='Aucun message pour le moment. Dis bonjour ! 👋';empty.style.cssText='text-align:center;color:#667085;font-size:13px;margin:30px 0';box.appendChild(empty);}
-  (data||[]).forEach(msg=>{const line=document.createElement('div');line.style.cssText='display:flex;margin:7px 0;'+(msg.sender_id===bcCurrentUser.id?'justify-content:flex-end':'justify-content:flex-start');const bubble=document.createElement('div');bubble.textContent=msg.content;bubble.style.cssText='max-width:82%;padding:9px 12px;border-radius:15px;background:'+(msg.sender_id===bcCurrentUser.id?'#1877f2':'#eef1f5')+';color:'+(msg.sender_id===bcCurrentUser.id?'#fff':'#1d2939')+';font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere';line.appendChild(bubble);box.appendChild(line);});
+  (data||[]).forEach(msg=>{const line=document.createElement('div');line.style.cssText='display:flex;margin:7px 0;'+(msg.sender_id===bcCurrentUser.id?'justify-content:flex-end':'justify-content:flex-start');const bubble=document.createElement('div');bubble.textContent=msg.content;bubble.style.cssText='max-width:82%;padding:10px 13px;border-radius:'+(msg.sender_id===bcCurrentUser.id?'16px 16px 4px 16px':'16px 16px 16px 4px')+';background:'+(msg.sender_id===bcCurrentUser.id?'#c62828':'#f1f2f4')+';color:'+(msg.sender_id===bcCurrentUser.id?'#fff':'#292524')+';font-size:14px;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 1px 2px rgba(0,0,0,.06)';line.appendChild(bubble);box.appendChild(line);});
   box.scrollTop=box.scrollHeight;
  };
  byId('bcChatForm').addEventListener('submit',async function(event){
