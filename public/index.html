@@ -307,6 +307,7 @@
 .bc-post-composer{display:none;background:#fff;padding:13px 11px;border-bottom:7px solid #f0f2f5;color:#1c1e21}
 .bc-post-composer.show{display:block}.bc-post-composer h3{margin:0 0 10px;font-size:16px}
 .bc-post-composer textarea{width:100%;min-height:105px;resize:vertical;border:0;outline:0;font:15px/1.5 Arial,sans-serif;color:#1c1e21;padding:8px 2px}
+.bc-post-style-box{margin:4px 0 12px}.bc-post-style-heading{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}.bc-post-style-heading strong{font-size:12px;color:#343a40}.bc-post-style-heading small{font-size:10px;color:#777}.bc-post-style-palette{display:flex;gap:7px;overflow-x:auto;padding:2px 1px 8px}.bc-style-choice{width:38px;height:38px;flex:0 0 38px;border:2px solid #e4e6eb;border-radius:50%;font-size:11px;font-weight:800;background:#f0f2f5;color:#333}.bc-style-choice.selected{border:3px solid #c62828;box-shadow:0 0 0 2px #c6282822}.bc-style-choice.style-red{background:#d32f2f;color:#fff}.bc-style-choice.style-blue{background:#1877f2;color:#fff}.bc-style-choice.style-green{background:#16834a;color:#fff}.bc-style-choice.style-black{background:#171717;color:#fff}.bc-style-choice.style-yellow{background:#ffdf55;color:#333}.bc-style-choice.style-purple{background:#7137a8;color:#fff}.bc-style-choice.style-orange{background:#ef7d24;color:#fff}.bc-style-choice.style-stars{background:linear-gradient(135deg,#263b86,#8b3f9e);color:#ffe66d}.bc-post-style-preview{display:none;min-height:54px;padding:13px;border-radius:12px;text-align:center;font-size:13px;font-weight:700;overflow-wrap:anywhere}.bc-post-style-preview.show{display:block}
 .bc-post-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-top:1px solid #e4e6eb;padding-top:10px}
 .bc-post-tools label,.bc-post-tools button{border:1px solid #dfe3e8;background:#f0f2f5;color:#3b5998;border-radius:18px;padding:8px 12px;font-size:12px;font-weight:700}
 .bc-post-tools input{max-width:100%;font-size:11px;color:#65676b}
@@ -319,7 +320,7 @@
 .bc-post-author{display:flex;align-items:center;gap:9px;margin-bottom:9px}
 .bc-post-avatar{width:38px;height:38px;flex:0 0 38px;border-radius:50%;object-fit:cover;background:#e8efff;display:grid;place-items:center;color:#2455a6}
 .bc-post-author strong{display:block;font-size:13px}.bc-post-author small{display:block;color:#65676b;font-size:10px;margin-top:3px}
-.bc-post-text{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.45;margin:8px 0}
+.bc-post-text{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.45;margin:8px 0}.bc-post-text[class*="bc-post-bg-"]{padding:22px 14px;border-radius:12px;text-align:center;font-weight:700;font-size:17px;min-height:90px;display:flex;align-items:center;justify-content:center}.bc-post-bg-red{background:#d32f2f;color:#fff}.bc-post-bg-blue{background:#1877f2;color:#fff}.bc-post-bg-green{background:#16834a;color:#fff}.bc-post-bg-black{background:#171717;color:#fff}.bc-post-bg-yellow{background:#ffdf55;color:#282828}.bc-post-bg-purple{background:#7137a8;color:#fff}.bc-post-bg-orange{background:#ef7d24;color:#fff}.bc-post-bg-stars{background:radial-gradient(circle at 15% 25%,#ffe66d 0 2px,transparent 3px),radial-gradient(circle at 80% 70%,#ffe66d 0 2px,transparent 3px),linear-gradient(135deg,#263b86,#8b3f9e);color:#fff}
 .bc-reaction-area{border-top:1px solid #e4e6eb;margin-top:10px;padding-top:8px}
 .bc-reaction-summary{font-size:12px;color:#65676b;min-height:20px;margin-bottom:7px}
 /* Barre d’actions BOPE : quatre boutons arrondis, inspirés de Facebook Lite */
@@ -1495,6 +1496,9 @@ function applyDRoute(route){
     <div class="bc-post-composer" id="bcPostComposer">
      <h3 id="bcPostTitle">Créer une publication</h3>
      <textarea id="bcPostText" maxlength="5000" placeholder="À quoi penses-tu ?"></textarea>
+     <div class="bc-post-style-box"><div class="bc-post-style-heading"><strong>🎨 Personnalise ta publication</strong><small>Choisis une couleur ou un motif</small></div><div class="bc-post-style-palette" id="bcPostStylePalette" role="group" aria-label="Couleur ou arrière-plan de la publication">
+      <button type="button" class="bc-style-choice selected" data-style="default" onclick="bcChoosePostStyle('default')" aria-label="Sans couleur">Aa</button><button type="button" class="bc-style-choice style-red" data-style="red" onclick="bcChoosePostStyle('red')" aria-label="Rouge">Aa</button><button type="button" class="bc-style-choice style-blue" data-style="blue" onclick="bcChoosePostStyle('blue')" aria-label="Bleu">Aa</button><button type="button" class="bc-style-choice style-green" data-style="green" onclick="bcChoosePostStyle('green')" aria-label="Vert">Aa</button><button type="button" class="bc-style-choice style-black" data-style="black" onclick="bcChoosePostStyle('black')" aria-label="Noir">Aa</button><button type="button" class="bc-style-choice style-yellow" data-style="yellow" onclick="bcChoosePostStyle('yellow')" aria-label="Jaune">Aa</button><button type="button" class="bc-style-choice style-purple" data-style="purple" onclick="bcChoosePostStyle('purple')" aria-label="Violet">Aa</button><button type="button" class="bc-style-choice style-orange" data-style="orange" onclick="bcChoosePostStyle('orange')" aria-label="Orange">Aa</button><button type="button" class="bc-style-choice style-stars" data-style="stars" onclick="bcChoosePostStyle('stars')" aria-label="Étoiles">⭐</button>
+     </div><div class="bc-post-style-preview" id="bcPostStylePreview">Aperçu du style de ta publication</div></div>
      <div class="bc-media-preview" id="bcMediaPreview" aria-live="polite" style="display:none"><img id="bcMediaPreviewImage" alt="Aperçu de la photo sélectionnée"><video id="bcMediaPreviewVideo" controls playsinline style="display:none"></video><div class="bc-media-preview-info"><strong id="bcMediaPreviewName"></strong><small id="bcMediaPreviewSize"></small></div><button type="button" id="bcRemoveMedia" aria-label="Retirer le média">✕</button></div>
      <div class="bc-post-tools">
       <label>📎 Ajouter photo/vidéo<input id="bcPostFile" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"></label>
@@ -1726,7 +1730,7 @@ function applyDRoute(route){
  };
  window.bcCloseComposer=function(){
   byId('bcPostComposer').classList.remove('show');
-  byId('bcPostText').value='';byId('bcPostFile').value='';bcClearMediaPreview();
+  byId('bcPostText').value='';byId('bcPostFile').value='';bcClearMediaPreview();window.bcChoosePostStyle('default');
   byId('bcPostStatus').textContent='Texte, photo ou vidéo • 50 Mo maximum pour un média.';
  };
  function bcClearMediaPreview(){
@@ -1801,6 +1805,16 @@ function applyDRoute(route){
   const {error}=await bcClient.from('bope_post_comments').delete().eq('id',commentId).eq('author_id',bcCurrentUser.id);
   if(error){alert('Suppression impossible : '+error.message);return;}await bcLoadPosts();
  };
+ let bcSelectedPostStyle='default';
+ const bcPostStyleNames=['default','red','blue','green','black','yellow','purple','orange','stars'];
+ window.bcChoosePostStyle=function(style){
+  if(!bcPostStyleNames.includes(style))style='default';bcSelectedPostStyle=style;
+  const palette=byId('bcPostStylePalette');if(palette)palette.querySelectorAll('[data-style]').forEach(button=>button.classList.toggle('selected',button.dataset.style===style));
+  const preview=byId('bcPostStylePreview'),textarea=byId('bcPostText');
+  const backgrounds={red:'#d32f2f',blue:'#1877f2',green:'#16834a',black:'#171717',yellow:'#ffdf55',purple:'#7137a8',orange:'#ef7d24',stars:'linear-gradient(135deg,#263b86,#8b3f9e)'};
+  if(preview){preview.className='bc-post-style-preview'+(style==='default'?'':' show');preview.textContent=textarea&&textarea.value.trim()?textarea.value.trim():'Aperçu du style de ta publication';if(style!=='default')preview.classList.add('bc-post-bg-'+style);}
+  if(textarea){textarea.style.background=backgrounds[style]||'transparent';textarea.style.color=style==='yellow'?'#282828':style==='default'?'#1c1e21':'#fff';textarea.style.borderRadius=style==='default'?'0':'10px';textarea.style.padding=style==='default'?'8px 2px':'12px';}
+ };
  function bcRenderPosts(posts,reactions,comments,commentProfiles){
   const list=byId('bcPostsList');list.replaceChildren();
   byId('bcPostsEmpty').style.display=posts.length?'none':'block';
@@ -1812,7 +1826,7 @@ function applyDRoute(route){
    const meta=document.createElement('div');const name=document.createElement('strong');name.textContent=(post.profiles&&post.profiles.display_name)||'Utilisateur BOPE';
    const date=document.createElement('small');date.textContent=bcSafeDate(post.created_at)+(post.profiles&&post.profiles.username?' • @'+post.profiles.username:'');
    meta.append(name,date);head.appendChild(meta);card.appendChild(head);
-   if(post.content){const body=document.createElement('p');body.className='bc-post-text';body.textContent=post.content;card.appendChild(body);}
+   if(post.content){const body=document.createElement('p');const style=bcPostStyleNames.includes(post.background_style)?post.background_style:'default';body.className='bc-post-text'+(style==='default'?'':' bc-post-bg-'+style);body.textContent=post.content;card.appendChild(body);}
    if(post.media_url){let media;if(post.media_type==='video'){media=document.createElement('video');media.controls=true;media.playsInline=true;}else{media=document.createElement('img');media.alt='Photo publiée sur BOPE';}media.className='bc-post-media';media.src=post.media_url;card.appendChild(media);}
    const postReactions=(reactions||[]).filter(r=>r.post_id===post.id);
    const counts={};postReactions.forEach(r=>{counts[r.reaction_type]=(counts[r.reaction_type]||0)+1;});
@@ -1869,7 +1883,7 @@ function applyDRoute(route){
   if(!bcClient)return;
   const sharedParts=window.location.pathname.split('/').filter(Boolean);
   const sharedPostId=sharedParts.length===2&&sharedParts[0]==='publication'&&/^[0-9a-f-]{36}$/i.test(sharedParts[1])?sharedParts[1]:null;
-  let postsQuery=bcClient.from('bope_posts').select('id,content,media_url,media_type,created_at,profiles(display_name,username,avatar_url)').order('created_at',{ascending:false});
+  let postsQuery=bcClient.from('bope_posts').select('id,content,media_url,media_type,background_style,created_at,profiles(display_name,username,avatar_url)').order('created_at',{ascending:false});
   if(sharedPostId)postsQuery=postsQuery.eq('id',sharedPostId);else postsQuery=postsQuery.limit(50);
   const {data,error}=await postsQuery;
   if(error){byId('bcPostStatus').textContent='Impossible de charger les publications : '+error.message;return;}
@@ -1920,10 +1934,10 @@ function applyDRoute(route){
     if(uploadError)throw new Error('Envoi du média impossible : '+uploadError.message);
     media_url=bcClient.storage.from('bope-posts').getPublicUrl(path).data.publicUrl;
    }
-   const {error}=await bcClient.from('bope_posts').insert({author_id:bcCurrentUser.id,content,media_url,media_type});
+   const {error}=await bcClient.from('bope_posts').insert({author_id:bcCurrentUser.id,content,media_url,media_type,background_style:bcSelectedPostStyle});
    if(error)throw error;
    byId('bcPostStatus').textContent='✓ Publication envoyée ! Actualisation du fil…';
-   byId('bcPostText').value='';byId('bcPostFile').value='';bcClearMediaPreview();
+   byId('bcPostText').value='';byId('bcPostFile').value='';bcClearMediaPreview();window.bcChoosePostStyle('default');
    await bcLoadPosts();
    byId('bcPostComposer').classList.remove('show');
    byId('bcAccountMessage').textContent='Ta publication est maintenant visible dans le fil BOPE.';
@@ -2053,7 +2067,7 @@ function applyDRoute(route){
    const meta=document.createElement('div');const name=document.createElement('strong');name.textContent=person.display_name||'Utilisateur BOPE';
    const date=document.createElement('small');date.textContent=bcSafeDate(post.created_at)+' • @'+(person.username||'utilisateur');
    meta.append(name,date);head.append(avatar,meta);card.appendChild(head);
-   if(post.content){const body=document.createElement('p');body.className='bc-post-text';body.textContent=post.content;card.appendChild(body);}
+   if(post.content){const body=document.createElement('p');const style=bcPostStyleNames.includes(post.background_style)?post.background_style:'default';body.className='bc-post-text'+(style==='default'?'':' bc-post-bg-'+style);body.textContent=post.content;card.appendChild(body);}
    if(post.media_url){const media=post.media_type==='video'?document.createElement('video'):document.createElement('img');media.className='bc-post-media';media.src=post.media_url;if(post.media_type==='video'){media.controls=true;media.playsInline=true;}else media.alt='Publication photo';card.appendChild(media);}
    list.appendChild(card);
   });
