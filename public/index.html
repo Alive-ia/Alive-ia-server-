@@ -1578,6 +1578,10 @@ function applyDRoute(route){
       </div>
      </div>
      <div id="bcStoryReplyContext" style="display:none"></div>
+     <div id="bcReplyComposerContext" style="display:none;padding:8px 12px;background:#fff1ed;border-top:1px solid #f3c8bd;color:#7f1d1d;font-size:12px">
+      <span id="bcReplyComposerText"></span>
+      <button type="button" id="bcCancelReply" style="float:right;border:0;background:transparent;color:#b91c1c;font-weight:700">✕</button>
+     </div>
      <form id="bcChatForm"><input id="bcChatInput" type="text" maxlength="5000" placeholder="Écris un message…" autocomplete="off"><button type="submit">Envoyer</button></form>
     </div>
    </section>
@@ -2318,29 +2322,35 @@ function applyDRoute(route){
  byId('bcMessageActionMenu').addEventListener('click',async function(event){
   const button=event.target.closest('[data-message-action]');if(!button||!bcSelectedMessage)return;
   const action=button.dataset.messageAction,msg=bcSelectedMessage;
-  if(action==='copy'){try{await navigator.clipboard.writeText(msg.content||'');alert('Message copié.');}catch(e){alert('Copie non disponible sur cet appareil.');}}
-  else if(action==='reply'){const input=byId('bcChatInput');input.value='';input.focus();input.placeholder='Répondre à : '+(msg.content||'').slice(0,45);input.dataset.replyTo=msg.id;}
-  else if(action==='edit'&&msg.sender_id===bcCurrentUser.id){alert('La modification sera activée dans la prochaine étape.');}
+  if(action==='copy'){try{if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(msg.content||'');}else{const area=document.createElement('textarea');area.value=msg.content||'';document.body.appendChild(area);area.select();document.execCommand('copy');area.remove();}alert('Message copié.');}catch(e){alert('Copie non disponible sur cet appareil.');}}
+  else if(action==='reply'){window.bcSetReplyTarget(msg);}
+  else if(action==='edit'&&msg.sender_id===bcCurrentUser.id){alert('La modification sécurisée sera activée dans la prochaine étape.');}
   else if(action==='edit'){alert('Tu peux modifier uniquement tes propres messages.');}
   else{alert('Le menu est prêt. Nous activons cette action avec ses protections dans la prochaine étape.');}
   window.bcCloseMessageActions();
  });
+ let bcReplyTarget=null;
+ window.bcSetReplyTarget=function(msg){bcReplyTarget=msg;const panel=byId('bcReplyComposerContext'),label=byId('bcReplyComposerText'),input=byId('bcChatInput');label.textContent='↩️ Réponse à : '+(msg.content||'').slice(0,100);panel.style.display='block';input.placeholder='Écris ta réponse…';input.focus();};
+ window.bcClearReplyTarget=function(){bcReplyTarget=null;const panel=byId('bcReplyComposerContext');if(panel)panel.style.display='none';const input=byId('bcChatInput');input.placeholder='Écris un message…';};
+ byId('bcCancelReply').addEventListener('click',window.bcClearReplyTarget);
  window.bcLoadChatMessages=async function(){
   if(!bcActiveChat||!bcClient||!bcCurrentUser)return;
   const box=byId('bcChatMessages');
   const filter='and(sender_id.eq.'+bcCurrentUser.id+',recipient_id.eq.'+bcActiveChat.id+'),and(sender_id.eq.'+bcActiveChat.id+',recipient_id.eq.'+bcCurrentUser.id+')';
-  const {data,error}=await bcClient.from('bope_messages').select('id,sender_id,content,created_at').or(filter).order('created_at',{ascending:true}).limit(200);
+  const {data,error}=await bcClient.from('bope_messages').select('id,sender_id,content,created_at,reply_to_message_id').or(filter).order('created_at',{ascending:true}).limit(200);
   if(error){box.textContent='Impossible de charger les messages : '+error.message;return;}
   box.replaceChildren();
   if(!(data||[]).length){const empty=document.createElement('p');empty.textContent='Aucun message pour le moment. Dis bonjour ! 👋';empty.style.cssText='text-align:center;color:#667085;font-size:13px;margin:30px 0';box.appendChild(empty);}
-  (data||[]).forEach(msg=>{const line=document.createElement('div');line.style.cssText='display:flex;margin:7px 0;'+(msg.sender_id===bcCurrentUser.id?'justify-content:flex-end':'justify-content:flex-start');const bubble=document.createElement('div');bubble.className='bc-message-bubble';bubble.textContent=msg.content;bubble.style.cssText='max-width:82%;padding:10px 13px;border-radius:'+(msg.sender_id===bcCurrentUser.id?'16px 16px 4px 16px':'16px 16px 16px 4px')+';background:'+(msg.sender_id===bcCurrentUser.id?'#c62828':'#f1f2f4')+';color:'+(msg.sender_id===bcCurrentUser.id?'#fff':'#292524')+';font-size:14px;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 1px 2px rgba(0,0,0,.06)';let pressTimer;const openMenu=()=>window.bcShowMessageActions(msg);bubble.addEventListener('contextmenu',e=>{e.preventDefault();openMenu();});bubble.addEventListener('touchstart',()=>{pressTimer=setTimeout(openMenu,550);},{passive:true});['touchend','touchmove','touchcancel'].forEach(type=>bubble.addEventListener(type,()=>clearTimeout(pressTimer),{passive:true}));bubble.addEventListener('mousedown',()=>{pressTimer=setTimeout(openMenu,550);});['mouseup','mouseleave'].forEach(type=>bubble.addEventListener(type,()=>clearTimeout(pressTimer)));line.appendChild(bubble);box.appendChild(line);});
+  const messageMap=new Map((data||[]).map(item=>[item.id,item]));(data||[]).forEach(msg=>{const line=document.createElement('div');line.style.cssText='display:flex;margin:7px 0;'+(msg.sender_id===bcCurrentUser.id?'justify-content:flex-end':'justify-content:flex-start');const bubble=document.createElement('div');bubble.className='bc-message-bubble';if(msg.reply_to_message_id&&messageMap.has(msg.reply_to_message_id)){const original=messageMap.get(msg.reply_to_message_id);const quote=document.createElement('div');quote.textContent='↪ '+(original.content||'Message d’origine');quote.style.cssText='font-size:11px;opacity:.82;border-left:3px solid currentColor;padding-left:7px;margin-bottom:6px';bubble.appendChild(quote);}const body=document.createElement('div');body.textContent=msg.content;bubble.appendChild(body);bubble.style.cssText='max-width:82%;padding:10px 13px;border-radius:'+(msg.sender_id===bcCurrentUser.id?'16px 16px 4px 16px':'16px 16px 16px 4px')+';background:'+(msg.sender_id===bcCurrentUser.id?'#c62828':'#f1f2f4')+';color:'+(msg.sender_id===bcCurrentUser.id?'#fff':'#292524')+';font-size:14px;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 1px 2px rgba(0,0,0,.06)';let pressTimer;const openMenu=()=>window.bcShowMessageActions(msg);bubble.addEventListener('contextmenu',e=>{e.preventDefault();openMenu();});bubble.addEventListener('touchstart',()=>{pressTimer=setTimeout(openMenu,550);},{passive:true});['touchend','touchmove','touchcancel'].forEach(type=>bubble.addEventListener(type,()=>clearTimeout(pressTimer),{passive:true}));bubble.addEventListener('mousedown',()=>{pressTimer=setTimeout(openMenu,550);});['mouseup','mouseleave'].forEach(type=>bubble.addEventListener(type,()=>clearTimeout(pressTimer)));line.appendChild(bubble);box.appendChild(line);});
   box.scrollTop=box.scrollHeight;
  };
  byId('bcChatForm').addEventListener('submit',async function(event){
   event.preventDefault();const input=byId('bcChatInput'),content=input.value.trim();if(!content||!bcActiveChat||!bcClient||!bcCurrentUser)return;
   const button=this.querySelector('button');button.disabled=true;
-  const {error}=await bcClient.from('bope_messages').insert({sender_id:bcCurrentUser.id,recipient_id:bcActiveChat.id,content});
-  button.disabled=false;if(error){alert('Message non envoyé : '+error.message);return;}input.value='';await window.bcLoadChatMessages();
+  const payload={sender_id:bcCurrentUser.id,recipient_id:bcActiveChat.id,content};
+  if(bcReplyTarget)payload.reply_to_message_id=bcReplyTarget.id;
+  const {error}=await bcClient.from('bope_messages').insert(payload);
+  button.disabled=false;if(error){alert('Message non envoyé : '+error.message);return;}input.value='';window.bcClearReplyTarget();await window.bcLoadChatMessages();
  });
  window.bcNavigate=function(tab){
   const tabs={
