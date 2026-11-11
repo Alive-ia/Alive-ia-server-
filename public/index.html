@@ -2081,6 +2081,25 @@ function applyDRoute(route){
   }catch(err){bcMessage(err.message||'Impossible de modifier le mot de passe. Ouvre à nouveau le lien reçu par e-mail.',true);}
   finally{bcBusy('bcResetPasswordButton',false,'Enregistrer le nouveau mot de passe');}
  });
+ let bcAvatarPreviewUrl=null,bcCoverPreviewUrl=null;
+ function bcPreviewProfileImage(input,kind){
+  const file=input.files&&input.files[0];if(!file)return;
+  const message=byId('bcAccountMessage');
+  if(file.size>5*1024*1024||!/^image\/(jpeg|png|webp)$/.test(file.type)){
+   message.textContent='Choisis une image JPG, PNG ou WebP de 5 Mo maximum.';input.value='';return;
+  }
+  const url=URL.createObjectURL(file);
+  if(kind==='avatar'){
+   if(bcAvatarPreviewUrl)URL.revokeObjectURL(bcAvatarPreviewUrl);
+   bcAvatarPreviewUrl=url;byId('bcAvatarPreview').src=url;
+  }else{
+   if(bcCoverPreviewUrl)URL.revokeObjectURL(bcCoverPreviewUrl);
+   bcCoverPreviewUrl=url;byId('bcCoverPreview').style.backgroundImage='url("'+url+'")';
+  }
+  message.textContent='Aperçu affiché. Appuie sur « Enregistrer mon profil » pour confirmer le changement.';
+ }
+ byId('bcAvatarFile').addEventListener('change',()=>bcPreviewProfileImage(byId('bcAvatarFile'),'avatar'));
+ byId('bcCoverFile').addEventListener('change',()=>bcPreviewProfileImage(byId('bcCoverFile'),'cover'));
  window.bcSaveProfile=async function(){
   if(!bcCurrentUser||!bcClient)return;
   const display_name=byId('bcEditName').value.trim();
@@ -2107,6 +2126,8 @@ function applyDRoute(route){
    if(error)throw error;
    await bcShowAccount(bcCurrentUser);
    byId('bcAvatarFile').value='';byId('bcCoverFile').value='';
+   if(bcAvatarPreviewUrl){URL.revokeObjectURL(bcAvatarPreviewUrl);bcAvatarPreviewUrl=null;}
+   if(bcCoverPreviewUrl){URL.revokeObjectURL(bcCoverPreviewUrl);bcCoverPreviewUrl=null;}
    byId('bcAccountMessage').textContent='Ton profil a été mis à jour avec succès !';
   }catch(err){byId('bcAccountMessage').textContent=err.message||'Impossible d’enregistrer le profil.';}
   finally{bcBusy('bcSaveProfileButton',false,'Enregistrer mon profil');}
