@@ -2414,7 +2414,7 @@ function applyDRoute(route){
   }catch(err){bcStopAudioStream();alert('Microphone inaccessible. Autorise le micro dans les paramètres du navigateur.');}
  }
  function bcStopVoiceRecording(cancel){if(!bcRecorder||bcRecorder.state==='inactive')return;bcRecordCancelled=!!cancel;try{bcRecorder.stop();}catch(e){bcStopAudioStream();}}
- voiceButton.addEventListener('pointerdown',async e=>{if(chatInput.value.trim()||voicePreview.style.display==='flex')return;e.preventDefault();bcPointerStart={x:e.clientX,y:e.clientY};voiceButton.setPointerCapture?.(e.pointerId);await bcStartVoiceRecording();});
+ voiceButton.addEventListener('pointerdown',async e=>{if(bcRecordLocked&&bcRecorder&&bcRecorder.state==='recording'){e.preventDefault();bcRecordLocked=false;bcStopVoiceRecording(false);return;}if(chatInput.value.trim()||voicePreview.style.display==='flex')return;e.preventDefault();bcPointerStart={x:e.clientX,y:e.clientY};voiceButton.setPointerCapture?.(e.pointerId);await bcStartVoiceRecording();});
  voiceButton.addEventListener('pointermove',e=>{if(!bcRecorder||bcRecorder.state!=='recording'||!bcPointerStart||bcRecordLocked)return;const dx=e.clientX-bcPointerStart.x,dy=e.clientY-bcPointerStart.y;if(dx< -75){bcStopVoiceRecording(true);bcPointerStart=null;}else if(dy< -70){bcRecordLocked=true;voiceHint.textContent='🔒 Enregistrement verrouillé. Appuie sur 🔴 pour terminer.';voiceButton.textContent='■';}});
  voiceButton.addEventListener('pointerup',()=>{if(!bcPointerStart)return;if(!bcRecordLocked)bcStopVoiceRecording(false);bcPointerStart=null;});
  voiceButton.addEventListener('pointercancel',()=>{if(!bcRecordLocked)bcStopVoiceRecording(true);bcPointerStart=null;});
