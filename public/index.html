@@ -2035,8 +2035,13 @@ function applyDRoute(route){
    bcClient.from('bope_story_views').upsert({story_id:story.id,viewer_id:bcCurrentUser.id,viewed_at:new Date().toISOString()},{onConflict:'story_id,viewer_id'}).then(({error})=>{if(error)console.warn('Vue Story non enregistrée :',error.message);});
    const interactions=document.createElement('div');interactions.style.cssText='margin-top:14px;padding:12px;border-radius:14px;background:#fff7f2;border:1px solid #f3d5c7';
    const reactionTitle=document.createElement('strong');reactionTitle.textContent='Réagir à cette Story';reactionTitle.style.cssText='display:block;margin-bottom:8px;color:#9f2626';interactions.appendChild(reactionTitle);
-   const tray=document.createElement('div');tray.style.cssText='display:flex;justify-content:space-between;gap:5px;flex-wrap:wrap';
-   ['❤️','😍','😂','😮','😢','😡','👍'].forEach(emoji=>{const b=document.createElement('button');b.type='button';b.textContent=emoji;b.setAttribute('aria-label','Réagir '+emoji);b.style.cssText='border:1px solid #f0d0c5;border-radius:20px;background:#fff;padding:7px 9px;font-size:20px';b.onclick=()=>window.bcStoryReact(story,emoji);tray.appendChild(b);});interactions.appendChild(tray);
+   const tray=document.createElement('div');tray.style.cssText='display:flex;gap:6px;flex-wrap:wrap';
+   const allStoryEmojis=['👍','👎','🫶','❤️','😍','😂','🤣','😮','😢','😭','😡','🤔','💔','💋','🤜','🤲','🫲','🫱','🫴','🫳','✊','👊','🤛','👏','🙌','🔥','🎉','🥰','😘','😎','🤩','🙏','💯','😴','🤯','🥳','😇','🤗','😤','🤝','💪','🌹','⭐','🇨🇩'];
+   const quickStoryEmojis=['❤️','😍','😂','😮','😢','😡','👍','🫶','🔥','👏','🙏','💯'];
+   const addStoryEmoji=(emoji)=>{const b=document.createElement('button');b.type='button';b.textContent=emoji;b.setAttribute('aria-label','Réagir '+emoji);b.title='Réagir '+emoji;b.style.cssText='border:1px solid #f0d0c5;border-radius:20px;background:#fff;padding:7px 9px;font-size:20px;min-width:40px';b.onclick=()=>window.bcStoryReact(story,emoji);tray.appendChild(b);};
+   quickStoryEmojis.forEach(addStoryEmoji);interactions.appendChild(tray);
+   const more=document.createElement('button');more.type='button';more.textContent='😊 Voir tous les emojis';more.style.cssText='margin-top:9px;border:1px solid #e8b9aa;border-radius:18px;background:#fff;padding:7px 12px;color:#9f2626;font-weight:700;font-size:12px';
+   let expanded=false;more.onclick=()=>{expanded=!expanded;tray.replaceChildren();(expanded?allStoryEmojis:quickStoryEmojis).forEach(addStoryEmoji);more.textContent=expanded?'Masquer les emojis':'😊 Voir tous les emojis';};interactions.append(more);
    const form=document.createElement('form');form.style.cssText='display:flex;gap:7px;margin-top:12px';
    const input=document.createElement('input');input.type='text';input.maxLength=2000;input.placeholder='Répondre à cette Story…';input.style.cssText='flex:1;min-width:0;border:1px solid #e7c9c0;border-radius:20px;padding:10px 12px;font-size:13px';
    const send=document.createElement('button');send.type='submit';send.textContent='Envoyer';send.style.cssText='border:0;border-radius:20px;padding:0 14px;background:#c62828;color:#fff;font-weight:700';
