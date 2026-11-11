@@ -1532,6 +1532,19 @@ function applyDRoute(route){
     </form>
     <div id="bcPeopleResults" aria-live="polite"><p style="color:#667085;font-size:13px">Entre un nom pour découvrir des utilisateurs BOPE.</p></div>
    </section>
+   <section id="bcPublicProfilePanel" class="bc-tab-panel" style="display:none;text-align:left">
+    <button type="button" onclick="bcNavigate('friends')" style="border:0;border-radius:18px;padding:8px 13px;background:#e7f0ff;color:#1877f2;font-weight:700;margin-bottom:12px">← Retour aux amis</button>
+    <div id="bcPublicProfileHeader" class="bc-profile" style="padding:12px;margin-bottom:14px">
+     <div id="bcPublicCover" class="bc-profile-cover"></div>
+     <div class="bc-profile-head">
+      <div class="bc-profile-info"><img id="bcPublicAvatar" class="bc-profile-avatar" src="" alt="Photo de profil"><strong id="bcPublicName">Utilisateur BOPE</strong><span id="bcPublicUsername" class="bc-handle">@utilisateur</span></div>
+      <span id="bcPublicType" class="bc-small">Compte personnel</span>
+     </div>
+     <p id="bcPublicBio" class="bc-muted" style="margin:10px 0 0">Aucune présentation pour le moment.</p>
+    </div>
+    <h3 style="margin:0 0 10px;color:#1e3260">📰 Publications</h3>
+    <div id="bcPublicPosts"><p style="color:#667085;font-size:13px">Chargement des publications…</p></div>
+   </section>
    <div id="bcProfileSection" style="display:none">
    <div class="bc-profile" style="padding:12px">
     <div class="bc-profile-cover" id="bcCoverPreview"></div>
@@ -1918,13 +1931,7 @@ function applyDRoute(route){
    info.append(name,handle);
    const actions=document.createElement('div');actions.style.cssText='display:flex;align-items:center;gap:6px;flex:0 0 auto';
    const view=document.createElement('button');view.type='button';view.textContent='Voir profil';view.style.cssText='border:0;border-radius:18px;padding:8px 10px;background:#e7f0ff;color:#1877f2;font-size:12px;font-weight:700;white-space:nowrap';
-   view.addEventListener('click',()=>{
-    let detail=card.querySelector('.bc-friend-detail');
-    if(detail){detail.remove();view.textContent='Voir profil';return;}
-    detail=document.createElement('div');detail.className='bc-friend-detail';detail.style.cssText='flex-basis:100%;margin:7px 0 0 58px;padding:10px;border-radius:10px;background:#f2f4f7;color:#475467;font-size:12px';
-    detail.textContent=person.bio||'Cet utilisateur n’a pas encore ajouté de présentation.';
-    card.style.flexWrap='wrap';card.appendChild(detail);view.textContent='Masquer';
-   });
+   view.addEventListener('click',()=>window.bcOpenPublicProfile(person.id));
    const remove=document.createElement('button');remove.type='button';remove.textContent='Retirer';remove.style.cssText='border:0;border-radius:18px;padding:8px 10px;background:#fce8e8;color:#c62828;font-size:12px;font-weight:700;white-space:nowrap';
    remove.addEventListener('click',async()=>{
     if(!window.confirm('Retirer '+(person.display_name||'cet ami')+' de ta liste d’amis ? Cette personne ne sera plus dans tes amis BOPE.'))return;
@@ -1934,6 +1941,37 @@ function applyDRoute(route){
     await window.bcLoadFriends();
    });
    actions.append(view,remove);card.append(avatar,info,actions);box.appendChild(card);
+  });
+ };
+ window.bcOpenPublicProfile=async function(profileId){
+  if(!bcClient||!profileId)return;
+  byId('bcFriendsPanel').style.display='none';
+  byId('bcTabPanel').style.display='none';
+  byId('bcPublicProfilePanel').style.display='block';
+  byId('bcPublicPosts').textContent='Chargement des publications…';
+  byId('bcPublicName').textContent='Chargement…';
+  const {data:person,error}=await bcClient.from('profiles').select('id,display_name,username,bio,avatar_url,cover_url,account_type').eq('id',profileId).maybeSingle();
+  if(error||!person){byId('bcPublicName').textContent='Profil indisponible';byId('bcPublicBio').textContent=error?error.message:'Ce profil est introuvable.';byId('bcPublicPosts').textContent='Impossible de charger les publications.';return;}
+  byId('bcPublicName').textContent=person.display_name||'Utilisateur BOPE';
+  byId('bcPublicUsername').textContent='@'+(person.username||'utilisateur');
+  byId('bcPublicBio').textContent=person.bio||'Cet utilisateur n’a pas encore ajouté de présentation.';
+  byId('bcPublicType').textContent=person.account_type==='professional'?'Compte professionnel':'Compte personnel';
+  byId('bcPublicAvatar').src=person.avatar_url||'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" rx="50" fill="#e8edfa"/><text x="50" y="63" text-anchor="middle" font-size="48">👤</text></svg>');
+  byId('bcPublicCover').style.backgroundImage=person.cover_url?'url("'+person.cover_url.replace(/"/g,'%22')+'")':'';
+  const {data:posts,error:postsError}=await bcClient.from('bope_posts').select('id,content,media_url,media_type,created_at').eq('author_id',profileId).order('created_at',{ascending:false}).limit(50);
+  const list=byId('bcPublicPosts');list.replaceChildren();
+  if(postsError){list.textContent='Impossible de charger les publications : '+postsError.message;return;}
+  if(!posts||!posts.length){list.textContent='Aucune publication pour le moment.';return;}
+  posts.forEach(post=>{
+   const card=document.createElement('article');card.className='bc-post-card';
+   const head=document.createElement('div');head.className='bc-post-author';
+   const avatar=document.createElement('img');avatar.className='bc-post-avatar';avatar.src=person.avatar_url||byId('bcPublicAvatar').src;avatar.alt='';
+   const meta=document.createElement('div');const name=document.createElement('strong');name.textContent=person.display_name||'Utilisateur BOPE';
+   const date=document.createElement('small');date.textContent=bcSafeDate(post.created_at)+' • @'+(person.username||'utilisateur');
+   meta.append(name,date);head.append(avatar,meta);card.appendChild(head);
+   if(post.content){const body=document.createElement('p');body.className='bc-post-text';body.textContent=post.content;card.appendChild(body);}
+   if(post.media_url){const media=post.media_type==='video'?document.createElement('video'):document.createElement('img');media.className='bc-post-media';media.src=post.media_url;if(post.media_type==='video'){media.controls=true;media.playsInline=true;}else media.alt='Publication photo';card.appendChild(media);}
+   list.appendChild(card);
   });
  };
  window.bcSearchPeople=async function(term){
@@ -2003,6 +2041,7 @@ function applyDRoute(route){
   byId('bcFeedSection').classList.toggle('show',tab==='home');
   byId('bcNotificationsPanel').style.display=tab==='notifications'?'block':'none';
   byId('bcFriendsPanel').style.display=tab==='friends'?'block':'none';
+  byId('bcPublicProfilePanel').style.display='none';
   byId('bcTabPanel').style.display=(tab==='menu'||tab==='home'||tab==='notifications'||tab==='friends')?'none':'block';
   if(tab==='notifications')window.bcLoadNotifications();
   if(tab==='friends'){window.bcLoadFriends();byId('bcPeopleSearchInput').focus();}
