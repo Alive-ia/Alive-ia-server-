@@ -1557,6 +1557,14 @@ function applyDRoute(route){
      #bcMessagesPanel #bcChatInput:focus{border-color:#f59e0b;box-shadow:0 0 0 2px rgba(245,158,11,.15)}
      #bcMessagesPanel #bcChatForm button{border:0;border-radius:22px;padding:0 17px;background:#c62828;color:#fff;font-weight:700}
      #bcMessagesPanel #bcChatForm button:disabled{opacity:.6}
+     #bcMessagesPanel #bcVoiceButton{width:44px;min-width:44px;height:44px;padding:0;border-radius:50%;font-size:20px;display:flex;align-items:center;justify-content:center;background:#c62828;color:#fff;touch-action:none}
+     #bcMessagesPanel #bcSendButton{min-width:48px;height:44px;padding:0 16px}
+     #bcVoicePreview{display:none;align-items:center;gap:8px;padding:9px 12px;background:#fff7ed;border-top:1px solid #f1d6d6}
+     #bcVoicePreview audio{flex:1;min-width:0;max-width:100%;height:38px}
+     #bcVoicePreview button{border:0;border-radius:18px;padding:8px 12px;font-weight:700}
+     #bcVoiceRecordHint{font-size:12px;color:#9f1239;padding:0 12px 7px;background:#fff;display:none}
+     .bc-audio-message{display:block;width:min(250px,65vw);height:38px;margin-top:4px}
+     #bcMessagesPanel #bcChatForm.bc-recording{background:#fff1f2}
     </style>
     <h3 class="bc-msg-title">💬 BOPE Messages</h3>
     <p class="bc-msg-subtitle">Tes discussions privées, simplement. 🇨🇩</p>
@@ -1587,7 +1595,9 @@ function applyDRoute(route){
       <span id="bcReplyComposerText"></span>
       <button type="button" id="bcCancelReply" style="float:right;border:0;background:transparent;color:#b91c1c;font-weight:700">✕</button>
      </div>
-     <form id="bcChatForm"><input id="bcChatInput" type="text" maxlength="5000" placeholder="Écris un message…" autocomplete="off"><button type="submit">Envoyer</button></form>
+     <div id="bcVoicePreview"><audio id="bcVoicePreviewAudio" controls></audio><button type="button" id="bcDiscardVoice" style="background:#fee2e2;color:#991b1b">✕</button><button type="button" id="bcSendVoice" style="background:#c62828;color:#fff">Envoyer</button></div>
+     <div id="bcVoiceRecordHint">🎙️ Enregistrement… glisse à gauche pour annuler ou vers le haut pour verrouiller.</div>
+     <form id="bcChatForm"><input id="bcChatInput" type="text" maxlength="5000" placeholder="Écris un message…" autocomplete="off"><button id="bcSendButton" type="submit" style="display:none">➤</button><button id="bcVoiceButton" type="button" aria-label="Maintenir pour enregistrer un message vocal">🎙️</button></form>
     </div>
    </section>
    <section id="bcNotificationsPanel" class="bc-tab-panel" style="display:none;text-align:left">
@@ -2360,7 +2370,7 @@ function applyDRoute(route){
   if(!bcActiveChat||!bcClient||!bcCurrentUser)return;
   const box=byId('bcChatMessages');
   const filter='and(sender_id.eq.'+bcCurrentUser.id+',recipient_id.eq.'+bcActiveChat.id+'),and(sender_id.eq.'+bcActiveChat.id+',recipient_id.eq.'+bcCurrentUser.id+')';
-  const {data,error}=await bcClient.from('bope_messages').select('id,sender_id,content,created_at,reply_to_message_id,edited_at,is_deleted_for_everyone,forwarded_from_message_id').or(filter).order('created_at',{ascending:true}).limit(200);
+  const {data,error}=await bcClient.from('bope_messages').select('id,sender_id,content,created_at,reply_to_message_id,edited_at,is_deleted_for_everyone,forwarded_from_message_id,media_path,media_type,media_duration').or(filter).order('created_at',{ascending:true}).limit(200);
   if(error){box.textContent='Impossible de charger les messages : '+error.message;return;}
   const {data:hiddenRows,error:hiddenError}=await bcClient.from('bope_message_hidden').select('message_id').eq('user_id',bcCurrentUser.id);
   if(hiddenError){box.textContent='Impossible de charger les préférences de messages : '+hiddenError.message;return;}
@@ -2369,16 +2379,63 @@ function applyDRoute(route){
   bcLoadedChatMessages=visibleMessages;
   box.replaceChildren();
   if(!visibleMessages.length){const empty=document.createElement('p');empty.textContent='Aucun message à afficher. Dis bonjour ! 👋';empty.style.cssText='text-align:center;color:#667085;font-size:13px;margin:30px 0';box.appendChild(empty);}
-  const messageMap=new Map(visibleMessages.map(item=>[item.id,item]));visibleMessages.forEach(msg=>{const line=document.createElement('div');line.style.cssText='display:flex;margin:7px 0;'+(msg.sender_id===bcCurrentUser.id?'justify-content:flex-end':'justify-content:flex-start');const bubble=document.createElement('div');bubble.className='bc-message-bubble';if(msg.reply_to_message_id&&messageMap.has(msg.reply_to_message_id)){const original=messageMap.get(msg.reply_to_message_id);const quote=document.createElement('div');quote.textContent='↪ '+(original.content||'Message d’origine');quote.style.cssText='font-size:11px;opacity:.82;border-left:3px solid currentColor;padding-left:7px;margin-bottom:6px';bubble.appendChild(quote);}const body=document.createElement('div');body.textContent=msg.is_deleted_for_everyone?'🚫 Ce message a été retiré.':msg.content;bubble.appendChild(body);if(msg.forwarded_from_message_id&&!msg.is_deleted_for_everyone){const forwarded=document.createElement('small');forwarded.textContent='↗ Transféré';forwarded.style.cssText='display:block;margin-bottom:4px;font-size:10px;opacity:.75';bubble.insertBefore(forwarded,body);}if(msg.edited_at&&!msg.is_deleted_for_everyone){const edited=document.createElement('small');edited.textContent='(modifié)';edited.style.cssText='display:block;margin-top:4px;font-size:10px;opacity:.7;text-align:right';bubble.appendChild(edited);}bubble.style.cssText='max-width:82%;padding:10px 13px;border-radius:'+(msg.sender_id===bcCurrentUser.id?'16px 16px 4px 16px':'16px 16px 16px 4px')+';background:'+(msg.sender_id===bcCurrentUser.id?'#c62828':'#f1f2f4')+';color:'+(msg.sender_id===bcCurrentUser.id?'#fff':'#292524')+';font-size:14px;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 1px 2px rgba(0,0,0,.06)';let pressTimer;const openMenu=()=>{if(!msg.is_deleted_for_everyone)window.bcShowMessageActions(msg);};bubble.addEventListener('click',()=>{if(bcSelectionMode)window.bcToggleMessageSelection(msg,bubble);});bubble.addEventListener('contextmenu',e=>{e.preventDefault();openMenu();});bubble.addEventListener('touchstart',()=>{pressTimer=setTimeout(openMenu,550);},{passive:true});['touchend','touchmove','touchcancel'].forEach(type=>bubble.addEventListener(type,()=>clearTimeout(pressTimer),{passive:true}));bubble.addEventListener('mousedown',()=>{pressTimer=setTimeout(openMenu,550);});['mouseup','mouseleave'].forEach(type=>bubble.addEventListener(type,()=>clearTimeout(pressTimer)));line.appendChild(bubble);box.appendChild(line);});
+  const messageMap=new Map(visibleMessages.map(item=>[item.id,item]));visibleMessages.forEach(msg=>{const line=document.createElement('div');line.style.cssText='display:flex;margin:7px 0;'+(msg.sender_id===bcCurrentUser.id?'justify-content:flex-end':'justify-content:flex-start');const bubble=document.createElement('div');bubble.className='bc-message-bubble';if(msg.reply_to_message_id&&messageMap.has(msg.reply_to_message_id)){const original=messageMap.get(msg.reply_to_message_id);const quote=document.createElement('div');quote.textContent='↪ '+(original.content||'Message d’origine');quote.style.cssText='font-size:11px;opacity:.82;border-left:3px solid currentColor;padding-left:7px;margin-bottom:6px';bubble.appendChild(quote);}const body=document.createElement('div');if(msg.is_deleted_for_everyone){body.textContent='🚫 Ce message a été retiré.';}else if(msg.media_path&&msg.media_type&&String(msg.media_type).startsWith('audio/')){body.textContent='🎤 Message vocal'+(msg.media_duration?' · '+msg.media_duration+' s':'');const audio=document.createElement('audio');audio.controls=true;audio.preload='none';audio.className='bc-audio-message';audio.src=bcClient.storage.from('bope-audios').getPublicUrl(msg.media_path).data.publicUrl;body.appendChild(audio);}else{body.textContent=msg.content;}bubble.appendChild(body);if(msg.forwarded_from_message_id&&!msg.is_deleted_for_everyone){const forwarded=document.createElement('small');forwarded.textContent='↗ Transféré';forwarded.style.cssText='display:block;margin-bottom:4px;font-size:10px;opacity:.75';bubble.insertBefore(forwarded,body);}if(msg.edited_at&&!msg.is_deleted_for_everyone){const edited=document.createElement('small');edited.textContent='(modifié)';edited.style.cssText='display:block;margin-top:4px;font-size:10px;opacity:.7;text-align:right';bubble.appendChild(edited);}bubble.style.cssText='max-width:82%;padding:10px 13px;border-radius:'+(msg.sender_id===bcCurrentUser.id?'16px 16px 4px 16px':'16px 16px 16px 4px')+';background:'+(msg.sender_id===bcCurrentUser.id?'#c62828':'#f1f2f4')+';color:'+(msg.sender_id===bcCurrentUser.id?'#fff':'#292524')+';font-size:14px;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 1px 2px rgba(0,0,0,.06)';let pressTimer;const openMenu=()=>{if(!msg.is_deleted_for_everyone)window.bcShowMessageActions(msg);};bubble.addEventListener('click',()=>{if(bcSelectionMode)window.bcToggleMessageSelection(msg,bubble);});bubble.addEventListener('contextmenu',e=>{e.preventDefault();openMenu();});bubble.addEventListener('touchstart',()=>{pressTimer=setTimeout(openMenu,550);},{passive:true});['touchend','touchmove','touchcancel'].forEach(type=>bubble.addEventListener(type,()=>clearTimeout(pressTimer),{passive:true}));bubble.addEventListener('mousedown',()=>{pressTimer=setTimeout(openMenu,550);});['mouseup','mouseleave'].forEach(type=>bubble.addEventListener(type,()=>clearTimeout(pressTimer)));line.appendChild(bubble);box.appendChild(line);});
   box.scrollTop=box.scrollHeight;
  };
- byId('bcChatForm').addEventListener('submit',async function(event){
-  event.preventDefault();const input=byId('bcChatInput'),content=input.value.trim();if(!content||!bcActiveChat||!bcClient||!bcCurrentUser)return;
-  const button=this.querySelector('button');button.disabled=true;
+ const chatForm=byId('bcChatForm'),chatInput=byId('bcChatInput'),sendButton=byId('bcSendButton'),voiceButton=byId('bcVoiceButton');
+ function bcUpdateComposerMode(){const hasText=!!chatInput.value.trim();sendButton.style.display=hasText?'':'none';voiceButton.style.display=hasText?'none':'flex';}
+ chatInput.addEventListener('input',bcUpdateComposerMode);bcUpdateComposerMode();
+ chatForm.addEventListener('submit',async function(event){
+  event.preventDefault();const content=chatInput.value.trim();if(!content||!bcActiveChat||!bcClient||!bcCurrentUser)return;
+  sendButton.disabled=true;
   const payload={sender_id:bcCurrentUser.id,recipient_id:bcActiveChat.id,content};
   if(bcReplyTarget)payload.reply_to_message_id=bcReplyTarget.id;
   const {error}=await bcClient.from('bope_messages').insert(payload);
-  button.disabled=false;if(error){alert('Message non envoyé : '+error.message);return;}input.value='';window.bcClearReplyTarget();await window.bcLoadChatMessages();
+  sendButton.disabled=false;if(error){alert('Message non envoyé : '+error.message);return;}chatInput.value='';bcUpdateComposerMode();window.bcClearReplyTarget();await window.bcLoadChatMessages();
+ });
+ let bcRecorder=null,bcAudioStream=null,bcAudioChunks=[],bcVoiceBlob=null,bcVoiceObjectUrl=null,bcRecordStart=0,bcRecordLocked=false,bcRecordCancelled=false,bcPointerStart=null;
+ const voiceHint=byId('bcVoiceRecordHint'),voicePreview=byId('bcVoicePreview'),voicePreviewAudio=byId('bcVoicePreviewAudio');
+ function bcClearVoicePreview(){if(bcVoiceObjectUrl)URL.revokeObjectURL(bcVoiceObjectUrl);bcVoiceObjectUrl=null;bcVoiceBlob=null;voicePreviewAudio.removeAttribute('src');voicePreviewAudio.load();voicePreview.style.display='none';}
+ function bcStopAudioStream(){if(bcAudioStream){bcAudioStream.getTracks().forEach(track=>track.stop());bcAudioStream=null;}}
+ async function bcStartVoiceRecording(){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder){alert('Ton navigateur ne permet pas encore les messages vocaux.');return;}
+  try{
+   bcAudioStream=await navigator.mediaDevices.getUserMedia({audio:true});
+   const preferred=['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus'];
+   const mimeType=preferred.find(type=>MediaRecorder.isTypeSupported(type));
+   bcRecorder=mimeType?new MediaRecorder(bcAudioStream,{mimeType}):new MediaRecorder(bcAudioStream);
+   bcAudioChunks=[];bcRecordCancelled=false;bcRecordLocked=false;bcRecordStart=Date.now();
+   bcRecorder.ondataavailable=e=>{if(e.data&&e.data.size)bcAudioChunks.push(e.data);};
+   bcRecorder.onstop=()=>{
+    bcStopAudioStream();chatForm.classList.remove('bc-recording');voiceHint.style.display='none';voiceButton.textContent='🎙️';
+    if(!bcRecordCancelled&&bcAudioChunks.length){bcVoiceBlob=new Blob(bcAudioChunks,{type:bcRecorder.mimeType||'audio/webm'});bcVoiceObjectUrl=URL.createObjectURL(bcVoiceBlob);voicePreviewAudio.src=bcVoiceObjectUrl;voicePreview.style.display='flex';}
+   };
+   bcRecorder.start();chatForm.classList.add('bc-recording');voiceHint.style.display='block';voiceButton.textContent='🔴';
+  }catch(err){bcStopAudioStream();alert('Microphone inaccessible. Autorise le micro dans les paramètres du navigateur.');}
+ }
+ function bcStopVoiceRecording(cancel){if(!bcRecorder||bcRecorder.state==='inactive')return;bcRecordCancelled=!!cancel;try{bcRecorder.stop();}catch(e){bcStopAudioStream();}}
+ voiceButton.addEventListener('pointerdown',async e=>{if(chatInput.value.trim()||voicePreview.style.display==='flex')return;e.preventDefault();bcPointerStart={x:e.clientX,y:e.clientY};voiceButton.setPointerCapture?.(e.pointerId);await bcStartVoiceRecording();});
+ voiceButton.addEventListener('pointermove',e=>{if(!bcRecorder||bcRecorder.state!=='recording'||!bcPointerStart||bcRecordLocked)return;const dx=e.clientX-bcPointerStart.x,dy=e.clientY-bcPointerStart.y;if(dx< -75){bcStopVoiceRecording(true);bcPointerStart=null;}else if(dy< -70){bcRecordLocked=true;voiceHint.textContent='🔒 Enregistrement verrouillé. Appuie sur 🔴 pour terminer.';voiceButton.textContent='■';}});
+ voiceButton.addEventListener('pointerup',()=>{if(!bcPointerStart)return;if(!bcRecordLocked)bcStopVoiceRecording(false);bcPointerStart=null;});
+ voiceButton.addEventListener('pointercancel',()=>{if(!bcRecordLocked)bcStopVoiceRecording(true);bcPointerStart=null;});
+ voiceButton.addEventListener('click',()=>{if(bcRecordLocked&&bcRecorder&&bcRecorder.state==='recording'){bcRecordLocked=false;bcStopVoiceRecording(false);}});
+ byId('bcDiscardVoice').addEventListener('click',bcClearVoicePreview);
+ byId('bcSendVoice').addEventListener('click',async()=>{
+  if(!bcVoiceBlob||!bcActiveChat||!bcCurrentUser||!bcClient)return;
+  const sendVoice=byId('bcSendVoice');sendVoice.disabled=true;sendVoice.textContent='Envoi…';
+  try{
+   const ext=bcVoiceBlob.type.includes('mp4')?'m4a':bcVoiceBlob.type.includes('ogg')?'ogg':'webm';
+   const path=bcCurrentUser.id+'/'+(crypto.randomUUID?crypto.randomUUID():Date.now()+'_'+Math.random().toString(36).slice(2))+'.'+ext;
+   const {error:uploadError}=await bcClient.storage.from('bope-audios').upload(path,bcVoiceBlob,{contentType:bcVoiceBlob.type||'audio/webm',upsert:false});
+   if(uploadError)throw uploadError;
+   const duration=Math.max(1,Math.round((Date.now()-bcRecordStart)/1000));
+   const payload={sender_id:bcCurrentUser.id,recipient_id:bcActiveChat.id,content:'🎤 Message vocal',media_path:path,media_type:bcVoiceBlob.type||'audio/webm',media_duration:duration};
+   if(bcReplyTarget)payload.reply_to_message_id=bcReplyTarget.id;
+   const {error:insertError}=await bcClient.from('bope_messages').insert(payload);
+   if(insertError){await bcClient.storage.from('bope-audios').remove([path]);throw insertError;}
+   bcClearVoicePreview();window.bcClearReplyTarget();await window.bcLoadChatMessages();
+  }catch(err){alert('Message vocal non envoyé : '+err.message);}
+  finally{sendVoice.disabled=false;sendVoice.textContent='Envoyer';}
  });
  window.bcNavigate=function(tab){
   const tabs={
