@@ -1542,6 +1542,13 @@ function applyDRoute(route){
      #bcMessagesPanel #bcChatAvatar{width:40px;height:40px;border-radius:50%;object-fit:cover;background:#ffe4e6}
      #bcMessagesPanel #bcChatName{color:#292524;font-size:14px}
      #bcMessagesPanel #bcChatMessages{height:330px;overflow-y:auto;padding:14px;background:#fffaf7}
+     #bcMessagesPanel .bc-message-bubble{touch-action:pan-y;cursor:pointer}
+     #bcMessagesPanel #bcMessageActionShade{position:fixed;inset:0;background:rgba(25,15,15,.35);z-index:9998;display:none}
+     #bcMessagesPanel #bcMessageActionMenu{position:fixed;left:12px;right:12px;bottom:18px;z-index:9999;display:none;background:#fff;border:1px solid #f1d6d6;border-radius:18px;padding:12px;box-shadow:0 12px 40px rgba(0,0,0,.22);max-height:65vh;overflow:auto}
+     #bcMessagesPanel #bcMessageActionMenu strong{display:block;color:#7f1d1d;font-size:13px;margin:2px 4px 9px}
+     #bcMessagesPanel .bc-message-action-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+     #bcMessagesPanel .bc-message-action{border:1px solid #f1e5df;background:#fffaf7;border-radius:11px;padding:11px 8px;text-align:left;color:#292524;font-size:13px;font-weight:600}
+     #bcMessagesPanel .bc-message-action:active{background:#fee2e2}
      #bcMessagesPanel #bcChatForm{display:flex;gap:8px;padding:10px;border-top:1px solid #f1e5df;background:#fff}
      #bcMessagesPanel #bcChatInput{flex:1;min-width:0;border:1px solid #e5caca;border-radius:22px;padding:11px 14px;font-size:14px;outline:none}
      #bcMessagesPanel #bcChatInput:focus{border-color:#f59e0b;box-shadow:0 0 0 2px rgba(245,158,11,.15)}
@@ -1554,6 +1561,22 @@ function applyDRoute(route){
     <div id="bcConversationView" style="display:none">
      <div class="bc-chat-head"><button type="button" class="bc-chat-back" onclick="bcCloseConversation()" aria-label="Retour aux discussions">←</button><img id="bcChatAvatar" src="" alt=""><strong id="bcChatName">Conversation</strong></div>
      <div id="bcChatMessages" aria-live="polite"></div>
+     <div id="bcMessageActionShade"></div>
+     <div id="bcMessageActionMenu" role="dialog" aria-label="Actions du message">
+      <strong id="bcMessageActionTitle">Actions du message</strong>
+      <div class="bc-message-action-grid">
+       <button type="button" class="bc-message-action" data-message-action="reply">↩️ Répondre</button>
+       <button type="button" class="bc-message-action" data-message-action="copy">📋 Copier</button>
+       <button type="button" class="bc-message-action" data-message-action="forward">➡️ Transférer</button>
+       <button type="button" class="bc-message-action" data-message-action="edit">✏️ Modifier</button>
+       <button type="button" class="bc-message-action" data-message-action="hide">🗑️ Supprimer pour moi</button>
+       <button type="button" class="bc-message-action" data-message-action="remove">🚫 Retirer pour tous</button>
+       <button type="button" class="bc-message-action" data-message-action="report">🚩 Signaler</button>
+       <button type="button" class="bc-message-action" data-message-action="react">❤️ Réagir</button>
+       <button type="button" class="bc-message-action" data-message-action="pin">📌 Épingler</button>
+       <button type="button" class="bc-message-action" data-message-action="save">⭐ Enregistrer</button>
+      </div>
+     </div>
      <div id="bcStoryReplyContext" style="display:none"></div>
      <form id="bcChatForm"><input id="bcChatInput" type="text" maxlength="5000" placeholder="Écris un message…" autocomplete="off"><button type="submit">Envoyer</button></form>
     </div>
@@ -2288,6 +2311,20 @@ function applyDRoute(route){
   await window.bcLoadChatMessages();byId('bcChatInput').focus();
  };
  window.bcCloseConversation=function(){bcActiveChat=null;const contextBox=byId('bcStoryReplyContext');if(contextBox){contextBox.replaceChildren();contextBox.style.display='none';}byId('bcConversationView').style.display='none';};
+ let bcSelectedMessage=null;
+ window.bcCloseMessageActions=function(){const menu=byId('bcMessageActionMenu'),shade=byId('bcMessageActionShade');if(menu)menu.style.display='none';if(shade)shade.style.display='none';bcSelectedMessage=null;};
+ window.bcShowMessageActions=function(msg){bcSelectedMessage=msg;const menu=byId('bcMessageActionMenu'),shade=byId('bcMessageActionShade');if(!menu||!shade)return;byId('bcMessageActionTitle').textContent=(msg.sender_id===bcCurrentUser.id?'Votre message':'Message reçu');menu.style.display='block';shade.style.display='block';};
+ byId('bcMessageActionShade').addEventListener('click',window.bcCloseMessageActions);
+ byId('bcMessageActionMenu').addEventListener('click',async function(event){
+  const button=event.target.closest('[data-message-action]');if(!button||!bcSelectedMessage)return;
+  const action=button.dataset.messageAction,msg=bcSelectedMessage;
+  if(action==='copy'){try{await navigator.clipboard.writeText(msg.content||'');alert('Message copié.');}catch(e){alert('Copie non disponible sur cet appareil.');}}
+  else if(action==='reply'){const input=byId('bcChatInput');input.value='';input.focus();input.placeholder='Répondre à : '+(msg.content||'').slice(0,45);input.dataset.replyTo=msg.id;}
+  else if(action==='edit'&&msg.sender_id===bcCurrentUser.id){alert('La modification sera activée dans la prochaine étape.');}
+  else if(action==='edit'){alert('Tu peux modifier uniquement tes propres messages.');}
+  else{alert('Le menu est prêt. Nous activons cette action avec ses protections dans la prochaine étape.');}
+  window.bcCloseMessageActions();
+ });
  window.bcLoadChatMessages=async function(){
   if(!bcActiveChat||!bcClient||!bcCurrentUser)return;
   const box=byId('bcChatMessages');
@@ -2296,7 +2333,7 @@ function applyDRoute(route){
   if(error){box.textContent='Impossible de charger les messages : '+error.message;return;}
   box.replaceChildren();
   if(!(data||[]).length){const empty=document.createElement('p');empty.textContent='Aucun message pour le moment. Dis bonjour ! 👋';empty.style.cssText='text-align:center;color:#667085;font-size:13px;margin:30px 0';box.appendChild(empty);}
-  (data||[]).forEach(msg=>{const line=document.createElement('div');line.style.cssText='display:flex;margin:7px 0;'+(msg.sender_id===bcCurrentUser.id?'justify-content:flex-end':'justify-content:flex-start');const bubble=document.createElement('div');bubble.textContent=msg.content;bubble.style.cssText='max-width:82%;padding:10px 13px;border-radius:'+(msg.sender_id===bcCurrentUser.id?'16px 16px 4px 16px':'16px 16px 16px 4px')+';background:'+(msg.sender_id===bcCurrentUser.id?'#c62828':'#f1f2f4')+';color:'+(msg.sender_id===bcCurrentUser.id?'#fff':'#292524')+';font-size:14px;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 1px 2px rgba(0,0,0,.06)';line.appendChild(bubble);box.appendChild(line);});
+  (data||[]).forEach(msg=>{const line=document.createElement('div');line.style.cssText='display:flex;margin:7px 0;'+(msg.sender_id===bcCurrentUser.id?'justify-content:flex-end':'justify-content:flex-start');const bubble=document.createElement('div');bubble.className='bc-message-bubble';bubble.textContent=msg.content;bubble.style.cssText='max-width:82%;padding:10px 13px;border-radius:'+(msg.sender_id===bcCurrentUser.id?'16px 16px 4px 16px':'16px 16px 16px 4px')+';background:'+(msg.sender_id===bcCurrentUser.id?'#c62828':'#f1f2f4')+';color:'+(msg.sender_id===bcCurrentUser.id?'#fff':'#292524')+';font-size:14px;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 1px 2px rgba(0,0,0,.06)';let pressTimer;const openMenu=()=>window.bcShowMessageActions(msg);bubble.addEventListener('contextmenu',e=>{e.preventDefault();openMenu();});bubble.addEventListener('touchstart',()=>{pressTimer=setTimeout(openMenu,550);},{passive:true});['touchend','touchmove','touchcancel'].forEach(type=>bubble.addEventListener(type,()=>clearTimeout(pressTimer),{passive:true}));bubble.addEventListener('mousedown',()=>{pressTimer=setTimeout(openMenu,550);});['mouseup','mouseleave'].forEach(type=>bubble.addEventListener(type,()=>clearTimeout(pressTimer)));line.appendChild(bubble);box.appendChild(line);});
   box.scrollTop=box.scrollHeight;
  };
  byId('bcChatForm').addEventListener('submit',async function(event){
