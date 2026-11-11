@@ -1451,9 +1451,15 @@ function applyDRoute(route){
    <p class="bc-small" style="margin-top:16px">En créant un compte, tu acceptes de respecter les règles de la communauté BOPE.</p>
   </div>
   <div class="bc-card bc-account" id="bcAccountCard">
+   <div id="bcAccountSwitcher" style="display:none;position:relative;margin:8px 0 14px;padding:14px;border:1px solid #f0c7b8;border-radius:16px;background:#fff8f4;color:#222">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><strong style="font-size:17px">Comptes BOPE</strong><button type="button" onclick="bcCloseAccountSwitcher()" aria-label="Fermer" style="border:0;border-radius:50%;width:32px;height:32px;background:#f3e5df;font-size:18px">×</button></div>
+    <p style="font-size:12px;color:#666;margin:6px 0 12px">Choisis un compte déjà utilisé sur cet appareil.</p>
+    <div id="bcSavedAccountsList"></div>
+    <button type="button" onclick="bcAddAnotherAccount()" style="width:100%;margin-top:10px;border:0;border-radius:12px;padding:11px;background:#c62828;color:white;font-weight:700">＋ Ajouter un compte</button>
+   </div>
    <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 4px 12px">
     <strong style="font-size:20px;color:#1877f2;letter-spacing:-.5px">BOPE</strong>
-    <div style="display:flex;gap:8px;align-items:center"><button type="button" onclick="bcSignOut()" style="border:0;border-radius:18px;background:#e7f0ff;color:#1877f2;padding:8px 10px;font-size:12px;font-weight:700">⇄ Changer de compte</button><button type="button" aria-label="Rechercher" style="width:36px;height:36px;border:0;border-radius:50%;background:#e4e6eb;color:#1c1e21;font-size:18px">⌕</button><button type="button" aria-label="Messages" onclick="bcNavigate('messages')" style="width:36px;height:36px;border:0;border-radius:50%;background:#e4e6eb;color:#1c1e21;font-size:18px">▱</button></div>
+    <div style="display:flex;gap:8px;align-items:center"><button type="button" onclick="bcOpenAccountSwitcher()" style="border:0;border-radius:18px;background:#fff0e8;color:#c62828;padding:8px 10px;font-size:12px;font-weight:700">⇄ Changer de compte</button><button type="button" aria-label="Rechercher" style="width:36px;height:36px;border:0;border-radius:50%;background:#e4e6eb;color:#1c1e21;font-size:18px">⌕</button><button type="button" aria-label="Messages" onclick="bcNavigate('messages')" style="width:36px;height:36px;border:0;border-radius:50%;background:#e4e6eb;color:#1c1e21;font-size:18px">▱</button></div>
    </div>
    <nav class="bc-main-nav" aria-label="Navigation BOPE CRÉATEURS">
     <button type="button" class="active" data-bc-tab="home" onclick="bcNavigate('home')" aria-label="Accueil" title="Accueil" aria-current="page"><span>⌂</span><small>Accueil</small></button>
@@ -1606,6 +1612,44 @@ function applyDRoute(route){
 <script>
 (function(){
  let bcClient=null,bcReady=false,bcCurrentUser=null;
+ const BC_SAVED_ACCOUNTS_KEY='bope_saved_account_sessions_v1';
+ function bcReadSavedAccounts(){try{const v=JSON.parse(localStorage.getItem(BC_SAVED_ACCOUNTS_KEY)||'[]');return Array.isArray(v)?v:[];}catch(e){return[];}}
+ function bcWriteSavedAccounts(items){try{localStorage.setItem(BC_SAVED_ACCOUNTS_KEY,JSON.stringify(items.slice(0,8)));}catch(e){console.warn('BOPE: stockage des sessions indisponible',e);}}
+ async function bcRememberSession(session){
+  if(!session||!session.user||!session.access_token||!session.refresh_token)return;
+  const u=session.user;let items=bcReadSavedAccounts();
+  const row={id:u.id,email:u.email||'',label:u.user_metadata?.display_name||u.user_metadata?.full_name||u.email||'Compte BOPE',access_token:session.access_token,refresh_token:session.refresh_token,updated_at:Date.now()};
+  items=[row,...items.filter(x=>x.id!==u.id)];bcWriteSavedAccounts(items);
+ }
+ function bcOpenAccountSwitcher(){const p=byId('bcAccountSwitcher');if(!p)return;p.style.display='block';bcRenderSavedAccounts();}
+ function bcCloseAccountSwitcher(){const p=byId('bcAccountSwitcher');if(p)p.style.display='none';}
+ function bcRenderSavedAccounts(){
+  const box=byId('bcSavedAccountsList');if(!box)return;
+  const items=bcReadSavedAccounts();
+  if(!items.length){box.innerHTML='<p style="font-size:13px;color:#777">Aucun autre compte mémorisé pour le moment.</p>';return;}
+  box.innerHTML=items.map(x=>{const current=bcCurrentUser&&x.id===bcCurrentUser.id;return '<div style="display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #eee"><div style="flex:1;min-width:0"><strong style="display:block;font-size:13px;overflow-wrap:anywhere">'+bcEscapeHtml(x.label||'Compte BOPE')+'</strong><small style="color:#777">'+bcEscapeHtml(x.email||'')+(current?' · Compte actuel':'')+'</small></div>'+(current?'<span style="font-size:11px;color:#c62828;font-weight:700">ACTIF</span>':'<button type="button" onclick="bcSwitchSavedAccount(\''+x.id+'\')" style="border:0;border-radius:10px;padding:8px 10px;background:#c62828;color:white;font-weight:700">Ouvrir</button>')+'<button type="button" aria-label="Retirer ce compte de la liste" onclick="bcRemoveSavedAccount(\''+x.id+'\')" style="border:0;border-radius:10px;padding:8px;background:#eee;color:#555">×</button></div>';}).join('');
+ }
+ window.bcOpenAccountSwitcher=bcOpenAccountSwitcher;window.bcCloseAccountSwitcher=bcCloseAccountSwitcher;
+ window.bcSwitchSavedAccount=async function(id){
+  const target=bcReadSavedAccounts().find(x=>x.id===id);if(!target||!bcClient)return;
+  try{
+   const {data,error}=await bcClient.auth.getSession();if(error)throw error;
+   if(data.session)await bcRememberSession(data.session);
+   const result=await bcClient.auth.setSession({access_token:target.access_token,refresh_token:target.refresh_token});
+   if(result.error)throw result.error;
+   if(result.data.session){await bcRememberSession(result.data.session);bcCloseAccountSwitcher();await bcShowAccount(result.data.user);}
+  }catch(err){const items=bcReadSavedAccounts().filter(x=>x.id!==id);bcWriteSavedAccounts(items);bcRenderSavedAccounts();alert('Cette session a expiré. Connecte-toi de nouveau à ce compte.');}
+ };
+ window.bcRemoveSavedAccount=function(id){
+  if(!confirm('Retirer ce compte de la liste sur cet appareil ? Le compte BOPE ne sera pas supprimé.'))return;
+  bcWriteSavedAccounts(bcReadSavedAccounts().filter(x=>x.id!==id));bcRenderSavedAccounts();
+ };
+ window.bcAddAnotherAccount=async function(){
+  if(!bcClient)return;
+  try{const {data,error}=await bcClient.auth.getSession();if(error)throw error;if(data.session)await bcRememberSession(data.session);
+   bcCloseAccountSwitcher();await bcClient.auth.signOut({scope:'local'});bcCurrentUser=null;bcShowAuth();bcShowForm('login');bcMessage('Connecte-toi avec ton autre compte. Ton compte précédent reste dans la liste BOPE.');
+  }catch(err){alert(err.message||'Impossible de préparer l’ajout du compte.');}
+ };
  const byId=id=>document.getElementById(id);
  function bcMessage(message,isError=false){const el=byId('bcAuthMessage');el.textContent=message;el.className='bc-message show'+(isError?' error':'');}
  function bcBusy(id,busy,label){const b=byId(id);if(!b)return;b.disabled=busy;b.textContent=busy?'Patiente...':label;}
@@ -1619,10 +1663,11 @@ function applyDRoute(route){
    bcClient=window.supabase.createClient(config.url,config.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
    bcReady=true;
    const {data}=await bcClient.auth.getSession();
-   if(data&&data.session)await bcShowAccount(data.session.user);
+   if(data&&data.session){await bcRememberSession(data.session);await bcShowAccount(data.session.user);}
    bcClient.auth.onAuthStateChange((event,session)=>{
     if(event==='PASSWORD_RECOVERY'){bcShowResetForm();return;}
-    if(session&&session.user)bcShowAccount(session.user);else bcShowAuth();
+    if(session&&session.user){if(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'||event==='USER_UPDATED')bcRememberSession(session);bcShowAccount(session.user);}
+    else bcShowAuth();
    });
    if(data&&data.session&&(window.location.hash.includes('type=recovery')||window.location.search.includes('type=recovery')))bcShowResetForm();
    return true;
@@ -2171,7 +2216,7 @@ function applyDRoute(route){
   try{
    const {data,error}=await bcClient.auth.signInWithPassword({email:byId('bcLoginEmail').value.trim(),password:byId('bcLoginPassword').value});
    if(error)throw error;
-   await bcShowAccount(data.user);bcMessage('Connexion réussie.');
+   await bcRememberSession(data.session);await bcShowAccount(data.user);bcMessage('Connexion réussie.');
   }catch(err){bcMessage(err.message||'Connexion impossible. Vérifie tes identifiants.',true);}
   finally{bcBusy('bcLoginButton',false,'Me connecter');}
  });
@@ -2249,7 +2294,7 @@ function applyDRoute(route){
   }catch(err){byId('bcAccountMessage').textContent=err.message||'Impossible d’enregistrer le profil.';}
   finally{bcBusy('bcSaveProfileButton',false,'Enregistrer mon profil');}
  };
- window.bcSignOut=async function(){if(!bcClient)return;const {error}=await bcClient.auth.signOut();if(error){byId('bcAccountMessage').textContent=error.message;return;}bcCurrentUser=null;bcShowAuth();bcShowForm('login');};
+ window.bcSignOut=async function(){if(!bcClient)return;const id=bcCurrentUser&&bcCurrentUser.id;if(id)bcWriteSavedAccounts(bcReadSavedAccounts().filter(x=>x.id!==id));const {error}=await bcClient.auth.signOut();if(error){byId('bcAccountMessage').textContent=error.message;return;}bcCurrentUser=null;bcShowAuth();bcShowForm('login');};
 })();
 </script>
 </body></html>
