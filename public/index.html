@@ -1617,8 +1617,8 @@ function applyDRoute(route){
  function bcWriteSavedAccounts(items){try{localStorage.setItem(BC_SAVED_ACCOUNTS_KEY,JSON.stringify(items.slice(0,8)));}catch(e){console.warn('BOPE: stockage des sessions indisponible',e);}}
  async function bcRememberSession(session){
   if(!session||!session.user||!session.access_token||!session.refresh_token)return;
-  const u=session.user;let items=bcReadSavedAccounts();
-  const row={id:u.id,email:u.email||'',label:u.user_metadata?.display_name||u.user_metadata?.full_name||u.email||'Compte BOPE',access_token:session.access_token,refresh_token:session.refresh_token,updated_at:Date.now()};
+  const u=session.user;let items=bcReadSavedAccounts();const previous=items.find(x=>x.id===u.id)||{};
+  const row={...previous,id:u.id,email:u.email||'',label:previous.label||u.user_metadata?.display_name||u.user_metadata?.full_name||u.email||'Compte BOPE',access_token:session.access_token,refresh_token:session.refresh_token,updated_at:Date.now()};
   items=[row,...items.filter(x=>x.id!==u.id)];bcWriteSavedAccounts(items);
  }
  function bcOpenAccountSwitcher(){const p=byId('bcAccountSwitcher');if(!p)return;p.style.display='block';bcRenderSavedAccounts();}
@@ -1626,8 +1626,13 @@ function applyDRoute(route){
  function bcRenderSavedAccounts(){
   const box=byId('bcSavedAccountsList');if(!box)return;
   const items=bcReadSavedAccounts();
-  if(!items.length){box.innerHTML='<p style="font-size:13px;color:#777">Aucun autre compte mémorisé pour le moment.</p>';return;}
-  box.innerHTML=items.map(x=>{const current=bcCurrentUser&&x.id===bcCurrentUser.id;return '<div style="display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #eee"><div style="flex:1;min-width:0"><strong style="display:block;font-size:13px;overflow-wrap:anywhere">'+escapeHTML(x.label||'Compte BOPE')+'</strong><small style="color:#777">'+escapeHTML(x.email||'')+(current?' · Compte actuel':'')+'</small></div>'+(current?'<span style="font-size:11px;color:#c62828;font-weight:700">ACTIF</span>':'<button type="button" onclick="bcSwitchSavedAccount(\''+x.id+'\')" style="border:0;border-radius:10px;padding:8px 10px;background:#c62828;color:white;font-weight:700">Ouvrir</button>')+'<button type="button" aria-label="Retirer ce compte de la liste" onclick="bcRemoveSavedAccount(\''+x.id+'\')" style="border:0;border-radius:10px;padding:8px;background:#eee;color:#555">×</button></div>';}).join('');
+  if(!items.length){box.innerHTML='<p style="font-size:13px;color:#777">Aucun compte mémorisé pour le moment.</p>';return;}
+  box.innerHTML=items.map(x=>{
+   const current=bcCurrentUser&&x.id===bcCurrentUser.id;
+   const label=x.label||'Compte BOPE';
+   const avatar=x.avatar_url?'<img src="'+escapeHTML(x.avatar_url)+'" alt="" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid #f1d1c4">':'<div style="width:48px;height:48px;flex:0 0 48px;border-radius:50%;display:grid;place-items:center;background:#c62828;color:#fff;font-size:20px;font-weight:700">'+escapeHTML(label.trim().charAt(0).toUpperCase()||'B')+'</div>';
+   return '<div style="display:flex;align-items:center;gap:11px;padding:12px;margin:8px 0;border:1px solid '+(current?'#e7a58e':'#eee')+';border-radius:15px;background:'+(current?'#fff0e8':'#fff')+'">'+avatar+'<div style="flex:1;min-width:0"><strong style="display:block;font-size:14px;overflow-wrap:anywhere;color:#222">'+escapeHTML(label)+'</strong><small style="display:block;margin-top:3px;color:#777;overflow-wrap:anywhere">'+escapeHTML(x.username?'@'+x.username:(x.email||''))+'</small>'+(current?'<small style="display:block;margin-top:4px;color:#c62828;font-weight:700">✓ Compte actuel</small>':'')+'</div>'+(current?'<span style="font-size:11px;color:#c62828;font-weight:700">ACTIF</span>':'<button type="button" onclick="bcSwitchSavedAccount(\''+x.id+'\')" style="border:0;border-radius:10px;padding:9px 11px;background:#c62828;color:white;font-weight:700">Ouvrir</button>')+'<button type="button" aria-label="Retirer ce compte de la liste" onclick="bcRemoveSavedAccount(\''+x.id+'\')" style="border:0;border-radius:10px;padding:8px;background:#f1f1f1;color:#555">×</button></div>';
+  }).join('');
  }
  window.bcOpenAccountSwitcher=bcOpenAccountSwitcher;window.bcCloseAccountSwitcher=bcCloseAccountSwitcher;
  window.bcSwitchSavedAccount=async function(id){
@@ -1691,6 +1696,8 @@ function applyDRoute(route){
    if(meta.username&&(!data||!data.username))profilePatch.username=String(meta.username).toLowerCase();
    if(Object.keys(profilePatch).length){const {error}=await bcClient.from('profiles').update(profilePatch).eq('id',user.id);if(!error){const result=await bcClient.from('profiles').select('display_name,username,bio,avatar_url,cover_url,account_type').eq('id',user.id).maybeSingle();data=result.data;}}
    if(data){
+    const saved=bcReadSavedAccounts();const cached=saved.find(x=>x.id===user.id);
+    if(cached){cached.label=data.display_name||cached.label;cached.username=data.username||'';cached.avatar_url=data.avatar_url||'';bcWriteSavedAccounts(saved);if(byId('bcAccountSwitcher')?.style.display==='block')bcRenderSavedAccounts();}
     byId('bcAccountName').textContent=data.display_name||byId('bcAccountName').textContent;
     byId('bcAccountType').textContent=data.account_type==='professional'?'Compte professionnel':'Compte personnel';
     byId('bcAccountUsername').textContent='@'+(data.username||'utilisateur');
