@@ -1548,6 +1548,7 @@ function applyDRoute(route){
      <div class="bc-profile-head">
       <div class="bc-profile-info"><img id="bcPublicAvatar" class="bc-profile-avatar" src="" alt="Photo de profil"><strong id="bcPublicName">Utilisateur BOPE</strong><span id="bcPublicUsername" class="bc-handle">@utilisateur</span></div>
       <span id="bcPublicType" class="bc-small">Compte personnel</span>
+      <button id="bcPublicMessageButton" type="button" onclick="bcMessagePublicProfile()" style="border:0;border-radius:18px;padding:9px 13px;background:#1877f2;color:#fff;font-size:12px;font-weight:700;margin-top:8px">💬 Envoyer un message</button>
      </div>
      <p id="bcPublicBio" class="bc-muted" style="margin:10px 0 0">Aucune présentation pour le moment.</p>
     </div>
@@ -1952,6 +1953,8 @@ function applyDRoute(route){
    actions.append(view,remove);card.append(avatar,info,actions);box.appendChild(card);
   });
  };
+ let bcViewedPublicPerson=null;
+ window.bcMessagePublicProfile=function(){if(!bcViewedPublicPerson||!bcCurrentUser)return;const person=bcViewedPublicPerson;window.bcNavigate("messages");window.bcOpenConversation(person);};
  window.bcOpenPublicProfile=async function(profileId){
   if(!bcClient||!profileId)return;
   byId('bcFriendsPanel').style.display='none';
@@ -1961,6 +1964,7 @@ function applyDRoute(route){
   byId('bcPublicName').textContent='Chargement…';
   const {data:person,error}=await bcClient.from('profiles').select('id,display_name,username,bio,avatar_url,cover_url,account_type').eq('id',profileId).maybeSingle();
   if(error||!person){byId('bcPublicName').textContent='Profil indisponible';byId('bcPublicBio').textContent=error?error.message:'Ce profil est introuvable.';byId('bcPublicPosts').textContent='Impossible de charger les publications.';return;}
+  bcViewedPublicPerson=person;
   byId('bcPublicName').textContent=person.display_name||'Utilisateur BOPE';
   byId('bcPublicUsername').textContent='@'+(person.username||'utilisateur');
   byId('bcPublicBio').textContent=person.bio||'Cet utilisateur n’a pas encore ajouté de présentation.';
@@ -2010,6 +2014,8 @@ function applyDRoute(route){
    const handle=document.createElement('small');handle.textContent='@'+(person.username||'utilisateur');handle.style.color='#667085';
    info.append(name,handle);
    if(person.bio){const bio=document.createElement('small');bio.textContent=person.bio;bio.style.cssText='display:block;color:#667085;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:190px';info.appendChild(bio);}
+   const actions=document.createElement('div');actions.style.cssText='display:flex;flex-direction:column;gap:6px;flex:0 0 auto';
+   const message=document.createElement('button');message.type='button';message.textContent='💬 Message';message.style.cssText='border:0;border-radius:18px;padding:8px 11px;background:#1877f2;color:#fff;font-size:12px;font-weight:700;white-space:nowrap';message.addEventListener('click',()=>{window.bcNavigate('messages');window.bcOpenConversation(person);});
    const action=document.createElement('button');action.type='button';action.style.cssText='border:0;border-radius:18px;padding:8px 11px;font-size:12px;font-weight:700;white-space:nowrap';
    const relation=(friendships||[]).some(f=>f.user_one===person.id||f.user_two===person.id);
    const sent=(requests||[]).find(r=>r.sender_id===bcCurrentUser.id&&r.recipient_id===person.id&&r.status==='pending');
@@ -2023,7 +2029,7 @@ function applyDRoute(route){
     if(sendError){action.disabled=false;action.textContent='Ajouter';byId('bcAccountMessage').textContent=sendError.code==='23505'?'Une demande existe déjà.':'Envoi impossible : '+sendError.message;return;}
     action.textContent='Demande envoyée';action.style.background='#eef2f6';action.style.color='#475467';
    });}
-   card.append(avatar,info,action);box.appendChild(card);
+   actions.append(message,action);card.append(avatar,info,actions);box.appendChild(card);
   });
  };
  window.bcMarkAllNotificationsRead=async function(){
