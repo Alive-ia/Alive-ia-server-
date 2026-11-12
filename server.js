@@ -197,6 +197,227 @@ app.get('/api/supabase-config', (req, res) => {
   res.json({ url, publishableKey });
 });
 
+// === BOPE CREATEUR : COMPTES ET PUBLICATIONS DE DEMONSTRATION ===
+const BOPE_DEMO_ACCOUNTS = [
+  { username: 'BOPE_Officiel', display_name: 'BOPE Officiel', bio: 'Compte officiel de BOPE 🇨🇩' },
+  { username: 'Kinshasa_Vibes', display_name: 'Kinshasa Vibes', bio: 'La vie à Kinshasa, tous les jours' },
+  { username: 'Humour_Congo', display_name: 'Humour Congo', bio: 'Que des fous rires made in Congo 😂' },
+  { username: 'Foot_RDC', display_name: 'Foot RDC', bio: 'Tout le foot congolais ici ⚽' },
+  { username: 'Cuisine_Kin', display_name: 'Cuisine Kin', bio: 'Pondu, fufu, grillades de Kin' },
+  { username: 'Musique_Congo', display_name: 'Musique Congo', bio: 'Ndombolo, rumba, amapiano' }
+];
+const BOPE_DEMO_EMAIL = username => 'bope-demo+' + username.toLowerCase() + '@example.com';
+
+const BOPE_DEMO_POSTS = [
+  { username: 'BOPE_Officiel', type: 'video', content: 'Bienvenue sur BOPE Créateur 🇨🇩. Découvrez les univers congolais !' },
+  { username: 'Kinshasa_Vibes', type: 'video', content: 'Kinshasa se réveille : énergie, circulation et vie quotidienne.' },
+  { username: 'Humour_Congo', type: 'video', content: 'Le rire congolais, c’est toute une culture 😂' },
+  { username: 'Foot_RDC', type: 'video', content: 'Passion football : tous derrière nos Léopards ! ⚽🇨🇩' },
+  { username: 'Cuisine_Kin', type: 'video', content: 'Un bon plat congolais, ça rassemble toute la famille.' },
+  { username: 'Musique_Congo', type: 'video', content: 'Rumba congolaise : un patrimoine qui fait danser le monde.' },
+  { username: 'BOPE_Officiel', type: 'video', content: 'BOPE : une plateforme pensée et construite en RDC.' },
+  { username: 'Kinshasa_Vibes', type: 'video', content: 'Les couleurs et les ambiances de la capitale.' },
+  { username: 'Foot_RDC', type: 'video', content: 'Le football congolais mérite une grande vitrine.' },
+  { username: 'Musique_Congo', type: 'video', content: 'Du ndombolo à l’amapiano : la musique nous unit.' },
+
+  { username: 'Cuisine_Kin', type: 'image', content: 'Pondu, fufu et convivialité : les saveurs de chez nous. 🍲' },
+  { username: 'Kinshasa_Vibes', type: 'image', content: 'Un aperçu de la vie urbaine à Kinshasa.' },
+  { username: 'BOPE_Officiel', type: 'image', content: 'Fierté congolaise. Made in Kikwit. 🇨🇩' },
+  { username: 'Humour_Congo', type: 'image', content: 'Quand la famille congolaise se retrouve 😂' },
+  { username: 'Foot_RDC', type: 'image', content: 'Les couleurs des supporters congolais. 🇨🇩⚽' },
+  { username: 'Musique_Congo', type: 'image', content: 'La musique congolaise traverse les générations.' },
+  { username: 'Cuisine_Kin', type: 'image', content: 'Les grillades : un classique des retrouvailles.' },
+  { username: 'Kinshasa_Vibes', type: 'image', content: 'La capitale, ses quartiers et ses habitants.' },
+  { username: 'BOPE_Officiel', type: 'image', content: 'BOPE Créateur : bientôt votre espace d’expression.' },
+  { username: 'Musique_Congo', type: 'image', content: 'Rumba, seben et ambiance : vive la musique !' },
+
+  { username: 'BOPE_Officiel', type: 'none', style: 'yellow', content: 'Bienvenue dans BOPE Créateur ! Une nouvelle place pour les idées congolaises. 🇨🇩' },
+  { username: 'Kinshasa_Vibes', type: 'none', style: 'blue', content: 'Kinshasa, une ville pleine de talents, de courage et de créativité.' },
+  { username: 'Humour_Congo', type: 'none', style: 'red', content: 'Ici, on vient pour sourire. 😂' },
+  { username: 'Foot_RDC', type: 'none', style: 'default', content: 'Un peuple, une passion : le football ! ⚽' },
+  { username: 'Cuisine_Kin', type: 'none', style: 'yellow', content: 'La cuisine de chez nous a toujours une histoire à raconter.' },
+  { username: 'Musique_Congo', type: 'none', style: 'blue', content: 'La musique est notre langue commune. 🎶' },
+  { username: 'BOPE_Officiel', type: 'none', style: 'red', content: 'Fierté Congolaise. Made in Kikwit. Par Alive Bope.' },
+  { username: 'Kinshasa_Vibes', type: 'none', style: 'default', content: 'Partageons les bons côtés de notre belle capitale.' },
+  { username: 'Foot_RDC', type: 'none', style: 'yellow', content: 'Les Léopards ont toute une nation derrière eux ! 🇨🇩' },
+  { username: 'Cuisine_Kin', type: 'none', style: 'blue', content: 'Pondu, saka-saka, fufu : quel est votre plat préféré ?' }
+];
+
+function bopeDemoSupabaseConfig() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) throw new Error('Configuration Supabase administrateur manquante sur Render.');
+  return { url: url.replace(/\/+$/, ''), key };
+}
+
+async function bopeDemoRequest(route, options) {
+  const cfg = bopeDemoSupabaseConfig();
+  const response = await fetch(cfg.url + route, {
+    ...options,
+    headers: {
+      apikey: cfg.key,
+      Authorization: 'Bearer ' + cfg.key,
+      'Content-Type': 'application/json',
+      ...(options && options.headers ? options.headers : {})
+    }
+  });
+  const raw = await response.text();
+  let data = null;
+  try { data = raw ? JSON.parse(raw) : null; } catch (e) { data = raw; }
+  if (!response.ok) {
+    const message = data && (data.message || data.msg || data.error_description || data.error);
+    throw new Error('Supabase HTTP ' + response.status + (message ? ' : ' + String(message).slice(0, 250) : '.'));
+  }
+  return data;
+}
+
+function bopeDemoAuthorized(req) {
+  const expected = process.env.BOPE_DEMO_ADMIN_KEY || '';
+  const supplied = req.get('x-bope-demo-key') || '';
+  if (!expected || !supplied) return false;
+  const a = Buffer.from(expected);
+  const b = Buffer.from(supplied);
+  return a.length === b.length && require('crypto').timingSafeEqual(a, b);
+}
+
+async function bopeDemoListUsers() {
+  const data = await bopeDemoRequest('/auth/v1/admin/users?page=1&per_page=1000', { method: 'GET' });
+  return Array.isArray(data && data.users) ? data.users : (Array.isArray(data) ? data : []);
+}
+
+async function bopeDemoEnsureAccounts() {
+  let users = await bopeDemoListUsers();
+  const result = [];
+  for (const account of BOPE_DEMO_ACCOUNTS) {
+    const email = BOPE_DEMO_EMAIL(account.username);
+    let user = users.find(item => String(item.email || '').toLowerCase() === email.toLowerCase());
+    if (user && !(user.app_metadata && user.app_metadata.bope_demo === true)) {
+      throw new Error('Adresse de démonstration déjà utilisée par un compte non identifié comme démo : ' + email);
+    }
+    if (!user) {
+      const created = await bopeDemoRequest('/auth/v1/admin/users', {
+        method: 'POST',
+        body: JSON.stringify({
+          email,
+          password: require('crypto').randomBytes(32).toString('hex'),
+          email_confirm: true,
+          user_metadata: { display_name: account.display_name, username: account.username, bope_demo: true },
+          app_metadata: { bope_demo: true, bope_demo_batch: 'bope-createur-v1' }
+        })
+      });
+      user = created && created.user ? created.user : created;
+      if (!user || !user.id) throw new Error('Supabase n’a pas retourné l’identifiant du compte ' + account.username + '.');
+      users.push(user);
+    }
+    result.push({ ...account, id: user.id });
+  }
+
+  const profiles = result.map(account => ({
+    id: account.id,
+    username: account.username,
+    display_name: account.display_name,
+    bio: account.bio,
+    account_type: 'personal'
+  }));
+  await bopeDemoRequest('/rest/v1/profiles?on_conflict=id', {
+    method: 'POST',
+    headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify(profiles)
+  });
+  return result;
+}
+
+app.get('/bope-demo-admin', (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.type('html').send([
+    '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">',
+    '<title>Administration BOPE Créateur</title><style>body{font-family:Arial,sans-serif;background:#101820;color:#fff;margin:0;padding:24px}main{max-width:520px;margin:30px auto;background:#1d2a35;padding:22px;border-radius:16px}h1{font-size:23px}p{line-height:1.5;color:#d5dde3}input,button{box-sizing:border-box;width:100%;padding:14px;border-radius:9px;margin:8px 0;font-size:15px}input{border:1px solid #52616d;background:#101820;color:#fff}button{border:0;background:#18a56b;color:#fff;font-weight:bold}button.danger{background:#bd3d45}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#101820;padding:12px;border-radius:8px}</style></head><body>',
+    '<main><h1>BOPE Créateur — Administration démo</h1><p>Cette page sert uniquement à remplir ou vider les comptes de démonstration. Tes comptes personnels et leurs publications ne sont pas ciblés.</p>',
+    '<label for="secret">Code secret administrateur</label><input id="secret" type="password" autocomplete="off" placeholder="Entre ton code secret Render">',
+    '<button id="fill">Remplir le feed démo (6 comptes, 30 publications)</button><button id="remove" class="danger">Supprimer les comptes démo</button><pre id="result">En attente d’une action.</pre></main>',
+    '<script>',
+    'const secret=document.getElementById("secret"),result=document.getElementById("result");',
+    'async function run(path,button){if(!secret.value){result.textContent="Entre d’abord ton code secret.";return;}button.disabled=true;result.textContent="Opération en cours…";try{const r=await fetch(path,{method:"POST",headers:{"x-bope-demo-key":secret.value},cache:"no-store"});const d=await r.json().catch(()=>({message:"Réponse illisible."}));result.textContent="HTTP "+r.status+"\\n"+JSON.stringify(d,null,2);}catch(e){result.textContent="Erreur réseau : "+e.message;}finally{button.disabled=false;}}',
+    'document.getElementById("fill").addEventListener("click",function(){run("/api/bope-demo/fill",this);});',
+    'document.getElementById("remove").addEventListener("click",function(){if(confirm("Supprimer uniquement les 6 comptes et leurs publications de démonstration ?"))run("/api/bope-demo/remove",this);});',
+    '</script></body></html>'
+  ].join('\n'));
+});
+
+app.post('/api/bope-demo/fill', async (req, res) => {
+  if (!bopeDemoAuthorized(req)) return res.status(403).json({ ok: false, message: 'Code administrateur incorrect.' });
+  try {
+    const accounts = await bopeDemoEnsureAccounts();
+    const ids = accounts.map(account => account.id);
+    const inFilter = '(' + ids.join(',') + ')';
+    await bopeDemoRequest('/rest/v1/bope_posts?author_id=in.' + encodeURIComponent(inFilter), {
+      method: 'DELETE',
+      headers: { Prefer: 'return=minimal' }
+    });
+
+    const now = Date.now();
+    const posts = BOPE_DEMO_POSTS.map((post, index) => {
+      const author = accounts.find(account => account.username === post.username);
+      return {
+        author_id: author.id,
+        content: post.content,
+        media_url: null,
+        media_type: post.type,
+        background_style: post.type === 'none' ? (post.style || 'default') : 'default',
+        created_at: new Date(now - (BOPE_DEMO_POSTS.length - index) * 5 * 60 * 60 * 1000).toISOString()
+      };
+    });
+    await bopeDemoRequest('/rest/v1/bope_posts', {
+      method: 'POST',
+      headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify(posts)
+    });
+    return res.json({
+      ok: true,
+      accountsCreatedOrVerified: accounts.length,
+      publicationsCreated: posts.length,
+      note: 'Les publications vidéo et photo sont préparées avec media_url vide : ajoutez vos propres médias pour afficher les fichiers. Les publications textuelles sont immédiatement visibles.'
+    });
+  } catch (error) {
+    console.error('BOPE demo fill:', error.message);
+    return res.status(500).json({ ok: false, message: error.message });
+  }
+});
+
+app.post('/api/bope-demo/remove', async (req, res) => {
+  if (!bopeDemoAuthorized(req)) return res.status(403).json({ ok: false, message: 'Code administrateur incorrect.' });
+  try {
+    const users = await bopeDemoListUsers();
+    const emails = new Set(BOPE_DEMO_ACCOUNTS.map(account => BOPE_DEMO_EMAIL(account.username).toLowerCase()));
+    const demoUsers = users.filter(user =>
+      emails.has(String(user.email || '').toLowerCase()) &&
+      user.app_metadata && user.app_metadata.bope_demo === true &&
+      user.app_metadata.bope_demo_batch === 'bope-createur-v1'
+    );
+    const ids = demoUsers.map(user => user.id);
+    if (ids.length) {
+      await bopeDemoRequest('/rest/v1/bope_posts?author_id=in.' + encodeURIComponent('(' + ids.join(',') + ')'), {
+        method: 'DELETE',
+        headers: { Prefer: 'return=minimal' }
+      });
+    }
+    for (const user of demoUsers) {
+      await bopeDemoRequest('/auth/v1/admin/users/' + encodeURIComponent(user.id), { method: 'DELETE' });
+    }
+    return res.json({
+      ok: true,
+      demoAccountsDeleted: demoUsers.length,
+      demoPostsDeletedForThoseAccounts: ids.length > 0,
+      note: 'Seuls les comptes BOPE démo marqués par ce module ont été supprimés. Les comptes personnels ne sont pas ciblés.'
+    });
+  } catch (error) {
+    console.error('BOPE demo remove:', error.message);
+    return res.status(500).json({ ok: false, message: error.message });
+  }
+});
+
+// === FIN BOPE CREATEUR DEMO ===
+
 app.get('/', (req, res) => {
   const todayStr = new Date().toLocaleDateString('fr-FR');
   if (visitStats.date !== todayStr) { visitStats.date = todayStr; visitStats.today = 0; }
