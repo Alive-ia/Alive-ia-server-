@@ -2785,7 +2785,7 @@ function applyDRoute(route){
   const incomingMessages=(data||[]).some(item=>item.sender_id===chatId&&item.recipient_id===userId);
   if(incomingMessages){
    clientSnapshot.rpc('bope_mark_messages_delivered',{p_sender_id:chatId}).then(({error:receiptError})=>{if(receiptError)console.warn('BOPE accusé de réception:',receiptError);});
-   if(!bcChatReadTimer){const chatId=chatId;bcChatReadTimer=setTimeout(async()=>{bcChatReadTimer=null;if(bcActiveChat&&chatId===chatId&&document.visibilityState==='visible'){const {error:readError}=await clientSnapshot.rpc('bope_mark_messages_read',{p_sender_id:chatId});if(readError)console.warn('BOPE accusé de lecture:',readError);}},1200);}
+   if(!bcChatReadTimer){const timerChatId=chatId;bcChatReadTimer=setTimeout(async()=>{bcChatReadTimer=null;if(bcActiveChat&&bcActiveChat.id===timerChatId&&document.visibilityState==='visible'){const {error:readError}=await clientSnapshot.rpc('bope_mark_messages_read',{p_sender_id:timerChatId});if(readError)console.warn('BOPE accusé de lecture:',readError);}},1200);}
   }
   const {data:hiddenRows,error:hiddenError}=await clientSnapshot.from('bope_message_hidden').select('message_id').eq('user_id',userId);
   if(hiddenError){box.textContent='Impossible de charger les préférences de messages : '+hiddenError.message;return;}
