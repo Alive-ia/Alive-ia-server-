@@ -1595,6 +1595,11 @@ function applyDRoute(route){
 #bcVoicePause span{font-size:20px;font-weight:400}
 #bcVoiceStop{width:68px;border-radius:50%;background:#25D366;color:#071b12;font-size:36px}
 #bcMessagesPanel #bcChatForm.bc-recording{background:#111719}#bcMessagesPanel #bcChatForm.bc-recording{height:0!important;padding:0!important;border:0!important;overflow:visible}#bcMessagesPanel #bcChatForm.bc-recording>*{visibility:hidden}
+     #bcMessagesPanel .bc-media-choice-menu{display:none;position:absolute;left:12px;bottom:76px;z-index:45;min-width:210px;max-width:calc(100% - 24px);padding:9px;background:#20282b;border:1px solid #3a454a;border-radius:15px;box-shadow:0 10px 28px #0008;color:#f5f7f8}
+     #bcMessagesPanel .bc-media-choice-menu.show{display:block}
+     #bcMessagesPanel .bc-media-choice-title{padding:5px 9px 8px;color:#aeb6b9;font-size:12px;font-weight:700}
+     #bcMessagesPanel .bc-media-choice-menu button{display:flex;align-items:center;gap:12px;width:100%;padding:11px 10px;border:0;border-radius:10px;background:transparent;color:#f5f7f8;text-align:left;font-size:14px;font-weight:600}
+     #bcMessagesPanel .bc-media-choice-menu button:active{background:#344147}
      #bcEmojiPanel{display:none;position:absolute;bottom:72px;left:10px;right:10px;z-index:30;background:#fff;border:1px solid #f1d6d6;border-radius:14px;padding:10px;box-shadow:0 8px 25px #0002;grid-template-columns:repeat(8,1fr);gap:5px}
      #bcEmojiPanel.show{display:grid}
      #bcEmojiPanel button{border:0;background:#fff;border-radius:8px;padding:7px 0;font-size:22px}
@@ -1979,13 +1984,14 @@ function applyDRoute(route){
       <span id="bcReplyComposerText"></span>
       <button type="button" id="bcCancelReply" style="float:right;border:0;background:transparent;color:#b91c1c;font-weight:700">✕</button>
      </div>
+     <div id="bcMediaChoiceMenu" class="bc-media-choice-menu" aria-label="Options de pièces jointes"><div class="bc-media-choice-title" id="bcMediaChoiceTitle">Joindre un fichier</div><div id="bcMediaChoiceOptions"></div></div>
      <div id="bcEmojiPanel" aria-label="Émojis"><button type="button">😀</button><button type="button">😂</button><button type="button">🥰</button><button type="button">😍</button><button type="button">😭</button><button type="button">😡</button><button type="button">👍</button><button type="button">❤️</button><button type="button">🙏</button><button type="button">👏</button><button type="button">🤝</button><button type="button">🤔</button><button type="button">🎉</button><button type="button">🔥</button><button type="button">💔</button><button type="button">😘</button></div>
      <div id="bcVoicePreview"><audio id="bcVoicePreviewAudio" controls></audio><button type="button" id="bcDiscardVoice" aria-label="Supprimer le vocal" style="background:#4b1727;color:#ff4d70">🗑</button><button type="button" id="bcSendVoice" aria-label="Envoyer le vocal" style="background:#25D366;color:#071b12">➤</button></div>
      <div id="bcVoiceRecordHint"><strong id="bcVoiceTimer">0:00</strong><span>‹ Faire glisser pour annuler</span></div><div id="bcVoiceActiveControls"><button type="button" id="bcVoiceActiveCancel" aria-label="Supprimer le vocal">🗑</button><strong id="bcVoiceActiveTimer">0:00</strong><span id="bcVoiceActiveLabel">Enregistrement vocal…</span><button type="button" id="bcVoiceActiveSend" aria-label="Envoyer le vocal">➤</button></div>
      <div id="bcVoiceLockedStatus"><strong id="bcVoiceLockedTimer">0:00</strong><span id="bcVoiceWave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span id="bcVoiceLockIcon" aria-label="Enregistrement verrouillé">🔒<b>1</b></span></div>
      <div id="bcVoiceLockedControls"><button type="button" id="bcVoiceCancelLocked" aria-label="Supprimer le vocal">🗑</button><button type="button" id="bcVoicePause" aria-label="Mettre en pause">Ⅱ <span>Pause</span></button><button type="button" id="bcVoiceStop" aria-label="Envoyer le vocal">➤</button></div>
      <form id="bcChatForm"><button type="button" id="bcEmojiButton" class="bc-compose-icon" aria-label="Émojis">😀</button><input id="bcChatInput" type="text" maxlength="5000" placeholder="Écris un message" autocomplete="off"><button type="button" id="bcAttachButton" class="bc-compose-icon" aria-label="Joindre un fichier">📎</button><button type="button" id="bcCameraButton" class="bc-compose-icon" aria-label="Ouvrir la caméra">📷</button><button id="bcSendButton" type="submit" style="display:none" aria-label="Envoyer">➤</button><button id="bcVoiceButton" type="button" aria-label="Maintenir pour enregistrer un message vocal"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 14.5a3.5 3.5 0 0 0 3.5-3.5V5a3.5 3.5 0 0 0-7 0v6a3.5 3.5 0 0 0 3.5 3.5Z" fill="currentColor"/><path d="M5.5 10.5a1 1 0 0 1 2 0 4.5 4.5 0 0 0 9 0 1 1 0 1 1 2 0 6.5 6.5 0 0 1-5.5 6.42V20h2a1 1 0 1 1 0 2H9a1 1 0 1 1 0-2h2v-3.08a6.5 6.5 0 0 1-5.5-6.42Z" fill="currentColor"/></svg></button></form>
-     <input id="bcAttachFileInput" type="file" accept="image/*,video/*,.pdf,.doc,.docx" hidden><input id="bcCameraFileInput" type="file" accept="image/*" capture="environment" hidden>
+     <input id="bcAttachFileInput" type="file" accept="image/*,video/*,.pdf,.doc,.docx" style="position:fixed;left:-10000px;top:0;width:1px;height:1px;opacity:0"><input id="bcCameraFileInput" type="file" accept="image/*" style="position:fixed;left:-10000px;top:0;width:1px;height:1px;opacity:0">
     </div>
    </section>
    <section id="bcNotificationsPanel" class="bc-tab-panel" style="display:none;text-align:left">
@@ -2800,8 +2806,31 @@ function applyDRoute(route){
  const emojiPanel=byId('bcEmojiPanel');
  byId('bcEmojiButton').addEventListener('click',()=>emojiPanel.classList.toggle('show'));
  emojiPanel.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>{const start=chatInput.selectionStart??chatInput.value.length,end=chatInput.selectionEnd??chatInput.value.length;chatInput.value=chatInput.value.slice(0,start)+button.textContent+chatInput.value.slice(end);chatInput.focus();chatInput.setSelectionRange(start+button.textContent.length,start+button.textContent.length);emojiPanel.classList.remove('show');bcUpdateComposerMode();}));
- byId('bcAttachButton').addEventListener('click',()=>byId('bcAttachFileInput').click());
- byId('bcCameraButton').addEventListener('click',()=>byId('bcCameraFileInput').click());
+ const bcMediaChoiceMenu=byId('bcMediaChoiceMenu'),bcMediaChoiceTitle=byId('bcMediaChoiceTitle'),bcMediaChoiceOptions=byId('bcMediaChoiceOptions');
+ function bcCloseMediaChoiceMenu(){bcMediaChoiceMenu.classList.remove('show');}
+ function bcShowMediaChoiceMenu(kind){
+  const choices=kind==='attach'?
+   [{icon:'🖼️',label:'Photos',accept:'image/*'},{icon:'🎬',label:'Vidéos',accept:'video/*'},{icon:'📄',label:'Documents',accept:'.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document'}]:
+   [{icon:'📸',label:'Prendre une photo',capture:true},{icon:'🖼️',label:'Choisir dans la galerie',capture:false}];
+  bcMediaChoiceTitle.textContent=kind==='attach'?'Joindre un fichier':'Ajouter une photo';
+  bcMediaChoiceOptions.replaceChildren();
+  choices.forEach(choice=>{
+   const button=document.createElement('button');button.type='button';button.innerHTML='<span aria-hidden="true">'+choice.icon+'</span><span>'+choice.label+'</span>';
+   button.addEventListener('click',()=>{
+    bcCloseMediaChoiceMenu();
+    const input=kind==='attach'?byId('bcAttachFileInput'):byId('bcCameraFileInput');
+    if(kind==='attach'){input.accept=choice.accept;input.removeAttribute('capture');}
+    else{input.accept='image/*';if(choice.capture)input.setAttribute('capture','environment');else input.removeAttribute('capture');}
+    input.value='';
+    input.click();
+   });
+   bcMediaChoiceOptions.appendChild(button);
+  });
+  bcMediaChoiceMenu.classList.add('show');
+ }
+ byId('bcAttachButton').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();bcShowMediaChoiceMenu('attach');});
+ byId('bcCameraButton').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();bcShowMediaChoiceMenu('camera');});
+ document.addEventListener('click',e=>{if(!bcMediaChoiceMenu.contains(e.target)&&!e.target.closest('#bcAttachButton')&&!e.target.closest('#bcCameraButton'))bcCloseMediaChoiceMenu();});
  async function bcSendChatMedia(file,input){
   if(!file||!bcActiveChat||!bcClient||!bcCurrentUser)return;
   const allowed=file.type.startsWith('image/')||file.type.startsWith('video/')||['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(file.type);
