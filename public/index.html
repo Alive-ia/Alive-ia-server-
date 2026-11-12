@@ -2683,7 +2683,7 @@ function applyDRoute(route){
   if(!bcActiveChat||!bcClient||!bcCurrentUser)return;
   const box=byId('bcChatMessages');
   const filter='and(sender_id.eq.'+bcCurrentUser.id+',recipient_id.eq.'+bcActiveChat.id+'),and(sender_id.eq.'+bcActiveChat.id+',recipient_id.eq.'+bcCurrentUser.id+')';
-  const {data,error}=await bcClient.from('bope_messages').select('id,sender_id,content,created_at,reply_to_message_id,edited_at,is_deleted_for_everyone,forwarded_from_message_id,media_path,media_type,media_duration,delivered_at,read_at').or(filter).order('created_at',{ascending:true}).limit(200);
+  const {data,error}=await bcClient.from('bope_messages').select('id,sender_id,recipient_id,content,created_at,reply_to_message_id,edited_at,is_deleted_for_everyone,forwarded_from_message_id,media_path,media_type,media_duration,delivered_at,read_at').or(filter).order('created_at',{ascending:true}).limit(200);
   if(error){box.textContent='Impossible de charger les messages : '+error.message;return;}
   const incomingMessages=(data||[]).some(item=>item.sender_id===bcActiveChat.id&&item.recipient_id===bcCurrentUser.id);
   if(incomingMessages){
