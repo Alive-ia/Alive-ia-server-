@@ -1987,6 +1987,12 @@ function applyDRoute(route){
      <div id="bcMediaChoiceMenu" class="bc-media-choice-menu" aria-label="Options de pièces jointes"><div class="bc-media-choice-title" id="bcMediaChoiceTitle">Joindre un fichier</div><div id="bcMediaChoiceOptions"></div></div>
      <div id="bcEmojiPanel" aria-label="Émojis"><button type="button">😀</button><button type="button">😂</button><button type="button">🥰</button><button type="button">😍</button><button type="button">😭</button><button type="button">😡</button><button type="button">👍</button><button type="button">❤️</button><button type="button">🙏</button><button type="button">👏</button><button type="button">🤝</button><button type="button">🤔</button><button type="button">🎉</button><button type="button">🔥</button><button type="button">💔</button><button type="button">😘</button></div>
      <div id="bcVoicePreview"><audio id="bcVoicePreviewAudio" controls></audio><button type="button" id="bcDiscardVoice" aria-label="Supprimer le vocal" style="background:#4b1727;color:#ff4d70">🗑</button><button type="button" id="bcSendVoice" aria-label="Envoyer le vocal" style="background:#25D366;color:#071b12">➤</button></div>
+     <div id="bcMediaPreview" style="display:none;align-items:center;gap:10px;padding:10px 12px;background:#172127;border-top:1px solid #303b42;color:#fff">
+      <div id="bcMediaPreviewVisual" style="width:58px;height:58px;flex:0 0 58px;border-radius:9px;overflow:hidden;background:#303b42;display:grid;place-items:center;font-size:26px"></div>
+      <div style="flex:1;min-width:0"><strong id="bcMediaPreviewName" style="display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></strong><small id="bcMediaPreviewInfo" style="display:block;color:#b8c4ca;font-size:11px;margin-top:4px">Prêt à envoyer</small></div>
+      <button type="button" id="bcDiscardMedia" aria-label="Retirer le fichier" style="border:0;border-radius:50%;width:34px;height:34px;background:#3b252b;color:#ff7185;font-size:18px">✕</button>
+      <button type="button" id="bcSendMedia" aria-label="Envoyer le fichier" style="border:0;border-radius:50%;width:42px;height:42px;background:#25D366;color:#071b12;font-size:22px;font-weight:800">➤</button>
+     </div>
      <div id="bcVoiceRecordHint"><strong id="bcVoiceTimer">0:00</strong><span>‹ Faire glisser pour annuler</span></div><div id="bcVoiceActiveControls"><button type="button" id="bcVoiceActiveCancel" aria-label="Supprimer le vocal">🗑</button><strong id="bcVoiceActiveTimer">0:00</strong><span id="bcVoiceActiveLabel">Enregistrement vocal…</span><button type="button" id="bcVoiceActiveSend" aria-label="Envoyer le vocal">➤</button></div>
      <div id="bcVoiceLockedStatus"><strong id="bcVoiceLockedTimer">0:00</strong><span id="bcVoiceWave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span id="bcVoiceLockIcon" aria-label="Enregistrement verrouillé">🔒<b>1</b></span></div>
      <div id="bcVoiceLockedControls"><button type="button" id="bcVoiceCancelLocked" aria-label="Supprimer le vocal">🗑</button><button type="button" id="bcVoicePause" aria-label="Mettre en pause">Ⅱ <span>Pause</span></button><button type="button" id="bcVoiceStop" aria-label="Envoyer le vocal">➤</button></div>
@@ -2831,46 +2837,69 @@ function applyDRoute(route){
  byId('bcAttachButton').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();bcShowMediaChoiceMenu('attach');});
  byId('bcCameraButton').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();bcShowMediaChoiceMenu('camera');});
  document.addEventListener('click',e=>{if(!bcMediaChoiceMenu.contains(e.target)&&!e.target.closest('#bcAttachButton')&&!e.target.closest('#bcCameraButton'))bcCloseMediaChoiceMenu();});
- async function bcSendChatMedia(file,input){
-  // Capturer la conversation et le compte avant l'envoi : les variables globales
-  // peuvent changer pendant l'attente du sélecteur ou du transfert du fichier.
+ let bcPendingMediaFile=null,bcPendingMediaUrl=null;
+ const bcMediaPreview=byId('bcMediaPreview'),bcMediaPreviewVisual=byId('bcMediaPreviewVisual'),bcMediaPreviewName=byId('bcMediaPreviewName'),bcMediaPreviewInfo=byId('bcMediaPreviewInfo'),bcSendMediaButton=byId('bcSendMedia');
+ function bcClearMediaPreview(){
+  if(bcPendingMediaUrl){URL.revokeObjectURL(bcPendingMediaUrl);bcPendingMediaUrl=null;}
+  bcPendingMediaFile=null;bcMediaPreviewVisual.replaceChildren();bcMediaPreview.style.display='none';bcMediaPreviewInfo.textContent='Prêt à envoyer';bcUpdateComposerMode();
+ }
+ function bcShowMediaPreview(file){
+  if(!file)return;
+  if(bcPendingMediaUrl){URL.revokeObjectURL(bcPendingMediaUrl);bcPendingMediaUrl=null;}
+  bcPendingMediaFile=file;bcMediaPreviewVisual.replaceChildren();
+  bcMediaPreviewName.textContent=file.name||'Fichier joint';
+  bcMediaPreviewInfo.textContent=(file.type.startsWith('image/')?'Photo':file.type.startsWith('video/')?'Vidéo':'Document')+' · '+(file.size<1024*1024?Math.max(1,Math.round(file.size/1024))+' Ko':(file.size/1024/1024).toFixed(1)+' Mo')+' · Prêt à envoyer';
+  if(file.type.startsWith('image/')||file.type.startsWith('video/')){
+   bcPendingMediaUrl=URL.createObjectURL(file);
+   const media=document.createElement(file.type.startsWith('video/')?'video':'img');
+   media.src=bcPendingMediaUrl;media.style.cssText='width:100%;height:100%;object-fit:cover';
+   if(media.tagName==='VIDEO'){media.muted=true;media.playsInline=true;}
+   bcMediaPreviewVisual.appendChild(media);
+  }else{bcMediaPreviewVisual.textContent=file.type==='application/pdf'?'📄':'🗎';}
+  bcMediaPreview.style.display='flex';bcSendMediaButton.disabled=false;bcSendMediaButton.textContent='➤';bcUpdateComposerMode();
+ }
+ async function bcSendChatMedia(){
+  const file=bcPendingMediaFile;
   const chat=bcActiveChat,user=bcCurrentUser,client=bcClient,reply=bcReplyTarget;
   const senderId=user&&user.id,recipientId=chat&&chat.id;
   if(!file)return;
-  if(!client||!senderId||!recipientId){alert('Ouvre une conversation BOPE avant de joindre un fichier.');if(input)input.value='';return;}
+  if(!client||!senderId||!recipientId){alert('Ouvre une conversation BOPE et vérifie que tu es connecté avant d’envoyer ce fichier.');return;}
   const allowed=file.type.startsWith('image/')||file.type.startsWith('video/')||['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(file.type);
-  if(!allowed){alert('Format non pris en charge. Choisis une image, une vidéo, un PDF ou un document Word.');input.value='';return;}
-  if(file.size>50*1024*1024){alert('Ce fichier dépasse la limite de 50 Mo.');input.value='';return;}
-  const attachButton=byId('bcAttachButton'),cameraButton=byId('bcCameraButton');
-  attachButton.disabled=true;cameraButton.disabled=true;
+  if(!allowed){alert('Format non pris en charge. Choisis une image, une vidéo, un PDF ou un document Word.');return;}
+  if(file.size>50*1024*1024){alert('Ce fichier dépasse la limite de 50 Mo.');return;}
+  bcSendMediaButton.disabled=true;bcSendMediaButton.textContent='…';bcMediaPreviewInfo.textContent='Envoi en cours…';
   let uploadedPath=null;
   try{
-   const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,'_').slice(-100)||'media';
+   const safeName=(file.name||'media').replace(/[^a-zA-Z0-9._-]/g,'_').slice(-100)||'media';
    const path=senderId+'/'+(crypto.randomUUID?crypto.randomUUID():Date.now()+'_'+Math.random().toString(36).slice(2))+'_'+safeName;
    const {error:uploadError}=await client.storage.from('bope-chat-media').upload(path,file,{contentType:file.type||'application/octet-stream',upsert:false});
    if(uploadError)throw uploadError;
    uploadedPath=path;
-   const payload={sender_id:senderId,recipient_id:recipientId,content:file.name,media_path:path,media_type:file.type||'application/octet-stream'};
+   const payload={sender_id:senderId,recipient_id:recipientId,content:file.name||'Fichier joint',media_path:path,media_type:file.type||'application/octet-stream'};
    if(reply&&reply.id)payload.reply_to_message_id=reply.id;
    const {error:insertError}=await client.from('bope_messages').insert(payload);
    if(insertError)throw insertError;
    uploadedPath=null;
+   bcClearMediaPreview();
    if(bcActiveChat&&bcActiveChat.id===recipientId&&bcCurrentUser&&bcCurrentUser.id===senderId){
     if(bcReplyTarget===reply)window.bcClearReplyTarget();
     await window.bcLoadChatMessages(true);
    }
   }catch(err){
    if(uploadedPath)await client.storage.from('bope-chat-media').remove([uploadedPath]);
+   bcMediaPreviewInfo.textContent='Échec de l’envoi · Tu peux réessayer';
    alert('Envoi du fichier impossible : '+(err&&err.message?err.message:'Erreur inconnue'));
-  }finally{
-   attachButton.disabled=false;cameraButton.disabled=false;if(input)input.value='';
-  }
+  }finally{bcSendMediaButton.disabled=false;bcSendMediaButton.textContent='➤';}
  }
- ['bcAttachFileInput','bcCameraFileInput'].forEach(id=>byId(id).addEventListener('change',async e=>{const file=e.target.files&&e.target.files[0];if(file)await bcSendChatMedia(file,e.target);}));
+ byId('bcDiscardMedia').addEventListener('click',bcClearMediaPreview);
+ bcSendMediaButton.addEventListener('click',bcSendChatMedia);
+ ['bcAttachFileInput','bcCameraFileInput'].forEach(id=>byId(id).addEventListener('change',e=>{
+  const file=e.target.files&&e.target.files[0];if(file)bcShowMediaPreview(file);e.target.value='';
+ }));
  byId('bcVideoCallButton').addEventListener('click',()=>alert('Les appels vidéo BOPE seront activés après la mise en place de la connexion en direct.'));
  byId('bcAudioCallButton').addEventListener('click',()=>alert('Les appels vocaux BOPE seront activés après la mise en place de la connexion en direct.'));
  byId('bcChatMoreButton').addEventListener('click',()=>alert('Options de conversation BOPE : les réglages avancés seront ajoutés ici.'));
- function bcUpdateComposerMode(){const hasText=!!chatInput.value.trim();sendButton.style.display=hasText?'':'none';voiceButton.style.display=hasText?'none':'flex';byId('bcAttachButton').style.display=hasText?'none':'flex';byId('bcCameraButton').style.display=hasText?'none':'flex';}
+ function bcUpdateComposerMode(){const hasText=!!chatInput.value.trim(),hasMedia=!!bcPendingMediaFile;sendButton.style.display=hasText?'':'none';voiceButton.style.display=(hasText||hasMedia)?'none':'flex';byId('bcAttachButton').style.display=hasText?'none':'flex';byId('bcCameraButton').style.display=hasText?'none':'flex';}
  chatInput.addEventListener('input',bcUpdateComposerMode);bcUpdateComposerMode();
  chatForm.addEventListener('submit',async function(event){
   event.preventDefault();const content=chatInput.value.trim();if(!content||!bcActiveChat||!bcClient||!bcCurrentUser)return;
