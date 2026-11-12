@@ -2832,24 +2832,39 @@ function applyDRoute(route){
  byId('bcCameraButton').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();bcShowMediaChoiceMenu('camera');});
  document.addEventListener('click',e=>{if(!bcMediaChoiceMenu.contains(e.target)&&!e.target.closest('#bcAttachButton')&&!e.target.closest('#bcCameraButton'))bcCloseMediaChoiceMenu();});
  async function bcSendChatMedia(file,input){
-  if(!file||!bcActiveChat||!bcClient||!bcCurrentUser)return;
+  // Capturer la conversation et le compte avant l'envoi : les variables globales
+  // peuvent changer pendant l'attente du sélecteur ou du transfert du fichier.
+  const chat=bcActiveChat,user=bcCurrentUser,client=bcClient,reply=bcReplyTarget;
+  const senderId=user&&user.id,recipientId=chat&&chat.id;
+  if(!file)return;
+  if(!client||!senderId||!recipientId){alert('Ouvre une conversation BOPE avant de joindre un fichier.');if(input)input.value='';return;}
   const allowed=file.type.startsWith('image/')||file.type.startsWith('video/')||['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(file.type);
   if(!allowed){alert('Format non pris en charge. Choisis une image, une vidéo, un PDF ou un document Word.');input.value='';return;}
   if(file.size>50*1024*1024){alert('Ce fichier dépasse la limite de 50 Mo.');input.value='';return;}
   const attachButton=byId('bcAttachButton'),cameraButton=byId('bcCameraButton');
   attachButton.disabled=true;cameraButton.disabled=true;
+  let uploadedPath=null;
   try{
    const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,'_').slice(-100)||'media';
-   const path=bcCurrentUser.id+'/'+(crypto.randomUUID?crypto.randomUUID():Date.now()+'_'+Math.random().toString(36).slice(2))+'_'+safeName;
-   const {error:uploadError}=await bcClient.storage.from('bope-chat-media').upload(path,file,{contentType:file.type||'application/octet-stream',upsert:false});
+   const path=senderId+'/'+(crypto.randomUUID?crypto.randomUUID():Date.now()+'_'+Math.random().toString(36).slice(2))+'_'+safeName;
+   const {error:uploadError}=await client.storage.from('bope-chat-media').upload(path,file,{contentType:file.type||'application/octet-stream',upsert:false});
    if(uploadError)throw uploadError;
-   const payload={sender_id:bcCurrentUser.id,recipient_id:bcActiveChat.id,content:file.name,media_path:path,media_type:file.type||'application/octet-stream'};
-   if(bcReplyTarget)payload.reply_to_message_id=bcReplyTarget.id;
-   const {error:insertError}=await bcClient.from('bope_messages').insert(payload);
-   if(insertError){await bcClient.storage.from('bope-chat-media').remove([path]);throw insertError;}
-   window.bcClearReplyTarget();await window.bcLoadChatMessages(true);
-  }catch(err){alert('Envoi du fichier impossible : '+(err.message||err));}
-  finally{attachButton.disabled=false;cameraButton.disabled=false;input.value='';}
+   uploadedPath=path;
+   const payload={sender_id:senderId,recipient_id:recipientId,content:file.name,media_path:path,media_type:file.type||'application/octet-stream'};
+   if(reply&&reply.id)payload.reply_to_message_id=reply.id;
+   const {error:insertError}=await client.from('bope_messages').insert(payload);
+   if(insertError)throw insertError;
+   uploadedPath=null;
+   if(bcActiveChat&&bcActiveChat.id===recipientId&&bcCurrentUser&&bcCurrentUser.id===senderId){
+    if(bcReplyTarget===reply)window.bcClearReplyTarget();
+    await window.bcLoadChatMessages(true);
+   }
+  }catch(err){
+   if(uploadedPath)await client.storage.from('bope-chat-media').remove([uploadedPath]);
+   alert('Envoi du fichier impossible : '+(err&&err.message?err.message:'Erreur inconnue'));
+  }finally{
+   attachButton.disabled=false;cameraButton.disabled=false;if(input)input.value='';
+  }
  }
  ['bcAttachFileInput','bcCameraFileInput'].forEach(id=>byId(id).addEventListener('change',async e=>{const file=e.target.files&&e.target.files[0];if(file)await bcSendChatMedia(file,e.target);}));
  byId('bcVideoCallButton').addEventListener('click',()=>alert('Les appels vidéo BOPE seront activés après la mise en place de la connexion en direct.'));
