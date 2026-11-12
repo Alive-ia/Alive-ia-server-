@@ -1573,6 +1573,12 @@ function applyDRoute(route){
 #bcVoicePreview audio{flex:1;min-width:0;max-width:100%;height:38px}
 #bcVoicePreview button{border:0;border-radius:50%;width:48px;height:48px;font-weight:700;font-size:23px}
 #bcVoiceRecordHint{display:none;align-items:center;gap:18px;padding:17px 20px;background:#111719;color:#f5f7f8;font-size:17px;min-height:64px}
+      #bcVoiceActiveControls{display:none;align-items:center;gap:14px;padding:10px 14px;background:#111719;color:#f5f7f8;min-height:68px}
+      #bcVoiceActiveTimer{font-size:21px;min-width:48px;font-weight:500}
+      #bcVoiceActiveLabel{flex:1;text-align:center;color:#aeb6b9;font-size:15px}
+      #bcVoiceActiveControls button{width:52px;height:52px;flex:0 0 52px;border:0;border-radius:50%;font-size:27px;font-weight:700}
+      #bcVoiceActiveCancel{background:#4b1727;color:#ff4d70}
+      #bcVoiceActiveSend{background:#25D366;color:#071b12}
 #bcVoiceRecordHint strong,#bcVoiceLockedStatus strong{font-size:21px;font-weight:500;white-space:nowrap}
 #bcVoiceRecordHint span{color:#aeb6b9;flex:1;text-align:center}
 #bcVoiceLockedStatus{display:none;align-items:center;gap:18px;padding:20px 22px 14px;background:#111719;color:#f5f7f8;min-height:64px}
@@ -1626,7 +1632,7 @@ function applyDRoute(route){
      </div>
      <div id="bcEmojiPanel" aria-label="Émojis"><button type="button">😀</button><button type="button">😂</button><button type="button">🥰</button><button type="button">😍</button><button type="button">😭</button><button type="button">😡</button><button type="button">👍</button><button type="button">❤️</button><button type="button">🙏</button><button type="button">👏</button><button type="button">🤝</button><button type="button">🤔</button><button type="button">🎉</button><button type="button">🔥</button><button type="button">💔</button><button type="button">😘</button></div>
      <div id="bcVoicePreview"><audio id="bcVoicePreviewAudio" controls></audio><button type="button" id="bcDiscardVoice" aria-label="Supprimer le vocal" style="background:#4b1727;color:#ff4d70">🗑</button><button type="button" id="bcSendVoice" aria-label="Envoyer le vocal" style="background:#25D366;color:#071b12">➤</button></div>
-     <div id="bcVoiceRecordHint"><strong id="bcVoiceTimer">0:00</strong><span>‹ Faire glisser pour annuler</span></div>
+     <div id="bcVoiceRecordHint"><strong id="bcVoiceTimer">0:00</strong><span>‹ Faire glisser pour annuler</span></div><div id="bcVoiceActiveControls"><button type="button" id="bcVoiceActiveCancel" aria-label="Supprimer le vocal">🗑</button><strong id="bcVoiceActiveTimer">0:00</strong><span id="bcVoiceActiveLabel">Enregistrement vocal…</span><button type="button" id="bcVoiceActiveSend" aria-label="Envoyer le vocal">➤</button></div>
      <div id="bcVoiceLockedStatus"><strong id="bcVoiceLockedTimer">0:00</strong><span id="bcVoiceWave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span id="bcVoiceLockIcon" aria-label="Enregistrement verrouillé">🔒<b>1</b></span></div>
      <div id="bcVoiceLockedControls"><button type="button" id="bcVoiceCancelLocked" aria-label="Supprimer le vocal">🗑</button><button type="button" id="bcVoicePause" aria-label="Mettre en pause">Ⅱ <span>Pause</span></button><button type="button" id="bcVoiceStop" aria-label="Envoyer le vocal">➤</button></div>
      <form id="bcChatForm"><button type="button" id="bcEmojiButton" class="bc-compose-icon" aria-label="Émojis">😀</button><input id="bcChatInput" type="text" maxlength="5000" placeholder="Message" autocomplete="off"><button type="button" id="bcAttachButton" class="bc-compose-icon" aria-label="Joindre un fichier">📎</button><button type="button" id="bcCameraButton" class="bc-compose-icon" aria-label="Ouvrir la caméra">📷</button><button id="bcSendButton" type="submit" style="display:none" aria-label="Envoyer">➤</button><button id="bcVoiceButton" type="button" aria-label="Maintenir pour enregistrer un message vocal"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 14.5a3.5 3.5 0 0 0 3.5-3.5V5a3.5 3.5 0 0 0-7 0v6a3.5 3.5 0 0 0 3.5 3.5Z" fill="currentColor"/><path d="M5.5 10.5a1 1 0 0 1 2 0 4.5 4.5 0 0 0 9 0 1 1 0 1 1 2 0 6.5 6.5 0 0 1-5.5 6.42V20h2a1 1 0 1 1 0 2H9a1 1 0 1 1 0-2h2v-3.08a6.5 6.5 0 0 1-5.5-6.42Z" fill="currentColor"/></svg></button></form>
@@ -2439,12 +2445,12 @@ function applyDRoute(route){
  const voiceHint=byId('bcVoiceRecordHint'),voiceTimer=byId('bcVoiceTimer'),lockedStatus=byId('bcVoiceLockedStatus'),lockedControls=byId('bcVoiceLockedControls'),lockedTimer=byId('bcVoiceLockedTimer'),voicePreview=byId('bcVoicePreview'),voicePreviewAudio=byId('bcVoicePreviewAudio'),pauseVoiceButton=byId('bcVoicePause');
  function bcFormatVoiceTime(seconds){const n=Math.max(0,Math.floor(seconds));return Math.floor(n/60)+':'+String(n%60).padStart(2,'0');}
  function bcElapsedVoiceSeconds(){const now=bcPausedAt||Date.now();return Math.max(0,(now-bcRecordStart-bcPausedTotal)/1000);}
- function bcUpdateVoiceTimer(){const value=bcFormatVoiceTime(bcElapsedVoiceSeconds());voiceTimer.textContent=value;lockedTimer.textContent=value;}
+ function bcUpdateVoiceTimer(){const value=bcFormatVoiceTime(bcElapsedVoiceSeconds());voiceTimer.textContent=value;lockedTimer.textContent=value;byId("bcVoiceActiveTimer").textContent=value;}
  function bcStartVoiceTimer(){clearInterval(bcVoiceTimerInterval);bcUpdateVoiceTimer();bcVoiceTimerInterval=setInterval(bcUpdateVoiceTimer,250);}
  function bcClearVoiceTimer(){clearInterval(bcVoiceTimerInterval);bcVoiceTimerInterval=null;}
  function bcClearVoicePreview(){if(bcVoiceObjectUrl)URL.revokeObjectURL(bcVoiceObjectUrl);bcVoiceObjectUrl=null;bcVoiceBlob=null;bcVoiceDuration=0;voicePreviewAudio.removeAttribute('src');voicePreviewAudio.load();voicePreview.style.display='none';bcUpdateComposerMode();}
  function bcStopAudioStream(){if(bcAudioStream){bcAudioStream.getTracks().forEach(track=>track.stop());bcAudioStream=null;}}
- function bcResetVoiceRecordingUI(){bcClearVoiceTimer();bcStopAudioStream();chatForm.classList.remove('bc-recording');chatForm.style.display='flex';voiceHint.style.display='none';lockedStatus.style.display='none';lockedControls.style.display='none';voiceButton.style.display=chatInput.value.trim()?'none':'flex';}
+ function bcResetVoiceRecordingUI(){bcClearVoiceTimer();bcStopAudioStream();chatForm.classList.remove('bc-recording');chatForm.style.display='flex';voiceHint.style.display='none';byId('bcVoiceActiveControls').style.display='none';lockedStatus.style.display='none';lockedControls.style.display='none';voiceButton.style.display=chatInput.value.trim()?'none':'flex';}
  async function bcStartVoiceRecording(){
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder){alert('Ton navigateur ne permet pas encore les messages vocaux.');return;}
   try{
@@ -2459,7 +2465,7 @@ function applyDRoute(route){
     if(!bcRecordCancelled&&bcAudioChunks.length){bcVoiceBlob=new Blob(bcAudioChunks,{type:bcRecorder.mimeType||'audio/webm'});bcVoiceObjectUrl=URL.createObjectURL(bcVoiceBlob);voicePreviewAudio.src=bcVoiceObjectUrl;voicePreview.style.display='flex';voiceButton.style.display='none';if(bcSendAfterStop){bcSendAfterStop=false;setTimeout(()=>byId('bcSendVoice').click(),0);}}
     else{bcVoiceBlob=null;bcVoiceDuration=0;bcUpdateComposerMode();}
    };
-   bcRecorder.start();chatForm.classList.add('bc-recording');chatForm.style.display='flex';voiceHint.style.display='flex';lockedStatus.style.display='none';lockedControls.style.display='none';bcStartVoiceTimer();
+   bcRecorder.start();chatForm.classList.add('bc-recording');chatForm.style.display='flex';voiceHint.style.display='none';byId('bcVoiceActiveControls').style.display='flex';lockedStatus.style.display='none';lockedControls.style.display='none';bcStartVoiceTimer();
   }catch(err){bcStopAudioStream();alert('Microphone inaccessible. Autorise le micro dans les paramètres du navigateur.');}
  }
  function bcStopVoiceRecording(cancel){if(!bcRecorder||bcRecorder.state==='inactive')return;bcRecordCancelled=!!cancel;try{bcRecorder.stop();}catch(e){bcResetVoiceRecordingUI();}}
@@ -2474,7 +2480,7 @@ function applyDRoute(route){
   if(dx< -75){bcStopVoiceRecording(true);bcPointerStart=null;}
   else if(dy< -70){bcRecordLocked=true;bcPointerStart=null;voiceHint.style.display='none';lockedStatus.style.display='flex';lockedControls.style.display='flex';}
  });
- voiceButton.addEventListener('pointerup',()=>{if(!bcPointerStart)return;if(!bcRecordLocked){bcSendAfterStop=true;bcStopVoiceRecording(false);}bcPointerStart=null;});
+ voiceButton.addEventListener('pointerup',()=>{if(!bcPointerStart)return;bcPointerStart=null;});
  voiceButton.addEventListener('pointercancel',()=>{if(bcPointerStart&&!bcRecordLocked)bcStopVoiceRecording(true);bcPointerStart=null;});
  byId('bcVoicePause').addEventListener('click',()=>{
   if(!bcRecorder)return;
@@ -2483,6 +2489,8 @@ function applyDRoute(route){
   bcUpdateVoiceTimer();
  });
  byId('bcVoiceCancelLocked').addEventListener('click',()=>{if(bcRecorder&&bcRecorder.state!=='inactive')bcStopVoiceRecording(true);});
+  byId('bcVoiceActiveCancel').addEventListener('click',()=>{bcSendAfterStop=false;if(bcRecorder&&bcRecorder.state!=='inactive')bcStopVoiceRecording(true);});
+  byId('bcVoiceActiveSend').addEventListener('click',()=>{if(bcRecorder&&bcRecorder.state!=='inactive'){bcSendAfterStop=true;bcStopVoiceRecording(false);}});
  byId('bcVoiceStop').addEventListener('click',()=>{if(bcRecorder&&bcRecorder.state!=='inactive'){bcSendAfterStop=true;bcStopVoiceRecording(false);}});
  byId('bcDiscardVoice').addEventListener('click',bcClearVoicePreview);
  byId('bcSendVoice').addEventListener('click',async()=>{
