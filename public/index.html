@@ -1569,9 +1569,15 @@ function applyDRoute(route){
 #bcMessagesPanel #bcVoiceButton svg{display:block;width:25px;height:25px;flex:0 0 25px}
 #bcMessagesPanel #bcVoiceButton:active{background:#1fbd5b}
 #bcMessagesPanel #bcSendButton{flex:0 0 58px;width:58px;min-width:58px;height:58px;padding:0;border-radius:50%;font-size:27px;background:#25D366;color:#071b12}
-#bcVoicePreview{display:none;align-items:center;gap:12px;padding:10px 14px;background:#111719;border-top:1px solid #283034}
-#bcVoicePreview audio{flex:1;min-width:0;max-width:100%;height:38px}
-#bcVoicePreview button{border:0;border-radius:50%;width:48px;height:48px;font-weight:700;font-size:23px}
+#bcVoicePreview{display:none;align-items:center;gap:10px;padding:9px 12px;background:#111719;border-top:1px solid #283034}
+#bcVoicePreview audio{display:none}
+#bcVoicePreview button{border:0;border-radius:50%;width:42px;height:42px;flex:0 0 42px;font-weight:700;font-size:21px;display:grid;place-items:center}
+#bcVoicePreview .bc-preview-play{background:#263238;color:#f5f7f8}
+#bcVoicePreview .bc-preview-track{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+#bcVoicePreview .bc-preview-wave{height:25px;display:flex;align-items:center;justify-content:space-between;gap:2px;overflow:hidden;cursor:pointer}
+#bcVoicePreview .bc-preview-wave i{display:block;width:3px;min-width:2px;border-radius:3px;background:#8b999e;height:var(--h);opacity:.9}
+#bcVoicePreview .bc-preview-wave i.played{background:#25D366}
+#bcVoicePreview .bc-preview-time{display:flex;justify-content:space-between;color:#aeb6b9;font-size:11px;font-variant-numeric:tabular-nums}
 #bcVoiceRecordHint{display:none;align-items:center;gap:18px;padding:17px 20px;background:#111719;color:#f5f7f8;font-size:17px;min-height:64px}
       #bcVoiceActiveControls{display:none;align-items:center;gap:14px;padding:10px 14px;background:#111719;color:#f5f7f8;min-height:68px}
       #bcVoiceActiveTimer{font-size:21px;min-width:48px;font-weight:500}
@@ -1986,7 +1992,7 @@ function applyDRoute(route){
      </div>
      <div id="bcMediaChoiceMenu" class="bc-media-choice-menu" aria-label="Options de pièces jointes"><div class="bc-media-choice-title" id="bcMediaChoiceTitle">Joindre un fichier</div><div id="bcMediaChoiceOptions"></div></div>
      <div id="bcEmojiPanel" aria-label="Émojis"><button type="button">😀</button><button type="button">😂</button><button type="button">🥰</button><button type="button">😍</button><button type="button">😭</button><button type="button">😡</button><button type="button">👍</button><button type="button">❤️</button><button type="button">🙏</button><button type="button">👏</button><button type="button">🤝</button><button type="button">🤔</button><button type="button">🎉</button><button type="button">🔥</button><button type="button">💔</button><button type="button">😘</button></div>
-     <div id="bcVoicePreview"><audio id="bcVoicePreviewAudio" controls></audio><button type="button" id="bcDiscardVoice" aria-label="Supprimer le vocal" style="background:#4b1727;color:#ff4d70">🗑</button><button type="button" id="bcSendVoice" aria-label="Envoyer le vocal" style="background:#25D366;color:#071b12">➤</button></div>
+     <div id="bcVoicePreview"><button type="button" id="bcDiscardVoice" aria-label="Supprimer le vocal" style="background:#4b1727;color:#ff4d70">🗑</button><button type="button" id="bcVoicePreviewPlay" class="bc-preview-play" aria-label="Écouter le vocal">▶</button><div class="bc-preview-track"><div id="bcVoicePreviewWave" class="bc-preview-wave" aria-label="Progression du vocal"><i style="--h:6px"></i><i style="--h:13px"></i><i style="--h:20px"></i><i style="--h:10px"></i><i style="--h:17px"></i><i style="--h:7px"></i><i style="--h:14px"></i><i style="--h:21px"></i><i style="--h:11px"></i><i style="--h:18px"></i><i style="--h:8px"></i><i style="--h:15px"></i><i style="--h:22px"></i><i style="--h:12px"></i><i style="--h:19px"></i><i style="--h:9px"></i><i style="--h:16px"></i><i style="--h:6px"></i><i style="--h:13px"></i><i style="--h:20px"></i><i style="--h:10px"></i><i style="--h:17px"></i><i style="--h:7px"></i><i style="--h:14px"></i><i style="--h:21px"></i><i style="--h:11px"></i><i style="--h:18px"></i><i style="--h:8px"></i><i style="--h:15px"></i><i style="--h:22px"></i></div><div class="bc-preview-time"><span id="bcVoicePreviewCurrent">0:00</span><span id="bcVoicePreviewDuration">0:00</span></div></div><button type="button" id="bcSendVoice" aria-label="Envoyer le vocal" style="background:#25D366;color:#071b12">➤</button><audio id="bcVoicePreviewAudio" preload="metadata"></audio></div>
      <div id="bcMediaPreview" style="display:none;align-items:center;gap:10px;padding:10px 12px;background:#172127;border-top:1px solid #303b42;color:#fff">
       <div id="bcMediaPreviewVisual" style="width:58px;height:58px;flex:0 0 58px;border-radius:9px;overflow:hidden;background:#303b42;display:grid;place-items:center;font-size:26px"></div>
       <div style="flex:1;min-width:0"><strong id="bcMediaPreviewName" style="display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></strong><small id="bcMediaPreviewInfo" style="display:block;color:#b8c4ca;font-size:11px;margin-top:4px">Prêt à envoyer</small></div>
@@ -2935,10 +2941,10 @@ function applyDRoute(route){
    bcRecorder.ondataavailable=e=>{if(e.data&&e.data.size)bcAudioChunks.push(e.data);};
    bcRecorder.onstop=()=>{
     bcVoiceDuration=Math.max(1,Math.round(bcElapsedVoiceSeconds()));bcResetVoiceRecordingUI();
-    if(!bcRecordCancelled&&bcAudioChunks.length){bcVoiceBlob=new Blob(bcAudioChunks,{type:bcRecorder.mimeType||'audio/webm'});bcVoiceObjectUrl=URL.createObjectURL(bcVoiceBlob);voicePreviewAudio.src=bcVoiceObjectUrl;voicePreview.style.display='flex';voiceButton.style.display='none';if(bcSendAfterStop){bcSendAfterStop=false;setTimeout(()=>byId('bcSendVoice').click(),0);}}
+    if(!bcRecordCancelled&&bcAudioChunks.length){bcVoiceBlob=new Blob(bcAudioChunks,{type:bcRecorder.mimeType||'audio/webm'});bcVoiceObjectUrl=URL.createObjectURL(bcVoiceBlob);voicePreviewAudio.src=bcVoiceObjectUrl;voicePreviewAudio.load();voicePreview.style.display='flex';byId('bcVoicePreviewPlay').textContent='▶';byId('bcVoicePreviewCurrent').textContent='0:00';byId('bcVoicePreviewDuration').textContent=bcFormatVoiceTime(bcVoiceDuration);voiceButton.style.display='none';if(bcSendAfterStop){bcSendAfterStop=false;setTimeout(()=>byId('bcSendVoice').click(),0);}}
     else{bcVoiceBlob=null;bcVoiceDuration=0;bcUpdateComposerMode();}
    };
-   bcRecorder.start();chatForm.classList.add('bc-recording');chatForm.style.display='flex';voiceHint.style.display='none';byId('bcVoiceActiveControls').style.display='flex';lockedStatus.style.display='none';lockedControls.style.display='none';bcStartVoiceTimer();
+   bcRecorder.start(250);chatForm.classList.add('bc-recording');chatForm.style.display='flex';voiceHint.style.display='none';byId('bcVoiceActiveControls').style.display='flex';lockedStatus.style.display='none';lockedControls.style.display='none';bcStartVoiceTimer();
   }catch(err){bcStopAudioStream();alert('Microphone inaccessible. Autorise le micro dans les paramètres du navigateur.');}
  }
  function bcStopVoiceRecording(cancel){if(!bcRecorder||bcRecorder.state==='inactive')return;bcRecordCancelled=!!cancel;try{bcRecorder.stop();}catch(e){bcResetVoiceRecordingUI();}}
@@ -2966,6 +2972,31 @@ function applyDRoute(route){
   byId('bcVoiceActiveSend').addEventListener('click',()=>{if(bcRecorder&&bcRecorder.state!=='inactive'){bcSendAfterStop=true;bcStopVoiceRecording(false);}});
  byId('bcVoiceStop').addEventListener('click',()=>{if(bcRecorder&&bcRecorder.state!=='inactive'){bcSendAfterStop=true;bcStopVoiceRecording(false);}});
  byId('bcDiscardVoice').addEventListener('click',bcClearVoicePreview);
+ byId('bcVoicePreviewPlay').addEventListener('click',async()=>{
+  if(!voicePreviewAudio.src)return;
+  try{
+   if(voicePreviewAudio.paused){await voicePreviewAudio.play();byId('bcVoicePreviewPlay').textContent='Ⅱ';}
+   else{voicePreviewAudio.pause();byId('bcVoicePreviewPlay').textContent='▶';}
+  }catch(err){console.warn('BOPE aperçu vocal:',err);alert('Impossible de lire cet aperçu audio.');}
+ });
+ voicePreviewAudio.addEventListener('loadedmetadata',()=>{
+  if(Number.isFinite(voicePreviewAudio.duration)&&voicePreviewAudio.duration>0){
+   byId('bcVoicePreviewDuration').textContent=bcFormatVoiceTime(voicePreviewAudio.duration);
+   bcVoiceDuration=Math.max(1,Math.round(voicePreviewAudio.duration));
+  }
+ });
+ voicePreviewAudio.addEventListener('timeupdate',()=>{
+  byId('bcVoicePreviewCurrent').textContent=bcFormatVoiceTime(voicePreviewAudio.currentTime);
+  const duration=voicePreviewAudio.duration;
+  const progress=Number.isFinite(duration)&&duration>0?voicePreviewAudio.currentTime/duration:0;
+  byId('bcVoicePreviewWave').querySelectorAll('i').forEach((bar,index,all)=>bar.classList.toggle('played',index<Math.floor(progress*all.length)));
+ });
+ voicePreviewAudio.addEventListener('pause',()=>{byId('bcVoicePreviewPlay').textContent='▶';});
+ voicePreviewAudio.addEventListener('ended',()=>{byId('bcVoicePreviewPlay').textContent='▶';byId('bcVoicePreviewCurrent').textContent=byId('bcVoicePreviewDuration').textContent;});
+ byId('bcVoicePreviewWave').addEventListener('click',event=>{
+  const rect=event.currentTarget.getBoundingClientRect(),duration=voicePreviewAudio.duration;
+  if(Number.isFinite(duration)&&duration>0){voicePreviewAudio.currentTime=Math.max(0,Math.min(1,(event.clientX-rect.left)/rect.width))*duration;}
+ });
  byId('bcSendVoice').addEventListener('click',async()=>{
   if(!bcVoiceBlob||!bcActiveChat||!bcCurrentUser||!bcClient)return;
   const sendVoice=byId('bcSendVoice');sendVoice.disabled=true;sendVoice.textContent='…';
