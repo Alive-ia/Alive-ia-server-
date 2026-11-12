@@ -374,6 +374,7 @@
 .bc-post-video-duration{position:absolute;left:9px;bottom:8px;padding:3px 6px;border-radius:5px;background:rgba(0,0,0,.62);color:#fff;font-size:10px;line-height:1.2;pointer-events:none}
 .bc-post-card.has-video-post .bc-reaction-actions{display:flex;flex-wrap:nowrap;overflow:hidden;gap:4px;width:100%;align-items:stretch}
 .bc-post-card.has-video-post .bc-reaction-action,.bc-post-card.has-video-post .bc-reaction-main{flex:1 1 25%;width:25%;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:clip;padding:7px 1px;gap:3px;font-size:clamp(8px,2.5vw,10px);border-radius:18px}
+.bc-post-card.has-video-post .bc-reaction-action small,.bc-post-card.has-video-post .bc-reaction-main small{display:inline;font-size:clamp(8px,2.3vw,9px);font-weight:700;white-space:nowrap}
 @media(max-width:360px){.bc-post-card.has-video-post .bc-reaction-action,.bc-post-card.has-video-post .bc-reaction-main{font-size:8px;gap:1px}}
 
 .bc-feed-heading{display:flex;align-items:center;justify-content:space-between;padding:13px 10px 9px;margin:0;background:#fff}
@@ -2324,7 +2325,7 @@ function applyDRoute(route){
    download.addEventListener('click',()=>window.bcDownloadPostMedia(post.media_url,post.media_type,post.id));
    const share=document.createElement('button');share.type='button';share.className='bc-reaction-action';share.textContent='↗️ Partager';
    share.addEventListener('click',()=>window.bcSharePost(post));
-   actions.append(main,toggle,download,share);area.appendChild(actions);card.appendChild(area);
+   if(post.media_type==='video'){main.innerHTML='<span>👍</span><small>Réagir</small>';toggle.innerHTML='<span>💬</span><small>Commenter</small>';download.innerHTML='<span>⬇️</span><small>Télécharger</small>';share.innerHTML='<span>↗️</span><small>Partager</small>';[main,toggle,download,share].forEach(button=>{button.style.display='flex';button.style.flexDirection='row';button.style.alignItems='center';button.style.justifyContent='center';button.style.gap='3px';});}actions.append(main,toggle,download,share);area.appendChild(actions);card.appendChild(area);
    const commentsList=document.createElement('div');commentsList.className='bc-comments-list';
    postComments.forEach(comment=>{
     const profile=(commentProfiles||{})[comment.author_id]||{};
