@@ -406,6 +406,7 @@
 .bc-reel-caption strong{display:block;margin-bottom:6px;font-size:14px}
 .bc-reel-actions{position:absolute;right:12px;bottom:78px;display:flex;flex-direction:column;align-items:center;gap:17px;pointer-events:auto}
 .bc-reel-actions button{width:46px;height:46px;min-width:46px;padding:0;border:0;border-radius:50%;background:rgba(20,20,20,.58);color:#fff;font-size:23px;line-height:1;display:grid;place-items:center;box-shadow:0 2px 8px #0006}
+ .bc-reel-sound{position:absolute;right:16px;top:16px;z-index:3;width:44px;height:44px;border:0;border-radius:50%;background:rgba(20,20,20,.62);color:#fff;font-size:22px;display:grid;place-items:center;box-shadow:0 2px 8px #0006}
 .bc-reel-empty{text-align:center;padding:50px 20px;color:#ddd}
 .bc-reel-empty strong{display:block;margin:10px 0;font-size:16px}
 
@@ -3168,6 +3169,7 @@ function applyDRoute(route){
   finally{sendVoice.disabled=false;sendVoice.textContent='Envoyer';}
  });
 
+ let bcReelsSoundEnabled=false;
  window.bcLoadReels=async function(){
   const list=byId('bcReelsList');if(!list||!bcClient)return;
   list.innerHTML='<div class="bc-reel-empty">Chargement des vidéos…</div>';
@@ -3177,12 +3179,13 @@ function applyDRoute(route){
   list.replaceChildren();
   posts.forEach(post=>{
    const item=document.createElement('article');item.className='bc-reel-item';item.dataset.postId=post.id;
-   const video=document.createElement('video');video.src=post.media_url;video.playsInline=true;video.preload='metadata';video.controls=true;video.muted=true;video.setAttribute('controlsList','nodownload');
+   const video=document.createElement('video');video.src=post.media_url;video.playsInline=true;video.preload='metadata';video.controls=true;video.muted=!bcReelsSoundEnabled;video.setAttribute('controlsList','nodownload');
    const overlay=document.createElement('div');overlay.className='bc-reel-overlay';
    const caption=document.createElement('div');caption.className='bc-reel-caption';
    const author=document.createElement('strong');author.textContent=(post.profiles&&post.profiles.display_name)||'Utilisateur BOPE';
    caption.appendChild(author);
    if(post.content){const textNode=document.createElement('span');textNode.textContent=post.content;caption.appendChild(textNode);}
+   const sound=document.createElement('button');sound.type='button';sound.className='bc-reel-sound';sound.textContent=bcReelsSoundEnabled?'🔊':'🔇';sound.setAttribute('aria-label',bcReelsSoundEnabled?'Couper le son':'Activer le son');sound.addEventListener('click',()=>{bcReelsSoundEnabled=!bcReelsSoundEnabled;list.querySelectorAll('video').forEach(v=>{v.muted=!bcReelsSoundEnabled;});list.querySelectorAll('.bc-reel-sound').forEach(b=>{b.textContent=bcReelsSoundEnabled?'🔊':'🔇';b.setAttribute('aria-label',bcReelsSoundEnabled?'Couper le son':'Activer le son');});if(bcReelsSoundEnabled){const p=video.play();if(p&&p.catch)p.catch(()=>{});}});
    const actions=document.createElement('div');actions.className='bc-reel-actions';
    const like=document.createElement('button');like.type='button';like.textContent='👍';like.setAttribute('aria-label','J’aime');like.addEventListener('click',()=>window.bcReactToPost(post.id,'👍'));
    const comment=document.createElement('button');comment.type='button';comment.textContent='💬';comment.setAttribute('aria-label','Commenter');comment.addEventListener('click',async()=>{
@@ -3193,12 +3196,12 @@ function applyDRoute(route){
     if(commentError)alert('Commentaire impossible : '+commentError.message);else alert('Commentaire publié !');
    });
    const share=document.createElement('button');share.type='button';share.textContent='↗';share.setAttribute('aria-label','Partager');share.addEventListener('click',()=>window.bcSharePost(post));
-   actions.append(like,comment,share);overlay.append(caption,actions);item.append(video,overlay);list.appendChild(item);
+   actions.append(like,comment,share);overlay.append(caption,actions);item.append(video,overlay,sound);list.appendChild(item);
   });
   if('IntersectionObserver' in window){
    const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{
     const video=entry.target.querySelector('video');if(!video)return;
-    if(entry.isIntersecting&&entry.intersectionRatio>=0.7){list.querySelectorAll('video').forEach(other=>{if(other!==video)other.pause();});const play=video.play();if(play&&play.catch)play.catch(()=>{});}
+    if(entry.isIntersecting&&entry.intersectionRatio>=0.7){list.querySelectorAll('video').forEach(other=>{if(other!==video)other.pause();});video.muted=!bcReelsSoundEnabled;const play=video.play();if(play&&play.catch)play.catch(()=>{});}
     else video.pause();
    }),{root:list,threshold:[0,0.7,1]});
    list.querySelectorAll('.bc-reel-item').forEach(item=>observer.observe(item));
