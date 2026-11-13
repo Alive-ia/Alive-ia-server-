@@ -2067,6 +2067,11 @@ function applyDRoute(route){
       <button id="bcPublicMessageButton" type="button" onclick="bcMessagePublicProfile()" style="border:0;border-radius:18px;padding:9px 13px;background:#1877f2;color:#fff;font-size:12px;font-weight:700;margin-top:8px">💬 Envoyer un message</button>
      </div>
      <p id="bcPublicBio" class="bc-muted" style="margin:10px 0 0">Aucune présentation pour le moment.</p>
+    <div id="bcPublicBusinessInfo" style="display:none;margin-top:10px;padding:10px;border-radius:10px;background:#eef5ff;color:#1e3260">
+     <strong id="bcPublicBusinessName" style="display:block"></strong>
+     <span id="bcPublicBusinessCategory" style="font-size:12px"></span>
+     <p id="bcPublicBusinessDescription" style="margin:6px 0 0;font-size:13px"></p>
+    </div>
     </div>
     <h3 style="margin:0 0 10px;color:#1e3260">📰 Publications</h3>
     <div id="bcPublicPosts"><p style="color:#667085;font-size:13px">Chargement des publications…</p></div>
@@ -2079,6 +2084,11 @@ function applyDRoute(route){
      <span class="bc-small" id="bcAccountType">Compte personnel</span>
     </div>
     <p id="bcAccountBio" class="bc-muted" style="margin:10px 0 0">Ajoute une petite présentation à ton profil.</p>
+    <div id="bcAccountBusinessInfo" style="display:none;margin-top:10px;padding:10px;border-radius:10px;background:#eef5ff;color:#1e3260">
+     <strong id="bcAccountBusinessName" style="display:block"></strong>
+     <span id="bcAccountBusinessCategory" style="font-size:12px"></span>
+     <p id="bcAccountBusinessDescription" style="margin:6px 0 0;font-size:13px"></p>
+    </div>
     <p id="bcAccountEmail" class="bc-small" style="margin:8px 0 0"></p>
    </div>
    <div class="bc-edit-card">
@@ -2108,7 +2118,7 @@ function applyDRoute(route){
      <label class="bc-field"><span>Description de l'activité</span><textarea id="bcBusinessDescription" maxlength="500" placeholder="Décris ton activité en quelques mots..."></textarea></label>
      <p class="bc-profile-note">Cette première étape affiche le formulaire. L'enregistrement et la conversion seront activés après vérification.</p>
      <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="bc-primary" type="button" disabled style="opacity:.55;cursor:not-allowed">Enregistrement bientôt disponible</button>
+      <button class="bc-primary" type="button" id="bcUpgradeProfessionalButton" onclick="bcUpgradeToProfessional()">Confirmer le passage au compte professionnel</button>
       <button class="bc-secondary" type="button" onclick="bcToggleProfessionalForm(false)">Annuler</button>
      </div>
     </div>
@@ -2207,11 +2217,11 @@ function applyDRoute(route){
   byId('bcAccountName').textContent=meta.display_name||meta.full_name||'Utilisateur BOPE';
   byId('bcAccountEmail').textContent=user.email||'';
   if(bcClient){
-   let {data}=await bcClient.from('profiles').select('display_name,username,bio,avatar_url,cover_url,account_type').eq('id',user.id).maybeSingle();
+   let {data}=await bcClient.from('profiles').select('display_name,username,bio,avatar_url,cover_url,account_type,business_name,business_category,business_description').eq('id',user.id).maybeSingle();
    const profilePatch={};
    if(meta.display_name&&(!data||!data.display_name||data.display_name==='Utilisateur BOPE'))profilePatch.display_name=meta.display_name;
    if(meta.username&&(!data||!data.username))profilePatch.username=String(meta.username).toLowerCase();
-   if(Object.keys(profilePatch).length){const {error}=await bcClient.from('profiles').update(profilePatch).eq('id',user.id);if(!error){const result=await bcClient.from('profiles').select('display_name,username,bio,avatar_url,cover_url,account_type').eq('id',user.id).maybeSingle();data=result.data;}}
+   if(Object.keys(profilePatch).length){const {error}=await bcClient.from('profiles').update(profilePatch).eq('id',user.id);if(!error){const result=await bcClient.from('profiles').select('display_name,username,bio,avatar_url,cover_url,account_type,business_name,business_category,business_description').eq('id',user.id).maybeSingle();data=result.data;}}
    if(data){
     if(composeAvatar){composeAvatar.replaceChildren();if(data.avatar_url){const photo=document.createElement('img');photo.src=data.avatar_url;photo.alt='Photo de profil';composeAvatar.appendChild(photo);}else{composeAvatar.textContent=(data.display_name||meta.display_name||'BOPE').trim().charAt(0).toUpperCase()||'👤';}}
     const saved=bcReadSavedAccounts();const cached=saved.find(x=>x.id===user.id);
@@ -2222,6 +2232,17 @@ function applyDRoute(route){
     if(professionalUpgrade)professionalUpgrade.style.display=data.account_type==='professional'?'none':'block';
     byId('bcAccountUsername').textContent='@'+(data.username||'utilisateur');
     byId('bcAccountBio').textContent=data.bio||'Ajoute une petite présentation à ton profil.';
+    const accountBusinessInfo=byId('bcAccountBusinessInfo');
+    if(accountBusinessInfo){
+     const hasBusiness=data.account_type==='professional';
+     accountBusinessInfo.style.display=hasBusiness?'block':'none';
+     byId('bcAccountBusinessName').textContent=data.business_name||'';
+     byId('bcAccountBusinessCategory').textContent=data.business_category||'';
+     byId('bcAccountBusinessDescription').textContent=data.business_description||'';
+    }
+    byId('bcBusinessName').value=data.business_name||'';
+    byId('bcBusinessCategory').value=data.business_category||'';
+    byId('bcBusinessDescription').value=data.business_description||'';
     byId('bcEditName').value=data.display_name||meta.display_name||'';
     byId('bcEditUsername').value=data.username||meta.username||'';
     byId('bcEditBio').value=data.bio||'';
@@ -2681,13 +2702,21 @@ function applyDRoute(route){
   byId('bcPublicProfilePanel').style.display='block';
   byId('bcPublicPosts').textContent='Chargement des publications…';
   byId('bcPublicName').textContent='Chargement…';
-  const {data:person,error}=await bcClient.from('profiles').select('id,display_name,username,bio,avatar_url,cover_url,account_type').eq('id',profileId).maybeSingle();
+  const {data:person,error}=await bcClient.from('profiles').select('id,display_name,username,bio,avatar_url,cover_url,account_type,business_name,business_category,business_description').eq('id',profileId).maybeSingle();
   if(error||!person){byId('bcPublicName').textContent='Profil indisponible';byId('bcPublicBio').textContent=error?error.message:'Ce profil est introuvable.';byId('bcPublicPosts').textContent='Impossible de charger les publications.';return;}
   bcViewedPublicPerson=person;
   byId('bcPublicName').textContent=person.display_name||'Utilisateur BOPE';
   byId('bcPublicUsername').textContent='@'+(person.username||'utilisateur');
   byId('bcPublicBio').textContent=person.bio||'Cet utilisateur n’a pas encore ajouté de présentation.';
   byId('bcPublicType').textContent=person.account_type==='professional'?'Compte professionnel':'Compte personnel';
+  const publicBusinessInfo=byId('bcPublicBusinessInfo');
+  if(publicBusinessInfo){
+   const hasBusiness=person.account_type==='professional';
+   publicBusinessInfo.style.display=hasBusiness?'block':'none';
+   byId('bcPublicBusinessName').textContent=person.business_name||'';
+   byId('bcPublicBusinessCategory').textContent=person.business_category||'';
+   byId('bcPublicBusinessDescription').textContent=person.business_description||'';
+  }
   byId('bcPublicAvatar').src=person.avatar_url||'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" rx="50" fill="#e8edfa"/><text x="50" y="63" text-anchor="middle" font-size="48">👤</text></svg>');
   byId('bcPublicCover').style.backgroundImage=person.cover_url?'url("'+person.cover_url.replace(/"/g,'%22')+'")':'';
   const {data:posts,error:postsError}=await bcClient.from('bope_posts').select('id,content,media_url,media_type,created_at').eq('author_id',profileId).order('created_at',{ascending:false}).limit(50);
@@ -3237,6 +3266,34 @@ function applyDRoute(route){
   if(form)form.style.display=show?'block':'none';
   const button=byId('bcProfessionalUpgradeButton');
   if(button)button.style.display=show?'none':'inline-block';
+ };
+ window.bcUpgradeToProfessional=async function(){
+  if(!bcCurrentUser||!bcClient)return;
+  const business_name=byId('bcBusinessName').value.trim();
+  const business_category=byId('bcBusinessCategory').value;
+  const business_description=byId('bcBusinessDescription').value.trim();
+  if(!business_name){byId('bcAccountMessage').textContent="Indique le nom de ton activité ou de ton entreprise.";return;}
+  if(!business_category){byId('bcAccountMessage').textContent="Choisis une catégorie professionnelle.";return;}
+  if(!business_description){byId('bcAccountMessage').textContent="Ajoute une courte description de ton activité.";return;}
+  const allowed=['Commerce et entreprise','Santé','Éducation','Divertissement','Créateur de contenu','Technologie','Médias et actualités','Organisation et association','Autre'];
+  if(!allowed.includes(business_category)){byId('bcAccountMessage').textContent="La catégorie choisie n'est pas valide.";return;}
+  if(!window.confirm("Confirmer le passage de ton compte personnel au compte professionnel ? Tes amis, publications et messages seront conservés."))return;
+  bcBusy('bcUpgradeProfessionalButton',true,'Conversion...');
+  try{
+   const {error}=await bcClient.from('profiles').update({
+    account_type:'professional',
+    business_name,
+    business_category,
+    business_description
+   }).eq('id',bcCurrentUser.id);
+   if(error)throw error;
+   await bcShowAccount(bcCurrentUser);
+   byId('bcAccountMessage').textContent='Félicitations ! Ton compte BOPE est maintenant professionnel.';
+  }catch(err){
+   byId('bcAccountMessage').textContent=err.message||'Impossible de convertir le compte. Réessaie.';
+  }finally{
+   bcBusy('bcUpgradeProfessionalButton',false,'Confirmer le passage au compte professionnel');
+  }
  };
  window.bcSaveProfile=async function(){
   if(!bcCurrentUser||!bcClient)return;
