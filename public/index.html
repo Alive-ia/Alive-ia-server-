@@ -3196,7 +3196,8 @@ function applyDRoute(route){
     if(commentError)alert('Commentaire impossible : '+commentError.message);else alert('Commentaire publié !');
    });
    const share=document.createElement('button');share.type='button';share.textContent='↗';share.setAttribute('aria-label','Partager');share.addEventListener('click',()=>window.bcSharePost(post));
-   actions.append(like,comment,share);overlay.append(caption,actions);item.append(video,overlay,sound);list.appendChild(item);
+   const download=document.createElement('button');download.type='button';download.textContent='⬇';download.setAttribute('aria-label','Télécharger la vidéo');download.addEventListener('click',async()=>{const original=download.textContent;download.disabled=true;download.textContent='…';try{const response=await fetch(post.media_url);if(!response.ok)throw new Error('Téléchargement indisponible');const blob=await response.blob();const objectUrl=URL.createObjectURL(blob);const link=document.createElement('a');const extension=(blob.type.split('/')[1]||'mp4').split(';')[0].replace('quicktime','mov');link.href=objectUrl;link.download='bope-reel-'+post.id+'.'+extension;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);}catch(error){window.open(post.media_url,'_blank','noopener');alert('Le téléchargement direct n’est pas disponible ici. La vidéo a été ouverte pour que tu puisses l’enregistrer si ton navigateur le permet.');}finally{download.disabled=false;download.textContent=original;}});
+   actions.append(like,comment,share,download);overlay.append(caption,actions);item.append(video,overlay,sound);list.appendChild(item);
   });
   if('IntersectionObserver' in window){
    const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{
