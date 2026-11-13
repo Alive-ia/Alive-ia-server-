@@ -327,6 +327,59 @@ async function bopeDemoEnsureAccounts() {
   return result;
 }
 
+
+// Téléversement sécurisé de médias vers les comptes de démonstration BOPE.
+app.post('/api/bope-demo/upload', express.raw({ type: 'application/octet-stream', limit: '50mb' }), async (req, res) => {
+  if (!bopeDemoAuthorized(req)) return res.status(403).json({ ok: false, message: 'Code administrateur incorrect.' });
+  const username = String(req.query.account || '');
+  const account = BOPE_DEMO_ACCOUNTS.find(item => item.username === username);
+  const mime = String(req.get('x-media-type') || '').toLowerCase();
+  const allowed = {
+    'video/mp4': 'mp4',
+    'video/webm': 'webm',
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp'
+  };
+  if (!account) return res.status(400).json({ ok: false, message: 'Choisis un compte BOPE valide.' });
+  if (!allowed[mime]) return res.status(400).json({ ok: false, message: 'Format refusé. Utilise MP4, WEBM, JPG, PNG ou WEBP.' });
+  if (!Buffer.isBuffer(req.body) || !req.body.length) return res.status(400).json({ ok: false, message: 'Fichier vide ou non reçu.' });
+  try {
+    const accounts = await bopeDemoEnsureAccounts();
+    const target = accounts.find(item => item.username === username);
+    if (!target) throw new Error('Compte BOPE démo introuvable.');
+    const safeName = String(req.get('x-file-name') || 'media')
+      .normalize('NFKD').replace(/[^a-zA-Z0-9._-]/g, '-').slice(0, 70) || 'media';
+    const fileName = Date.now() + '-' + require('crypto').randomBytes(5).toString('hex') + '-' + safeName.replace(/\.[^.]+$/, '') + '.' + allowed[mime];
+    const storagePath = target.id + '/' + fileName;
+    const encodedPath = storagePath.split('/').map(encodeURIComponent).join('/');
+    await bopeDemoRequest('/storage/v1/object/bope-posts/' + encodedPath, {
+      method: 'POST',
+      headers: { 'Content-Type': mime, 'x-upsert': 'false' },
+      body: req.body
+    });
+    const cfg = bopeDemoSupabaseConfig();
+    const mediaUrl = cfg.url + '/storage/v1/object/public/bope-posts/' + encodedPath;
+    const caption = String(req.query.caption || '').trim().slice(0, 1000) || safeName.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ');
+    const post = {
+      author_id: target.id,
+      content: caption,
+      media_url: mediaUrl,
+      media_type: mime.startsWith('video/') ? 'video' : 'image',
+      background_style: 'default'
+    };
+    const created = await bopeDemoRequest('/rest/v1/bope_posts', {
+      method: 'POST',
+      headers: { Prefer: 'return=representation' },
+      body: JSON.stringify(post)
+    });
+    return res.json({ ok: true, account: account.display_name, mediaType: post.media_type, mediaUrl, postId: Array.isArray(created) && created[0] ? created[0].id : null });
+  } catch (error) {
+    console.error('BOPE demo media upload:', error.message);
+    return res.status(500).json({ ok: false, message: error.message });
+  }
+});
+
 app.get('/bope-demo-admin', (req, res) => {
   res.set('Cache-Control', 'no-store');
   res.type('html').send([
@@ -334,10 +387,11 @@ app.get('/bope-demo-admin', (req, res) => {
     '<title>Administration BOPE Créateur</title><style>body{font-family:Arial,sans-serif;background:#101820;color:#fff;margin:0;padding:24px}main{max-width:520px;margin:30px auto;background:#1d2a35;padding:22px;border-radius:16px}h1{font-size:23px}p{line-height:1.5;color:#d5dde3}input,button{box-sizing:border-box;width:100%;padding:14px;border-radius:9px;margin:8px 0;font-size:15px}input{border:1px solid #52616d;background:#101820;color:#fff}button{border:0;background:#18a56b;color:#fff;font-weight:bold}button.danger{background:#bd3d45}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#101820;padding:12px;border-radius:8px}</style></head><body>',
     '<main><h1>BOPE Créateur — Administration démo</h1><p>Cette page sert uniquement à remplir ou vider les comptes de démonstration. Tes comptes personnels et leurs publications ne sont pas ciblés.</p>',
     '<label for="secret">Code secret administrateur</label><input id="secret" type="password" autocomplete="off" placeholder="Entre ton code secret Render">',
-    '<button id="fill">Remplir le feed démo (6 comptes, 30 publications)</button><button id="remove" class="danger">Supprimer les comptes démo</button><pre id="result">En attente d’une action.</pre></main>',
+    '<section style="margin-top:22px;padding-top:16px;border-top:1px solid #52616d"><h2 style="font-size:19px">Ajouter des photos et vidéos</h2><p>Choisis le compte, sélectionne plusieurs fichiers et BOPE les publiera automatiquement. Formats : MP4, WEBM, JPG, PNG, WEBP. Limite : 50 Mo par fichier.</p><label for="account">Compte de destination</label><select id="account" style="box-sizing:border-box;width:100%;padding:14px;border-radius:9px;margin:8px 0;background:#101820;color:#fff;border:1px solid #52616d"><option value="Humour_Congo">Humour Congo</option><option value="BOPE_Officiel">BOPE Officiel</option><option value="Kinshasa_Vibes">Kinshasa Vibes</option><option value="Foot_RDC">Foot RDC</option><option value="Cuisine_Kin">Cuisine Kin</option><option value="Musique_Congo">Musique Congo</option></select><label for="caption">Légende (facultative, commune aux fichiers)</label><input id="caption" type="text" maxlength="1000" placeholder="Ex. Un moment drôle 😂"><label for="media">Photos ou vidéos (sélection multiple)</label><input id="media" type="file" multiple accept="video/mp4,video/webm,image/jpeg,image/png,image/webp"><button id="upload">Publier les fichiers sélectionnés</button></section><button id="fill">Remplir le feed démo (6 comptes, 30 publications)</button><button id="remove" class="danger">Supprimer les comptes démo</button><pre id="result">En attente d’une action.</pre></main>',
     '<script>',
     'const secret=document.getElementById("secret"),result=document.getElementById("result");',
     'async function run(path,button){if(!secret.value){result.textContent="Entre d’abord ton code secret.";return;}button.disabled=true;result.textContent="Opération en cours…";try{const r=await fetch(path,{method:"POST",headers:{"x-bope-demo-key":secret.value},cache:"no-store"});const d=await r.json().catch(()=>({message:"Réponse illisible."}));result.textContent="HTTP "+r.status+"\\n"+JSON.stringify(d,null,2);}catch(e){result.textContent="Erreur réseau : "+e.message;}finally{button.disabled=false;}}',
+    'document.getElementById("upload").addEventListener("click",async function(){const files=Array.from(document.getElementById("media").files||[]);if(!secret.value){result.textContent="Entre d’abord ton code secret.";return;}if(!files.length){result.textContent="Sélectionne au moins un fichier.";return;}this.disabled=true;const account=document.getElementById("account").value;const caption=document.getElementById("caption").value;let done=0;const errors=[];for(const file of files){result.textContent="Envoi de "+(done+1)+"/"+files.length+" : "+file.name+"\\nNe ferme pas cette page.";try{if(file.size>50*1024*1024)throw new Error("Fichier supérieur à 50 Mo.");const url="/api/bope-demo/upload?account="+encodeURIComponent(account)+"&caption="+encodeURIComponent(caption);const r=await fetch(url,{method:"POST",headers:{"x-bope-demo-key":secret.value,"Content-Type":"application/octet-stream","x-media-type":file.type,"x-file-name":file.name},body:file,cache:"no-store"});const d=await r.json().catch(()=>({message:"Réponse illisible."}));if(!r.ok||!d.ok)throw new Error(d.message||("HTTP "+r.status));done++;}catch(e){errors.push(file.name+" : "+e.message);}}result.textContent="Terminé : "+done+"/"+files.length+" fichier(s) publié(s) sur "+account+(errors.length?"\\nErreurs :\\n"+errors.join("\\n"):"");this.disabled=false;});',
     'document.getElementById("fill").addEventListener("click",function(){run("/api/bope-demo/fill",this);});',
     'document.getElementById("remove").addEventListener("click",function(){if(confirm("Supprimer uniquement les 6 comptes et leurs publications de démonstration ?"))run("/api/bope-demo/remove",this);});',
     '</script></body></html>'
