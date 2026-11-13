@@ -221,6 +221,13 @@
 @media(max-width:360px){.audio-tab{font-size:10px;padding:10px 3px}.audio-action-row{flex-direction:column}.audio-secondary{margin-top:0}}
 
 
+
+/* Outils flottants du fil BOPE */
+.bc-feed-tools{position:fixed;right:16px;bottom:calc(82px + env(safe-area-inset-bottom));z-index:10060;display:none;flex-direction:column;gap:9px}
+.bc-feed-tools.show{display:flex}
+.bc-feed-tools button{width:46px;height:46px;border:0;border-radius:50%;background:#b91c1c;color:#fff;font-size:25px;font-weight:800;box-shadow:0 4px 14px rgba(0,0,0,.22);display:grid;place-items:center}
+.bc-feed-tools button:disabled{opacity:.65}
+.bc-feed-tools #bcFeedTop{background:#243b70;font-size:28px}
 /* === BOPE CREATEURS : authentification initiale === */
 #bopeCreatorsPage{display:none;position:fixed;inset:0;z-index:10050;background:#f4f6fb;color:#172033;overflow-y:auto;font-family:Arial,sans-serif}
 #bopeCreatorsPage.active{display:block}
@@ -1536,7 +1543,12 @@ function applyDRoute(route){
      <strong>Bienvenue dans ton fil BOPE !</strong>
      <p>Les publications de la communauté BOPE apparaîtront ici.</p>
     </div>
-   </section>
+   
+ <div class="bc-feed-tools" id="bcFeedTools" aria-label="Outils du fil d’actualité">
+  <button type="button" id="bcFeedRefresh" onclick="bcRefreshFeed()" aria-label="Actualiser les publications" title="Actualiser">↻</button>
+  <button type="button" id="bcFeedTop" onclick="bcScrollFeedTop()" aria-label="Retour en haut" title="Retour en haut">↑</button>
+ </div>
+</section>
    <section class="bc-tab-panel" id="bcTabPanel" aria-live="polite">
     <div class="bc-panel-icon" id="bcPanelIcon">🇨🇩</div>
     <h3 id="bcPanelTitle">Bienvenue sur BOPE CRÉATEURS</h3>
@@ -3213,6 +3225,26 @@ function applyDRoute(route){
   }catch(err){byId('bcAccountMessage').textContent=err.message||'Impossible d’enregistrer le profil.';}
   finally{bcBusy('bcSaveProfileButton',false,'Enregistrer mon profil');}
  };
+
+ window.bcScrollFeedTop=function(){
+  const page=byId('bopeCreatorsPage');if(page)page.scrollTo({top:0,behavior:'smooth'});
+ };
+ window.bcRefreshFeed=async function(){
+  if(!bcCurrentUser||!bcClient)return;
+  const button=byId('bcFeedRefresh');if(button){button.disabled=true;button.textContent='…';}
+  try{
+   await Promise.all([window.bcLoadPosts(),window.bcLoadStories()]);
+   if(byId('bcPostStatus'))byId('bcPostStatus').textContent='Fil actualisé : les publications les plus récentes sont affichées.';
+  }catch(err){if(byId('bcPostStatus'))byId('bcPostStatus').textContent='Impossible d’actualiser le fil. Réessaie.';}
+  finally{if(button){button.disabled=false;button.textContent='↻';}}
+ };
+ (function(){
+  const page=byId('bopeCreatorsPage'),tools=byId('bcFeedTools');if(!page||!tools)return;
+  const update=()=>{const active=page.classList.contains('active')&&byId('bcAccountCard')?.classList.contains('show');tools.classList.toggle('show',!!active&&page.scrollTop>260);};
+  page.addEventListener('scroll',update,{passive:true});
+  const observer=new MutationObserver(update);observer.observe(page,{attributes:true,attributeFilter:['class'],subtree:true});
+  update();
+ })();
  window.bcSignOut=async function(){if(!bcClient)return;const id=bcCurrentUser&&bcCurrentUser.id;if(id)bcWriteSavedAccounts(bcReadSavedAccounts().filter(x=>x.id!==id));const {error}=await bcClient.auth.signOut();if(error){byId('bcAccountMessage').textContent=error.message;return;}bcCurrentUser=null;bcShowAuth();bcShowForm('login');};
 })();
 </script>
