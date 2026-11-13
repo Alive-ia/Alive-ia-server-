@@ -393,22 +393,21 @@
 @media(max-width:360px){.bc-post-card.has-video-post .bc-reaction-action,.bc-post-card.has-video-post .bc-reaction-main{font-size:8px;gap:1px}}
 
 
-/* BOPE REELS — lecteur vertical indépendant, alimenté par les vidéos du fil */
-#bcReelsPanel{display:none;background:#080808;color:#fff;margin:0 -10px;overflow:hidden}
-#bcReelsToolbar{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#111;color:#fff}
-#bcReelsToolbar strong{font-size:18px;letter-spacing:.3px}
-#bcReelsToolbar small{font-size:11px;color:#bbb}
-#bcReelsList{height:calc(100dvh - 205px);min-height:420px;overflow-y:auto;scroll-snap-type:y mandatory;overscroll-behavior:contain}
-.bc-reel-item{position:relative;min-height:100%;height:calc(100dvh - 205px);scroll-snap-align:start;scroll-snap-stop:always;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.bc-reel-item video{width:100%;height:100%;object-fit:contain;background:#000}
-.bc-reel-overlay{position:absolute;left:0;right:0;bottom:0;padding:60px 14px 18px;background:linear-gradient(transparent,rgba(0,0,0,.82));display:flex;align-items:flex-end;justify-content:space-between;gap:12px;pointer-events:none}
-.bc-reel-caption{min-width:0;max-width:75%;font-size:13px;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere}
+/* BOPE REELS — lecteur immersif plein écran sous la navigation */
+#bcReelsPanel{display:none;position:fixed;top:0;right:0;bottom:0;left:0;z-index:2;margin:0;padding:0;background:#000;color:#fff;overflow:hidden}
+#bcReelsToolbar{height:42px;display:flex;align-items:center;justify-content:space-between;padding:7px 14px;background:#111;color:#fff}
+#bcReelsToolbar strong{font-size:16px;letter-spacing:.3px}
+#bcReelsToolbar small{font-size:10px;color:#bbb}
+#bcReelsList{height:calc(100% - 42px);width:100%;overflow-y:auto;scroll-snap-type:y mandatory;overscroll-behavior:contain;background:#000}
+.bc-reel-item{position:relative;width:100%;height:100%;min-height:0;scroll-snap-align:start;scroll-snap-stop:always;background:#000;overflow:hidden}
+.bc-reel-item video{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;object-position:center;background:#000}
+.bc-reel-overlay{position:absolute;inset:0;display:block;padding:0;background:linear-gradient(to top,rgba(0,0,0,.62),transparent 34%);pointer-events:none}
+.bc-reel-caption{position:absolute;left:14px;right:82px;bottom:22px;max-width:none;font-size:13px;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere;color:#fff;text-shadow:0 1px 3px #000}
 .bc-reel-caption strong{display:block;margin-bottom:6px;font-size:14px}
-.bc-reel-actions{display:flex;flex-direction:column;gap:14px;pointer-events:auto}
-.bc-reel-actions button{border:0;border-radius:22px;background:rgba(30,30,30,.78);color:#fff;padding:9px 10px;font-size:12px;font-weight:700;min-width:58px}
+.bc-reel-actions{position:absolute;right:12px;bottom:78px;display:flex;flex-direction:column;align-items:center;gap:17px;pointer-events:auto}
+.bc-reel-actions button{width:46px;height:46px;min-width:46px;padding:0;border:0;border-radius:50%;background:rgba(20,20,20,.58);color:#fff;font-size:23px;line-height:1;display:grid;place-items:center;box-shadow:0 2px 8px #0006}
 .bc-reel-empty{text-align:center;padding:50px 20px;color:#ddd}
 .bc-reel-empty strong{display:block;margin:10px 0;font-size:16px}
-@media(max-width:420px){#bcReelsList{height:calc(100dvh - 190px)}.bc-reel-item{height:calc(100dvh - 190px)}}
 
 .bc-feed-heading{display:flex;align-items:center;justify-content:space-between;padding:13px 10px 9px;margin:0;background:#fff}
 .bc-feed-heading strong{font-size:15px;color:#1c1e21}
@@ -3185,15 +3184,15 @@ function applyDRoute(route){
    caption.appendChild(author);
    if(post.content){const textNode=document.createElement('span');textNode.textContent=post.content;caption.appendChild(textNode);}
    const actions=document.createElement('div');actions.className='bc-reel-actions';
-   const like=document.createElement('button');like.type='button';like.textContent='👍 J’aime';like.addEventListener('click',()=>window.bcReactToPost(post.id,'👍'));
-   const comment=document.createElement('button');comment.type='button';comment.textContent='💬 Commenter';comment.addEventListener('click',async()=>{
+   const like=document.createElement('button');like.type='button';like.textContent='👍';like.setAttribute('aria-label','J’aime');like.addEventListener('click',()=>window.bcReactToPost(post.id,'👍'));
+   const comment=document.createElement('button');comment.type='button';comment.textContent='💬';comment.setAttribute('aria-label','Commenter');comment.addEventListener('click',async()=>{
     if(!bcCurrentUser){alert('Connecte-toi pour commenter.');return;}
     const value=window.prompt('Écris ton commentaire :');if(value===null||!value.trim())return;
     const clean=value.trim();if(clean.length>2000){alert('Le commentaire ne peut pas dépasser 2 000 caractères.');return;}
     const {error:commentError}=await bcClient.from('bope_post_comments').insert({post_id:post.id,author_id:bcCurrentUser.id,content:clean});
     if(commentError)alert('Commentaire impossible : '+commentError.message);else alert('Commentaire publié !');
    });
-   const share=document.createElement('button');share.type='button';share.textContent='↗ Partager';share.addEventListener('click',()=>window.bcSharePost(post));
+   const share=document.createElement('button');share.type='button';share.textContent='↗';share.setAttribute('aria-label','Partager');share.addEventListener('click',()=>window.bcSharePost(post));
    actions.append(like,comment,share);overlay.append(caption,actions);item.append(video,overlay);list.appendChild(item);
   });
   if('IntersectionObserver' in window){
@@ -3229,7 +3228,7 @@ function applyDRoute(route){
   byId('bcPublicProfilePanel').style.display='none';
   byId('bcTabPanel').style.display=(tab==='menu'||tab==='home'||tab==='notifications'||tab==='friends'||tab==='messages'||tab==='videos')?'none':'block';
   byId('bcReelsPanel').style.display=tab==='videos'?'block':'none';
-  if(tab==='videos')window.bcLoadReels();
+  if(tab==='videos'){const reelsNav=document.querySelector('#bopeCreatorsPage .bc-main-nav');const reelsPanel=byId('bcReelsPanel');if(reelsNav&&reelsPanel)reelsPanel.style.top=Math.max(0,reelsNav.getBoundingClientRect().bottom)+'px';window.bcLoadReels();}
   if(tab==='notifications')window.bcLoadNotifications();
   if(tab==='messages')window.bcLoadConversations();
   if(tab==='friends'){window.bcLoadFriends();byId('bcPeopleSearchInput').focus();}
