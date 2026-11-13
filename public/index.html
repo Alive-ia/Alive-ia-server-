@@ -2093,6 +2093,26 @@ function applyDRoute(route){
     <p class="bc-profile-note">Images JPG, PNG ou WebP, 5 Mo maximum chacune. Enregistre pour appliquer les changements.</p>
     <button class="bc-primary" type="button" id="bcSaveProfileButton" onclick="bcSaveProfile()">Enregistrer mon profil</button>
    </div>
+   <div id="bcProfessionalUpgrade" class="bc-edit-card" style="margin-top:12px">
+    <h3>🏢 Compte professionnel</h3>
+    <p class="bc-profile-note">Présente ton activité ou ton entreprise sur BOPE.</p>
+    <button class="bc-primary" type="button" id="bcProfessionalUpgradeButton" onclick="bcToggleProfessionalForm(true)">Passer au compte professionnel</button>
+    <div id="bcProfessionalForm" style="display:none;margin-top:14px">
+     <label class="bc-field"><span>Nom de l'activité ou de l'entreprise</span><input id="bcBusinessName" maxlength="100" placeholder="Ex. : Pharmacie Bope"></label>
+     <label class="bc-field"><span>Catégorie professionnelle</span>
+      <select id="bcBusinessCategory">
+       <option value="">Choisir une catégorie</option>
+       <option>Commerce et entreprise</option><option>Santé</option><option>Éducation</option><option>Divertissement</option><option>Créateur de contenu</option><option>Technologie</option><option>Médias et actualités</option><option>Organisation et association</option><option>Autre</option>
+      </select>
+     </label>
+     <label class="bc-field"><span>Description de l'activité</span><textarea id="bcBusinessDescription" maxlength="500" placeholder="Décris ton activité en quelques mots..."></textarea></label>
+     <p class="bc-profile-note">Cette première étape affiche le formulaire. L'enregistrement et la conversion seront activés après vérification.</p>
+     <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="bc-primary" type="button" disabled style="opacity:.55;cursor:not-allowed">Enregistrement bientôt disponible</button>
+      <button class="bc-secondary" type="button" onclick="bcToggleProfessionalForm(false)">Annuler</button>
+     </div>
+    </div>
+   </div>
    <div class="bc-profile-actions">
     <button class="bc-secondary" type="button" onclick="bcSignOut()">Se déconnecter</button>
    </div>
@@ -2198,6 +2218,8 @@ function applyDRoute(route){
     if(cached){cached.label=data.display_name||cached.label;cached.username=data.username||'';cached.avatar_url=data.avatar_url||'';bcWriteSavedAccounts(saved);if(byId('bcAccountSwitcher')?.style.display==='block')bcRenderSavedAccounts();}
     byId('bcAccountName').textContent=data.display_name||byId('bcAccountName').textContent;
     byId('bcAccountType').textContent=data.account_type==='professional'?'Compte professionnel':'Compte personnel';
+    const professionalUpgrade=byId('bcProfessionalUpgrade');
+    if(professionalUpgrade)professionalUpgrade.style.display=data.account_type==='professional'?'none':'block';
     byId('bcAccountUsername').textContent='@'+(data.username||'utilisateur');
     byId('bcAccountBio').textContent=data.bio||'Ajoute une petite présentation à ton profil.';
     byId('bcEditName').value=data.display_name||meta.display_name||'';
@@ -3210,6 +3232,12 @@ function applyDRoute(route){
  }
  byId('bcAvatarFile').addEventListener('change',()=>bcPreviewProfileImage(byId('bcAvatarFile'),'avatar'));
  byId('bcCoverFile').addEventListener('change',()=>bcPreviewProfileImage(byId('bcCoverFile'),'cover'));
+ window.bcToggleProfessionalForm=function(show){
+  const form=byId('bcProfessionalForm');
+  if(form)form.style.display=show?'block':'none';
+  const button=byId('bcProfessionalUpgradeButton');
+  if(button)button.style.display=show?'none':'inline-block';
+ };
  window.bcSaveProfile=async function(){
   if(!bcCurrentUser||!bcClient)return;
   const display_name=byId('bcEditName').value.trim();
