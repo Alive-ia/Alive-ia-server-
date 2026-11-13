@@ -2174,7 +2174,7 @@ function applyDRoute(route){
  }
  function bcShowAuth(){byId('bcAuthCard').style.display='block';byId('bcAccountCard').classList.remove('show');}
  async function bcShowAccount(user){
-  bcCurrentUser=user;byId('bcAuthCard').style.display='none';byId('bcAccountCard').classList.add('show');
+  bcCurrentUser=user;bcFeedNewestAt=null;bcFeedSeenIds=new Set();bcSetNewPostsBadge(0);byId('bcAuthCard').style.display='none';byId('bcAccountCard').classList.add('show');
   const composeAvatar=byId('bcComposeAvatar');if(composeAvatar)composeAvatar.textContent='👤';
   window.bcNavigate('home');
   const meta=user.user_metadata||{};
@@ -2402,7 +2402,7 @@ function applyDRoute(route){
   if(markSeen){
    posts.forEach(post=>bcFeedSeenIds.add(post.id));
    const newest=posts.reduce((max,post)=>{const time=Date.parse(post.created_at||'');return Number.isFinite(time)&&time>max?time:max;},0);
-   if(newest)bcFeedNewestAt=new Date(newest).toISOString();
+   if(newest)bcFeedNewestAt=new Date(newest).toISOString();else if(!bcFeedNewestAt)bcFeedNewestAt=new Date().toISOString();
    bcSetNewPostsBadge(0);
   }else if(!bcFeedNewestAt&&posts.length){
    posts.forEach(post=>bcFeedSeenIds.add(post.id));
@@ -3251,7 +3251,7 @@ function applyDRoute(route){
   const n=Math.max(0,Number(count)||0);
   badge.textContent=n+' nouvelle'+(n>1?'s':'')+' publication'+(n>1?'s':'');
   badge.classList.toggle('show',n>0);
-  badge.setAttribute('aria-label',n+' nouvelle'+(n>1?'s':'')+' publication'+(n>1?'s')+' disponible'+(n>1?'s':'')+'. Appuie pour actualiser le fil.');
+  badge.setAttribute('aria-label',n+' nouvelle'+(n>1?'s':'')+' publication'+(n>1?'s':'')+' disponible'+(n>1?'s':'')+'. Appuie pour actualiser le fil.');
  }
  window.bcCheckForNewPosts=async function(){
   if(!bcClient||!bcCurrentUser||!bcFeedNewestAt||bcFeedPollBusy)return;
