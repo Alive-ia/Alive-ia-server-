@@ -388,6 +388,24 @@
 .bc-post-card.has-video-post .bc-reaction-action small,.bc-post-card.has-video-post .bc-reaction-main small{display:inline;font-size:clamp(8px,2.3vw,9px);font-weight:700;white-space:nowrap}
 @media(max-width:360px){.bc-post-card.has-video-post .bc-reaction-action,.bc-post-card.has-video-post .bc-reaction-main{font-size:8px;gap:1px}}
 
+
+/* BOPE REELS — lecteur vertical indépendant, alimenté par les vidéos du fil */
+#bcReelsPanel{display:none;background:#080808;color:#fff;margin:0 -10px;overflow:hidden}
+#bcReelsToolbar{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#111;color:#fff}
+#bcReelsToolbar strong{font-size:18px;letter-spacing:.3px}
+#bcReelsToolbar small{font-size:11px;color:#bbb}
+#bcReelsList{height:calc(100dvh - 205px);min-height:420px;overflow-y:auto;scroll-snap-type:y mandatory;overscroll-behavior:contain}
+.bc-reel-item{position:relative;min-height:100%;height:calc(100dvh - 205px);scroll-snap-align:start;scroll-snap-stop:always;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.bc-reel-item video{width:100%;height:100%;object-fit:contain;background:#000}
+.bc-reel-overlay{position:absolute;left:0;right:0;bottom:0;padding:60px 14px 18px;background:linear-gradient(transparent,rgba(0,0,0,.82));display:flex;align-items:flex-end;justify-content:space-between;gap:12px;pointer-events:none}
+.bc-reel-caption{min-width:0;max-width:75%;font-size:13px;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere}
+.bc-reel-caption strong{display:block;margin-bottom:6px;font-size:14px}
+.bc-reel-actions{display:flex;flex-direction:column;gap:14px;pointer-events:auto}
+.bc-reel-actions button{border:0;border-radius:22px;background:rgba(30,30,30,.78);color:#fff;padding:9px 10px;font-size:12px;font-weight:700;min-width:58px}
+.bc-reel-empty{text-align:center;padding:50px 20px;color:#ddd}
+.bc-reel-empty strong{display:block;margin:10px 0;font-size:16px}
+@media(max-width:420px){#bcReelsList{height:calc(100dvh - 190px)}.bc-reel-item{height:calc(100dvh - 190px)}}
+
 .bc-feed-heading{display:flex;align-items:center;justify-content:space-between;padding:13px 10px 9px;margin:0;background:#fff}
 .bc-feed-heading strong{font-size:15px;color:#1c1e21}
 .bc-feed-heading small{font-size:11px;color:#65676b}
@@ -1500,7 +1518,7 @@ function applyDRoute(route){
    <nav class="bc-main-nav" aria-label="Navigation BOPE CRÉATEURS">
     <button type="button" class="active" data-bc-tab="home" onclick="bcNavigate('home')" aria-label="Accueil" title="Accueil" aria-current="page"><span>⌂</span><small>Accueil</small></button>
     <button type="button" data-bc-tab="friends" onclick="bcNavigate('friends')" aria-label="Amis" title="Amis"><span>♧</span><small>Amis</small></button>
-    <button type="button" data-bc-tab="videos" onclick="bcNavigate('videos')" aria-label="Vidéos" title="Vidéos"><span>▣</span><small>Vidéos</small></button>
+    <button type="button" data-bc-tab="videos" onclick="bcNavigate('videos')" aria-label="BOPE REELS" title="BOPE REELS"><span>▶</span><small>Reels</small></button>
     <button type="button" data-bc-tab="notifications" onclick="bcNavigate('notifications')" aria-label="Notifications" title="Notifications"><span style="position:relative">🔔<b id="bcNotificationBadge" style="display:none;position:absolute;top:-5px;right:-13px;min-width:16px;height:16px;padding:0 4px;border-radius:10px;background:#e41e3f;color:white;font:10px/16px Arial;text-align:center"></b></span><small>Notifications</small></button>
     <button type="button" data-bc-tab="messages" onclick="bcNavigate('messages')" aria-label="Messages" title="Messages"><span>▱</span><small>Messages</small></button>
     <button type="button" data-bc-tab="menu" onclick="bcNavigate('menu')" aria-label="Menu" title="Menu"><span>☰</span><small>Menu</small></button>
@@ -1558,6 +1576,10 @@ function applyDRoute(route){
     <div class="bc-panel-icon" id="bcPanelIcon">🇨🇩</div>
     <h3 id="bcPanelTitle">Bienvenue sur BOPE CRÉATEURS</h3>
     <p id="bcPanelText">Ton fil d’actualité BOPE prendra place ici. Nous le construirons avec les publications, photos, vidéos et recommandations intelligentes.</p>
+   </section>
+   <section id="bcReelsPanel" aria-label="BOPE REELS">
+    <div id="bcReelsToolbar"><strong>▶ BOPE REELS</strong><small>Vidéos de la communauté BOPE</small></div>
+    <div id="bcReelsList"><div class="bc-reel-empty">Chargement des vidéos…</div></div>
    </section>
    <section id="bcMessagesPanel" class="bc-tab-panel" style="display:none;text-align:left">
     <style>
@@ -3142,11 +3164,49 @@ function applyDRoute(route){
   }catch(err){alert('Message vocal non envoyé : '+err.message);}
   finally{sendVoice.disabled=false;sendVoice.textContent='Envoyer';}
  });
+
+ window.bcLoadReels=async function(){
+  const list=byId('bcReelsList');if(!list||!bcClient)return;
+  list.innerHTML='<div class="bc-reel-empty">Chargement des vidéos…</div>';
+  const {data:posts,error}=await bcClient.from('bope_posts').select('id,content,media_url,media_type,created_at,profiles(display_name,username,avatar_url)').eq('media_type','video').not('media_url','is',null).order('created_at',{ascending:false}).limit(50);
+  if(error){list.innerHTML='<div class="bc-reel-empty">Impossible de charger les vidéos : '+String(error.message||'erreur').replace(/[<>]/g,'')+'</div>';return;}
+  if(!posts||!posts.length){list.innerHTML='<div class="bc-reel-empty"><div style="font-size:38px">🎬</div><strong>Aucun Reel pour le moment</strong><p>Les vidéos publiées dans le fil BOPE apparaîtront automatiquement ici.</p></div>';return;}
+  list.replaceChildren();
+  posts.forEach(post=>{
+   const item=document.createElement('article');item.className='bc-reel-item';item.dataset.postId=post.id;
+   const video=document.createElement('video');video.src=post.media_url;video.playsInline=true;video.preload='metadata';video.controls=true;video.muted=true;video.setAttribute('controlsList','nodownload');
+   const overlay=document.createElement('div');overlay.className='bc-reel-overlay';
+   const caption=document.createElement('div');caption.className='bc-reel-caption';
+   const author=document.createElement('strong');author.textContent=(post.profiles&&post.profiles.display_name)||'Utilisateur BOPE';
+   caption.appendChild(author);
+   if(post.content){const textNode=document.createElement('span');textNode.textContent=post.content;caption.appendChild(textNode);}
+   const actions=document.createElement('div');actions.className='bc-reel-actions';
+   const like=document.createElement('button');like.type='button';like.textContent='👍 J’aime';like.addEventListener('click',()=>window.bcReactToPost(post.id,'👍'));
+   const comment=document.createElement('button');comment.type='button';comment.textContent='💬 Commenter';comment.addEventListener('click',async()=>{
+    if(!bcCurrentUser){alert('Connecte-toi pour commenter.');return;}
+    const value=window.prompt('Écris ton commentaire :');if(value===null||!value.trim())return;
+    const clean=value.trim();if(clean.length>2000){alert('Le commentaire ne peut pas dépasser 2 000 caractères.');return;}
+    const {error:commentError}=await bcClient.from('bope_post_comments').insert({post_id:post.id,author_id:bcCurrentUser.id,content:clean});
+    if(commentError)alert('Commentaire impossible : '+commentError.message);else alert('Commentaire publié !');
+   });
+   const share=document.createElement('button');share.type='button';share.textContent='↗ Partager';share.addEventListener('click',()=>window.bcSharePost(post));
+   actions.append(like,comment,share);overlay.append(caption,actions);item.append(video,overlay);list.appendChild(item);
+  });
+  if('IntersectionObserver' in window){
+   const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{
+    const video=entry.target.querySelector('video');if(!video)return;
+    if(entry.isIntersecting&&entry.intersectionRatio>=0.7){list.querySelectorAll('video').forEach(other=>{if(other!==video)other.pause();});const play=video.play();if(play&&play.catch)play.catch(()=>{});}
+    else video.pause();
+   }),{root:list,threshold:[0,0.7,1]});
+   list.querySelectorAll('.bc-reel-item').forEach(item=>observer.observe(item));
+  }
+ };
+
  window.bcNavigate=function(tab){
   const tabs={
    home:{icon:'🏠',title:'Accueil BOPE',text:'Ton fil d’actualité prendra place ici : publications, photos, vidéos et recommandations intelligentes.'},
    friends:{icon:'👥',title:'Amis et communautés',text:'Recherche des utilisateurs BOPE et envoie-leur une demande d’amitié.'},
-   videos:{icon:'🎬',title:'BOPE Vidéos',text:'Un espace pour découvrir les vidéos courtes et longues des créateurs BOPE. Le lecteur et les recommandations seront ajoutés ensuite.'},
+   videos:{icon:'▶️',title:'BOPE REELS',text:'Découvre les vidéos de la communauté BOPE.'},
    notifications:{icon:'🔔',title:'Notifications',text:'Tu retrouveras ici les nouvelles réactions, commentaires, invitations et activités de ton compte.'},
    messages:{icon:'💬',title:'Messagerie BOPE',text:'Les conversations privées et de groupe seront réunies ici. Nous construirons la messagerie après la navigation.'},
    menu:{icon:'☰',title:'Mon espace et paramètres',text:'Retrouve les informations de ton compte et la modification de ton profil.'}
@@ -3163,7 +3223,9 @@ function applyDRoute(route){
   byId('bcMessagesPanel').style.display=tab==='messages'?'block':'none';
   byId('bcFriendsPanel').style.display=tab==='friends'?'block':'none';
   byId('bcPublicProfilePanel').style.display='none';
-  byId('bcTabPanel').style.display=(tab==='menu'||tab==='home'||tab==='notifications'||tab==='friends'||tab==='messages')?'none':'block';
+  byId('bcTabPanel').style.display=(tab==='menu'||tab==='home'||tab==='notifications'||tab==='friends'||tab==='messages'||tab==='videos')?'none':'block';
+  byId('bcReelsPanel').style.display=tab==='videos'?'block':'none';
+  if(tab==='videos')window.bcLoadReels();
   if(tab==='notifications')window.bcLoadNotifications();
   if(tab==='messages')window.bcLoadConversations();
   if(tab==='friends'){window.bcLoadFriends();byId('bcPeopleSearchInput').focus();}
