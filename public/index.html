@@ -228,6 +228,10 @@
 .bc-feed-tools button{width:46px;height:46px;border:0;border-radius:50%;background:#b91c1c;color:#fff;font-size:25px;font-weight:800;box-shadow:0 4px 14px rgba(0,0,0,.22);display:grid;place-items:center}
 .bc-feed-tools button:disabled{opacity:.65}
 .bc-feed-tools #bcFeedTop{background:#243b70;font-size:28px}
+.bc-new-posts-badge{position:fixed;left:50%;bottom:calc(142px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:10062;display:none;max-width:calc(100vw - 32px);border:0;border-radius:24px;padding:11px 18px;background:#d71920;color:#fff;font-size:14px;font-weight:800;box-shadow:0 5px 18px rgba(130,0,0,.3);white-space:nowrap}
+.bc-new-posts-badge.show{display:block}
+.bc-new-posts-badge:active{transform:translateX(-50%) scale(.97)}
+
 /* === BOPE CREATEURS : authentification initiale === */
 #bopeCreatorsPage{display:none;position:fixed;inset:0;z-index:10050;background:#f4f6fb;color:#172033;overflow-y:auto;font-family:Arial,sans-serif}
 #bopeCreatorsPage.active{display:block}
@@ -1548,6 +1552,7 @@ function applyDRoute(route){
   <button type="button" id="bcFeedRefresh" onclick="bcRefreshFeed()" aria-label="Actualiser les publications" title="Actualiser">↻</button>
   <button type="button" id="bcFeedTop" onclick="bcScrollFeedTop()" aria-label="Retour en haut" title="Retour en haut">↑</button>
  </div>
+ <button type="button" id="bcNewPostsBadge" class="bc-new-posts-badge" onclick="bcRefreshFeed()" aria-live="polite" aria-label="Afficher les nouvelles publications"></button>
 </section>
    <section class="bc-tab-panel" id="bcTabPanel" aria-live="polite">
     <div class="bc-panel-icon" id="bcPanelIcon">🇨🇩</div>
@@ -2100,6 +2105,7 @@ function applyDRoute(route){
 <script>
 (function(){
  let bcClient=null,bcReady=false,bcCurrentUser=null;
+ let bcFeedNewestAt=null,bcFeedSeenIds=new Set(),bcFeedPollTimer=null,bcFeedPollBusy=false;
  const BC_SAVED_ACCOUNTS_KEY='bope_saved_account_sessions_v1';
  function bcReadSavedAccounts(){try{const v=JSON.parse(localStorage.getItem(BC_SAVED_ACCOUNTS_KEY)||'[]');return Array.isArray(v)?v:[];}catch(e){return[];}}
  function bcWriteSavedAccounts(items){try{localStorage.setItem(BC_SAVED_ACCOUNTS_KEY,JSON.stringify(items.slice(0,8)));}catch(e){console.warn('BOPE: stockage des sessions indisponible',e);}}
@@ -2172,7 +2178,8 @@ function applyDRoute(route){
   const composeAvatar=byId('bcComposeAvatar');if(composeAvatar)composeAvatar.textContent='👤';
   window.bcNavigate('home');
   const meta=user.user_metadata||{};
-  window.bcLoadPosts();
+  window.bcLoadPosts(true);
+  window.bcStartFeedPolling();
   window.bcLoadStories();
   window.bcLoadNotifications();
   if(bcNotificationTimer)clearInterval(bcNotificationTimer);
@@ -2366,7 +2373,7 @@ function applyDRoute(route){
    list.appendChild(card);
   });
  }
- window.bcLoadPosts=async function(){
+ window.bcLoadPosts=async function(markSeen=false){
   if(!bcClient)return;
   const sharedParts=window.location.pathname.split('/').filter(Boolean);
   const sharedPostId=sharedParts.length===2&&sharedParts[0]==='publication'&&/^[0-9a-f-]{36}$/i.test(sharedParts[1])?sharedParts[1]:null;
@@ -2392,6 +2399,16 @@ function applyDRoute(route){
    }
   }
   bcRenderPosts(posts,reactions,comments,commentProfiles);
+  if(markSeen){
+   posts.forEach(post=>bcFeedSeenIds.add(post.id));
+   const newest=posts.reduce((max,post)=>{const time=Date.parse(post.created_at||'');return Number.isFinite(time)&&time>max?time:max;},0);
+   if(newest)bcFeedNewestAt=new Date(newest).toISOString();
+   bcSetNewPostsBadge(0);
+  }else if(!bcFeedNewestAt&&posts.length){
+   posts.forEach(post=>bcFeedSeenIds.add(post.id));
+   const newest=posts.reduce((max,post)=>{const time=Date.parse(post.created_at||'');return Number.isFinite(time)&&time>max?time:max;},0);
+   if(newest)bcFeedNewestAt=new Date(newest).toISOString();
+  }
   if(sharedPostId){
    if(posts.length){
     byId('bcPostStatus').textContent='Publication partagée — tu consultes son emplacement original sur BOPE CRÉATEURS.';
@@ -3229,11 +3246,35 @@ function applyDRoute(route){
  window.bcScrollFeedTop=function(){
   const page=byId('bopeCreatorsPage');if(page)page.scrollTo({top:0,behavior:'smooth'});
  };
+ function bcSetNewPostsBadge(count){
+  const badge=byId('bcNewPostsBadge');if(!badge)return;
+  const n=Math.max(0,Number(count)||0);
+  badge.textContent=n+' nouvelle'+(n>1?'s':'')+' publication'+(n>1?'s':'');
+  badge.classList.toggle('show',n>0);
+  badge.setAttribute('aria-label',n+' nouvelle'+(n>1?'s':'')+' publication'+(n>1?'s')+' disponible'+(n>1?'s':'')+'. Appuie pour actualiser le fil.');
+ }
+ window.bcCheckForNewPosts=async function(){
+  if(!bcClient||!bcCurrentUser||!bcFeedNewestAt||bcFeedPollBusy)return;
+  const page=byId('bopeCreatorsPage');
+  if(!page||!page.classList.contains('active')||!byId('bcAccountCard')?.classList.contains('show'))return;
+  bcFeedPollBusy=true;
+  try{
+   const {data,error}=await bcClient.from('bope_posts').select('id,author_id,created_at').gte('created_at',bcFeedNewestAt).neq('author_id',bcCurrentUser.id).order('created_at',{ascending:false}).limit(500);
+   if(error){console.warn('Détection des nouvelles publications BOPE :',error.message);return;}
+   const fresh=(data||[]).filter(post=>!bcFeedSeenIds.has(post.id));
+   bcSetNewPostsBadge(fresh.length);
+  }catch(error){console.warn('Vérification du fil BOPE impossible :',error);}
+  finally{bcFeedPollBusy=false;}
+ };
+ window.bcStartFeedPolling=function(){
+  if(bcFeedPollTimer)clearInterval(bcFeedPollTimer);
+  bcFeedPollTimer=setInterval(()=>window.bcCheckForNewPosts(),30000);
+ };
  window.bcRefreshFeed=async function(){
   if(!bcCurrentUser||!bcClient)return;
   const button=byId('bcFeedRefresh');if(button){button.disabled=true;button.textContent='…';}
   try{
-   await Promise.all([window.bcLoadPosts(),window.bcLoadStories()]);
+   await Promise.all([window.bcLoadPosts(true),window.bcLoadStories()]);
    if(byId('bcPostStatus'))byId('bcPostStatus').textContent='Fil actualisé : les publications les plus récentes sont affichées.';
   }catch(err){if(byId('bcPostStatus'))byId('bcPostStatus').textContent='Impossible d’actualiser le fil. Réessaie.';}
   finally{if(button){button.disabled=false;button.textContent='↻';}}
@@ -3245,7 +3286,7 @@ function applyDRoute(route){
   const observer=new MutationObserver(update);observer.observe(page,{attributes:true,attributeFilter:['class'],subtree:true});
   update();
  })();
- window.bcSignOut=async function(){if(!bcClient)return;const id=bcCurrentUser&&bcCurrentUser.id;if(id)bcWriteSavedAccounts(bcReadSavedAccounts().filter(x=>x.id!==id));const {error}=await bcClient.auth.signOut();if(error){byId('bcAccountMessage').textContent=error.message;return;}bcCurrentUser=null;bcShowAuth();bcShowForm('login');};
+ window.bcSignOut=async function(){if(!bcClient)return;if(bcFeedPollTimer){clearInterval(bcFeedPollTimer);bcFeedPollTimer=null;}bcSetNewPostsBadge(0);const id=bcCurrentUser&&bcCurrentUser.id;if(id)bcWriteSavedAccounts(bcReadSavedAccounts().filter(x=>x.id!==id));const {error}=await bcClient.auth.signOut();if(error){byId('bcAccountMessage').textContent=error.message;return;}bcCurrentUser=null;bcShowAuth();bcShowForm('login');};
 })();
 </script>
 </body></html>
