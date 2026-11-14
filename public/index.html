@@ -414,6 +414,11 @@
 .bc-reel-action svg{width:29px;height:29px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .bc-reel-action:disabled{opacity:.55}
  .bc-reel-sound{position:absolute;right:16px;top:16px;z-index:3;width:44px;height:44px;border:0;border-radius:50%;background:rgba(20,20,20,.62);color:#fff;font-size:22px;display:grid;place-items:center;box-shadow:0 2px 8px #0006}
+.bc-reel-action.is-liked{color:#FF1E2D}
+.bc-reel-action.is-liked svg{fill:#FF1E2D;stroke:#FF1E2D}
+.bc-reel-like-count{font-size:11px;font-weight:700;line-height:1;color:#fff;text-shadow:0 1px 3px #000}
+.bc-reel-like-heart{position:absolute;left:50%;top:50%;z-index:4;transform:translate(-50%,-50%) scale(.45);font-size:clamp(76px,22vw,112px);line-height:1;color:#FF1E2D;text-shadow:0 3px 18px #0009;pointer-events:none;animation:bcReelHeartPop .95s ease-out forwards}
+@keyframes bcReelHeartPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.35)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}35%{transform:translate(-50%,-50%) scale(1)}78%{opacity:1}100%{opacity:0;transform:translate(-50%,-58%) scale(.9)}}
 .bc-reel-empty{text-align:center;padding:50px 20px;color:#ddd}
 .bc-reel-empty strong{display:block;margin:10px 0;font-size:16px}
 
@@ -3190,6 +3195,11 @@ function applyDRoute(route){
   const {data:posts,error}=await bcClient.from('bope_posts').select('id,content,media_url,media_type,created_at,profiles(display_name,username,avatar_url)').eq('media_type','video').not('media_url','is',null).order('created_at',{ascending:false}).limit(50);
   if(error){list.innerHTML='<div class="bc-reel-empty">Impossible de charger les vidéos : '+String(error.message||'erreur').replace(/[<>]/g,'')+'</div>';return;}
   if(!posts||!posts.length){list.innerHTML='<div class="bc-reel-empty"><div style="font-size:38px">🎬</div><strong>Aucun Reel pour le moment</strong><p>Les vidéos publiées dans le fil BOPE apparaîtront automatiquement ici.</p></div>';return;}
+  const reelPostIds=posts.map(post=>post.id);
+  const {data:reelReactions,error:reelReactionsError}=await bcClient.from('bope_post_reactions').select('post_id,user_id,reaction_type').in('post_id',reelPostIds).eq('reaction_type','👍');
+  const reelLikeDataAvailable=!reelReactionsError;
+  if(reelReactionsError)console.warn('BOPE REELS : chargement des J’aime impossible',reelReactionsError);
+  const reelLikeRows=reelReactions||[];
   list.replaceChildren();
   posts.forEach(post=>{
    const item=document.createElement('article');item.className='bc-reel-item';item.dataset.postId=post.id;item.style.setProperty('--bc-reel-bg','url('+JSON.stringify(post.media_url)+')');
@@ -3201,7 +3211,39 @@ function applyDRoute(route){
    if(post.content){const textNode=document.createElement('span');textNode.textContent=post.content;caption.appendChild(textNode);}
    const sound=document.createElement('button');sound.type='button';sound.className='bc-reel-sound';sound.textContent=bcReelsSoundEnabled?'🔊':'🔇';sound.setAttribute('aria-label',bcReelsSoundEnabled?'Couper le son':'Activer le son');sound.addEventListener('click',()=>{bcReelsSoundEnabled=!bcReelsSoundEnabled;list.querySelectorAll('.bc-reel-main').forEach(v=>{v.muted=!bcReelsSoundEnabled;});list.querySelectorAll('.bc-reel-sound').forEach(b=>{b.textContent=bcReelsSoundEnabled?'🔊':'🔇';b.setAttribute('aria-label',bcReelsSoundEnabled?'Couper le son':'Activer le son');});if(bcReelsSoundEnabled){const p=video.play();if(p&&p.catch)p.catch(()=>{});}});
    const actions=document.createElement('div');actions.className='bc-reel-actions';
-   const like=document.createElement('button');like.type='button';like.className='bc-reel-action';like.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10v11H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3Zm0 0 5-8c1.5 0 2.5 1.2 2.2 2.7L13 10h5.5a2.5 2.5 0 0 1 2.4 3.2l-1.8 6A2.5 2.5 0 0 1 16.7 21H7"/></svg>';like.setAttribute('aria-label','J’aime');like.addEventListener('click',()=>window.bcReactToPost(post.id,'👍'));
+   const like=document.createElement('button');like.type='button';like.className='bc-reel-action';
+   like.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10v11H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3Zm0 0 5-8c1.5 0 2.5 1.2 2.2 2.7L13 10h5.5a2.5 2.5 0 0 1 2.4 3.2l-1.8 6A2.5 2.5 0 0 1 16.7 21H7"/></svg><span class="bc-reel-like-count"></span>';
+   const likeCount=like.querySelector('.bc-reel-like-count');
+   let reelLikeCount=reelLikeRows.filter(row=>row.post_id===post.id).length;
+   let reelIsLiked=!!(bcCurrentUser&&reelLikeRows.some(row=>row.post_id===post.id&&row.user_id===bcCurrentUser.id));
+   let reelLikeBusy=false;
+   const updateReelLikeUI=()=>{like.classList.toggle('is-liked',reelIsLiked);likeCount.textContent=reelLikeDataAvailable?String(reelLikeCount):'—';like.setAttribute('aria-label',reelIsLiked?'Retirer le J’aime':'J’aime');};
+   const setReelLiked=async desired=>{
+    if(!bcClient||!bcCurrentUser){alert('Connecte-toi pour aimer une vidéo.');return false;}
+    if(!reelLikeDataAvailable){alert('Les J’aime sont momentanément indisponibles. Réessaie dans un instant.');return false;}
+    if(reelLikeBusy||desired===reelIsLiked)return false;
+    reelLikeBusy=true;like.disabled=true;
+    let result;
+    if(desired){result=await bcClient.from('bope_post_reactions').upsert({post_id:post.id,user_id:bcCurrentUser.id,reaction_type:'👍'},{onConflict:'post_id,user_id'});}
+    else{result=await bcClient.from('bope_post_reactions').delete().eq('post_id',post.id).eq('user_id',bcCurrentUser.id).eq('reaction_type','👍');}
+    if(result.error){alert('Le J’aime n’a pas pu être enregistré : '+result.error.message);}
+    else{reelIsLiked=desired;reelLikeCount=Math.max(0,reelLikeCount+(desired?1:-1));updateReelLikeUI();}
+    reelLikeBusy=false;like.disabled=false;
+    return !result.error;
+   };
+   const showReelHeart=()=>{const heart=document.createElement('div');heart.className='bc-reel-like-heart';heart.textContent='♥';item.appendChild(heart);setTimeout(()=>heart.remove(),1000);};
+   updateReelLikeUI();
+   like.disabled=!reelLikeDataAvailable;
+   like.addEventListener('click',()=>setReelLiked(!reelIsLiked));
+   video.addEventListener('dblclick',()=>{showReelHeart();if(!reelIsLiked)setReelLiked(true);});
+   let lastReelTap=0,lastReelTapX=0,lastReelTapY=0;
+   video.addEventListener('touchend',event=>{
+    if(!event.changedTouches||!event.changedTouches.length)return;
+    const touch=event.changedTouches[0],now=Date.now();
+    const closeTap=now-lastReelTap<320&&Math.abs(touch.clientX-lastReelTapX)<45&&Math.abs(touch.clientY-lastReelTapY)<45;
+    lastReelTap=now;lastReelTapX=touch.clientX;lastReelTapY=touch.clientY;
+    if(closeTap){showReelHeart();if(!reelIsLiked)setReelLiked(true);}
+   },{passive:true});
    const comment=document.createElement('button');comment.type='button';comment.className='bc-reel-action';comment.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"/></svg>';comment.setAttribute('aria-label','Commenter');comment.addEventListener('click',async()=>{
     if(!bcCurrentUser){alert('Connecte-toi pour commenter.');return;}
     const value=window.prompt('Écris ton commentaire :');if(value===null||!value.trim())return;
