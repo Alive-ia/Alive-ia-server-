@@ -2828,7 +2828,7 @@ function applyDRoute(route){
   const items=data||[],unread=items.filter(n=>!n.is_read).length,badge=byId('bcNotificationBadge');
   if(badge){badge.textContent=unread>99?'99+':String(unread);badge.style.display=unread?'block':'none';}
   const box=byId('bcNotificationsList');if(!box)return;box.replaceChildren();
-  if(!items.length){const empty=document.createElement('div');empty.className='bc-notification-empty';empty.textContent='Tu n’as pas encore de notification. Les demandes d’amitié, réactions et commentaires apparaîtront ici.';box.appendChild(empty);return;}
+  if(!items.length){const empty=document.createElement('div');empty.className='bc-notification-empty';empty.textContent='Tu n’as pas encore de notification. Les demandes d’amitié, réactions, commentaires, partages et interactions avec les Stories apparaîtront ici.';box.appendChild(empty);return;}
   const actorIds=[...new Set(items.map(n=>n.actor_id))];
   const {data:profiles}=await bcClient.from('profiles').select('id,display_name,avatar_url').in('id',actorIds);
   const profileMap={};(profiles||[]).forEach(p=>profileMap[p.id]=p);
@@ -2838,10 +2838,10 @@ function applyDRoute(route){
   items.forEach(n=>{
    const profile=profileMap[n.actor_id]||{},row=document.createElement('div');row.className='bc-notification-item'+(n.is_read?'':' unread');
    const avatar=profile.avatar_url?document.createElement('img'):document.createElement('div');avatar.className='bc-notification-avatar';
-   if(profile.avatar_url){avatar.src=profile.avatar_url;avatar.alt='';avatar.style.objectFit='cover';}else avatar.textContent=n.notification_type==='reaction'?'❤️':n.notification_type==='friend_request'?'👥':'💬';
+   if(profile.avatar_url){avatar.src=profile.avatar_url;avatar.alt='';avatar.style.objectFit='cover';}else avatar.textContent=n.notification_type==='reaction'?'❤️':n.notification_type==='friend_request'?'👥':n.notification_type==='share'?'🔁':(n.notification_type==='story_reply'||n.notification_type==='story_reaction')?'📖':'💬';
    const copy=document.createElement('div');copy.className='bc-notification-copy';
    const strong=document.createElement('strong');strong.textContent=profile.display_name||'Un utilisateur BOPE';
-   const defaultMessage=n.notification_type==='reaction'?'a réagi à ta publication.':n.notification_type==='friend_request'?'t’a envoyé une demande d’amitié.':'a commenté ta publication.';
+   const defaultMessage=n.notification_type==='reaction'?'a réagi à ta publication.':n.notification_type==='friend_request'?'t’a envoyé une demande d’amitié.':n.notification_type==='share'?'a repartagé ta publication.':n.notification_type==='story_reply'?'a répondu à ta Story.':n.notification_type==='story_reaction'?'a réagi à ta Story.':'a commenté ta publication.';
    const msg=document.createElement('span');msg.textContent=' '+(n.message||defaultMessage);
    const date=document.createElement('small');date.textContent=bcSafeDate(n.created_at);copy.append(strong,msg,date);row.append(avatar,copy);
    if(n.notification_type==='story_reply'||n.notification_type==='story_reaction'){
