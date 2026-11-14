@@ -404,13 +404,26 @@ app.post('/api/bope-demo/fill', async (req, res) => {
     const accounts = await bopeDemoEnsureAccounts();
     const ids = accounts.map(account => account.id);
     const inFilter = '(' + ids.join(',') + ')';
-    await bopeDemoRequest('/rest/v1/bope_posts?author_id=in.' + encodeURIComponent(inFilter), {
-      method: 'DELETE',
-      headers: { Prefer: 'return=minimal' }
-    });
+    const existing = await bopeDemoRequest(
+      '/rest/v1/bope_posts?author_id=in.' + encodeURIComponent(inFilter) +
+      '&select=author_id,content,media_url,media_type,background_style&limit=10000',
+      { method: 'GET' }
+    );
+    if (!Array.isArray(existing)) throw new Error('Impossible de vérifier les publications déjà présentes.');
+
+    // Une publication modèle n'est ajoutée que si son contenu exact n'existe pas déjà.
+    // Les publications existantes ne sont jamais supprimées ni modifiées.
+    const postKey = post => JSON.stringify([
+      post.author_id,
+      post.content,
+      post.media_type,
+      post.background_style,
+      post.media_url
+    ]);
+    const existingKeys = new Set(existing.map(postKey));
 
     const now = Date.now();
-    const posts = BOPE_DEMO_POSTS.map((post, index) => {
+    const candidates = BOPE_DEMO_POSTS.map((post, index) => {
       const author = accounts.find(account => account.username === post.username);
       return {
         author_id: author.id,
@@ -421,16 +434,22 @@ app.post('/api/bope-demo/fill', async (req, res) => {
         created_at: new Date(now - (BOPE_DEMO_POSTS.length - index) * 5 * 60 * 60 * 1000).toISOString()
       };
     });
-    await bopeDemoRequest('/rest/v1/bope_posts', {
-      method: 'POST',
-      headers: { Prefer: 'return=minimal' },
-      body: JSON.stringify(posts)
-    });
+    const posts = candidates.filter(post => !existingKeys.has(postKey(post)));
+
+    if (posts.length) {
+      await bopeDemoRequest('/rest/v1/bope_posts', {
+        method: 'POST',
+        headers: { Prefer: 'return=minimal' },
+        body: JSON.stringify(posts)
+      });
+    }
     return res.json({
       ok: true,
       accountsCreatedOrVerified: accounts.length,
       publicationsCreated: posts.length,
-      note: 'Les publications vidéo et photo sont préparées avec media_url vide : ajoutez vos propres médias pour afficher les fichiers. Les publications textuelles sont immédiatement visibles.'
+      publicationsAlreadyPresent: candidates.length - posts.length,
+      publicationsPreserved: existing.length,
+      note: 'Aucune publication existante n’a été supprimée ou modifiée. Seules les publications modèles manquantes ont été ajoutées. Les médias personnels déjà publiés sont conservés.'
     });
   } catch (error) {
     console.error('BOPE demo fill:', error.message);
