@@ -3800,6 +3800,12 @@ function applyDRoute(route){
   update();
  })();
  window.bcSignOut=async function(){if(!bcClient)return;if(bcFeedPollTimer){clearInterval(bcFeedPollTimer);bcFeedPollTimer=null;}bcSetNewPostsBadge(0);const id=bcCurrentUser&&bcCurrentUser.id;if(id)bcWriteSavedAccounts(bcReadSavedAccounts().filter(x=>x.id!==id));const {error}=await bcClient.auth.signOut();if(error){byId('bcAccountMessage').textContent=error.message;return;}bcCurrentUser=null;bcShowAuth();bcShowForm('login');};
+ // Ouvre automatiquement BOPE CRÉATEURS lorsqu'une publication est appelée par son lien direct.
+ // bcLoadPosts() détecte ensuite l'identifiant dans l'URL et charge uniquement cette publication.
+ if(/^\/publication\/[0-9a-f-]{36}\/?$/i.test(window.location.pathname)){
+  window.openBopeCreators();
+ }
+
 })();
 </script>
 </body></html>
