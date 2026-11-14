@@ -440,6 +440,17 @@
 .bc-reel-comments-send{flex:0 0 auto;border:0;border-radius:20px;background:#FF1E2D;color:#fff;font-weight:700;padding:10px 15px}
 .bc-reel-comments-send:disabled{opacity:.55}
 
+.bc-reel-share-panel{position:absolute;left:10px;right:10px;bottom:12px;z-index:8;padding:14px;background:#171717;color:#fff;border:1px solid #ffffff22;border-radius:18px;box-shadow:0 5px 24px #0009;display:none;max-height:65%;overflow:auto}
+.bc-reel-share-panel.is-open{display:block}
+.bc-reel-share-head{display:flex;align-items:center;justify-content:space-between;font-weight:700;margin-bottom:12px}
+.bc-reel-share-close{border:0;background:transparent;color:#fff;font-size:26px;line-height:1;padding:0 5px}
+.bc-reel-share-option{width:100%;display:flex;align-items:center;gap:12px;padding:12px 10px;margin:5px 0;border:0;border-radius:11px;background:#292929;color:#fff;text-align:left;font-size:14px}
+.bc-reel-share-option:active{background:#414141}
+.bc-reel-share-friends{display:none;margin-top:9px;border-top:1px solid #ffffff22;padding-top:8px}
+.bc-reel-share-friends.is-open{display:block}
+.bc-reel-share-friend{width:100%;display:flex;align-items:center;gap:10px;padding:9px 5px;border:0;border-bottom:1px solid #ffffff18;background:transparent;color:#fff;text-align:left}
+.bc-reel-share-friend img{width:36px;height:36px;border-radius:50%;object-fit:cover;background:#333}
+
 .bc-reel-empty{text-align:center;padding:50px 20px;color:#ddd}
 .bc-reel-empty strong{display:block;margin:10px 0;font-size:16px}
 
@@ -3328,9 +3339,56 @@ function applyDRoute(route){
     }
     commentsSend.disabled=false;commentsSend.textContent='Envoyer';
    });
-   const share=document.createElement('button');share.type='button';share.className='bc-reel-action';share.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m-5 5 5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>';share.setAttribute('aria-label','Partager');share.addEventListener('click',()=>window.bcSharePost(post));
+   const share=document.createElement('button');share.type='button';share.className='bc-reel-action';share.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m-5 5 5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>';share.setAttribute('aria-label','Partager');
+   const shareUrl=new URL('/publication/'+encodeURIComponent(post.id),window.location.origin).href;
+   const shareText=(post.content||'Découvre ce Reel sur BOPE 🇨🇩')+' — BOPE REELS';
+   const sharePanel=document.createElement('section');sharePanel.className='bc-reel-share-panel';sharePanel.setAttribute('aria-label','Partager ce Reel');
+   const shareHead=document.createElement('div');shareHead.className='bc-reel-share-head';
+   const shareTitle=document.createElement('strong');shareTitle.textContent='Partager ce Reel';
+   const shareClose=document.createElement('button');shareClose.type='button';shareClose.className='bc-reel-share-close';shareClose.textContent='×';shareClose.setAttribute('aria-label','Fermer');
+   shareHead.append(shareTitle,shareClose);
+   const makeShareOption=(icon,label)=>{const button=document.createElement('button');button.type='button';button.className='bc-reel-share-option';button.textContent=icon+'  '+label;return button;};
+   const copyOption=makeShareOption('🔗','Copier le lien');
+   const whatsOption=makeShareOption('🟢','Partager sur WhatsApp');
+   const faceOption=makeShareOption('🔵','Partager sur Facebook');
+   const friendOption=makeShareOption('💬','Envoyer à un ami BOPE');
+   const friendsBox=document.createElement('div');friendsBox.className='bc-reel-share-friends';
+   sharePanel.append(shareHead,copyOption,whatsOption,faceOption,friendOption,friendsBox);
+   const closeSharePanel=()=>{sharePanel.classList.remove('is-open');friendsBox.classList.remove('is-open');};
+   const copyReelLink=async()=>{try{if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(shareUrl);}else{const area=document.createElement('textarea');area.value=shareUrl;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();const ok=document.execCommand('copy');area.remove();if(!ok)throw new Error('Copie indisponible');}copyOption.textContent='✓  Lien copié';setTimeout(()=>{copyOption.textContent='🔗  Copier le lien';},1800);}catch(error){alert('Impossible de copier le lien sur cet appareil.');}};
+   copyOption.addEventListener('click',copyReelLink);
+   whatsOption.addEventListener('click',()=>{window.open('https://wa.me/?text='+encodeURIComponent(shareText+' '+shareUrl),'_blank','noopener,noreferrer');});
+   faceOption.addEventListener('click',()=>{window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(shareUrl),'_blank','noopener,noreferrer');});
+   friendOption.addEventListener('click',async()=>{
+    if(!bcClient||!bcCurrentUser){alert('Connecte-toi pour envoyer un Reel à un ami BOPE.');return;}
+    friendsBox.classList.add('is-open');friendsBox.textContent='Chargement de tes amis…';
+    const {data:links,error:linksError}=await bcClient.from('bope_friendships').select('user_one,user_two').or('user_one.eq.'+bcCurrentUser.id+',user_two.eq.'+bcCurrentUser.id);
+    if(linksError){friendsBox.textContent='Impossible de charger tes amis : '+linksError.message;return;}
+    const friendIds=(links||[]).map(row=>row.user_one===bcCurrentUser.id?row.user_two:row.user_one);
+    if(!friendIds.length){friendsBox.textContent='Tu n’as pas encore d’ami BOPE. Ajoute des amis pour leur envoyer des Reels.';return;}
+    const {data:people,error:peopleError}=await bcClient.from('profiles').select('id,display_name,username,avatar_url').in('id',friendIds).order('display_name');
+    if(peopleError){friendsBox.textContent='Impossible de charger les profils : '+peopleError.message;return;}
+    friendsBox.replaceChildren();
+    (people||[]).forEach(person=>{
+     const row=document.createElement('button');row.type='button';row.className='bc-reel-share-friend';
+     const avatar=document.createElement('img');avatar.src=person.avatar_url||'';avatar.alt='';avatar.loading='lazy';
+     const name=document.createElement('span');name.textContent=(person.display_name||'Utilisateur BOPE')+' · @'+(person.username||'utilisateur');
+     row.append(avatar,name);
+     row.addEventListener('click',async()=>{
+      row.disabled=true;name.textContent='Envoi…';
+      const {error:sendError}=await bcClient.from('bope_messages').insert({sender_id:bcCurrentUser.id,recipient_id:person.id,content:'🎬 '+shareText+' '+shareUrl});
+      if(sendError){alert('Envoi impossible : '+sendError.message);row.disabled=false;name.textContent=(person.display_name||'Utilisateur BOPE')+' · @'+(person.username||'utilisateur');}
+      else{name.textContent='✓ Envoyé à '+(person.display_name||'ton ami');setTimeout(closeSharePanel,900);}
+     });
+     friendsBox.appendChild(row);
+    });
+    if(!(people||[]).length)friendsBox.textContent='Aucun ami disponible.';
+   });
+   shareClose.addEventListener('click',closeSharePanel);
+   share.addEventListener('click',()=>{sharePanel.classList.toggle('is-open');if(!sharePanel.classList.contains('is-open'))friendsBox.classList.remove('is-open');});
+   sharePanel.addEventListener('click',event=>event.stopPropagation());
    const download=document.createElement('button');download.type='button';download.className='bc-reel-action';download.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5"/><path d="M4 17v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>';download.setAttribute('aria-label','Télécharger la vidéo');download.addEventListener('click',async()=>{const original=download.textContent;download.disabled=true;download.textContent='…';try{const response=await fetch(post.media_url);if(!response.ok)throw new Error('Téléchargement indisponible');const blob=await response.blob();const objectUrl=URL.createObjectURL(blob);const link=document.createElement('a');const extension=(blob.type.split('/')[1]||'mp4').split(';')[0].replace('quicktime','mov');link.href=objectUrl;link.download='bope-reel-'+post.id+'.'+extension;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);}catch(error){window.open(post.media_url,'_blank','noopener');alert('Le téléchargement direct n’est pas disponible ici. La vidéo a été ouverte pour que tu puisses l’enregistrer si ton navigateur le permet.');}finally{download.disabled=false;download.textContent=original;}});
-   actions.append(like,comment,share,download);overlay.append(caption,actions);item.append(video,overlay,sound,commentsPanel);list.appendChild(item);
+   actions.append(like,comment,share,download);overlay.append(caption,actions);item.append(video,overlay,sound,commentsPanel,sharePanel);list.appendChild(item);
   });
   if('IntersectionObserver' in window){
    const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{
