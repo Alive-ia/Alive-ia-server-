@@ -454,6 +454,7 @@
 .bc-reel-empty{text-align:center;padding:50px 20px;color:#ddd}
 .bc-reel-empty strong{display:block;margin:10px 0;font-size:16px}
 
+.bc-download-wrap{display:flex;align-items:center;justify-content:center;gap:3px;min-width:0}.bc-download-status{display:none;max-width:48px;overflow:hidden;color:currentColor;font-size:10px;line-height:1.1;text-align:center;white-space:nowrap;font-variant-numeric:tabular-nums}.bc-download-status.show{display:inline-block}.bc-reel-actions .bc-download-status{color:#fff}.bc-feed-actions .bc-download-status{color:#65676b}
 .bc-feed-actions{display:flex;align-items:center;justify-content:space-around;gap:10px;padding:10px 4px;border-top:1px solid #e4e6eb;margin-top:8px}
 .bc-feed-actions .bc-reel-action{width:46px;min-width:46px;color:#65676b;text-shadow:none}
 .bc-feed-actions .bc-reel-action svg{width:25px;height:25px}
@@ -2442,6 +2443,30 @@ function applyDRoute(route){
   if(textarea){textarea.style.background=backgrounds[style]||'transparent';textarea.style.color=style==='yellow'?'#282828':style==='default'?'#1c1e21':'#fff';textarea.style.borderRadius=style==='default'?'0':'10px';textarea.style.padding=style==='default'?'8px 2px':'12px';}
  };
  const bcStyleTextInput=byId('bcPostText');if(bcStyleTextInput)bcStyleTextInput.addEventListener('input',()=>window.bcChoosePostStyle(bcSelectedPostStyle));
+ async function bcDownloadBlobWithProgress(url,status){
+  const response=await fetch(url);
+  if(!response.ok)throw new Error('Le serveur n’a pas pu fournir le média.');
+  const total=Number(response.headers.get('content-length'))||0;
+  const chunks=[];let loaded=0;
+  const formatSize=value=>value<1024?value+' o':value<1048576?(value/1024).toFixed(0)+' Ko':(value/1048576).toFixed(1)+' Mo';
+  if(response.body&&response.body.getReader){
+   const reader=response.body.getReader();
+   while(true){
+    const part=await reader.read();if(part.done)break;
+    chunks.push(part.value);loaded+=part.value.byteLength;
+    status.classList.add('show');
+    status.textContent=total?Math.min(99,Math.round(loaded/total*100))+'%':formatSize(loaded);
+    status.setAttribute('aria-label',total?'Téléchargement '+Math.round(loaded/total*100)+' pour cent':'Téléchargé '+formatSize(loaded));
+   }
+   const blob=new Blob(chunks,{type:response.headers.get('content-type')||''});
+   if(!blob.size)throw new Error('Le fichier est vide.');
+   status.textContent='100%';status.setAttribute('aria-label','Téléchargement terminé');
+   return blob;
+  }
+  const blob=await response.blob();if(!blob.size)throw new Error('Le fichier est vide.');
+  status.classList.add('show');status.textContent='100%';status.setAttribute('aria-label','Téléchargement terminé');
+  return blob;
+ }
  function bcRenderPosts(posts,reactions,comments,commentProfiles){
   const list=byId('bcPostsList');list.replaceChildren();
   byId('bcPostsEmpty').style.display=posts.length?'none':'block';
@@ -2587,10 +2612,13 @@ function applyDRoute(route){
    sharePanel.addEventListener('click',event=>event.stopPropagation());
    actions.append(like,comment,share);
    if(post.media_url){
+    const downloadWrap=document.createElement('div');downloadWrap.className='bc-download-wrap';
     const download=document.createElement('button');download.type='button';download.className='bc-reel-action';
     download.innerHTML=makeIcon('<path d="M12 3v12m-5-5 5 5 5-5"/><path d="M4 17v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/>');download.setAttribute('aria-label','Télécharger le média');
-    download.addEventListener('click',async()=>{const originalIcon=download.innerHTML;download.disabled=true;download.setAttribute('aria-label','Préparation du téléchargement…');download.classList.add('is-downloading');try{const response=await fetch(post.media_url);if(!response.ok)throw new Error('Le serveur n’a pas pu fournir le média.');const blob=await response.blob();if(!blob.size)throw new Error('Le fichier est vide.');const objectUrl=URL.createObjectURL(blob);const link=document.createElement('a');const extension=(blob.type.split('/')[1]|| (post.media_type==='video'?'mp4':'jpg')).split(';')[0].replace('quicktime','mov');link.href=objectUrl;link.download='bope-publication-'+post.id+'.'+extension;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);}catch(error){alert('Impossible de télécharger ce média directement. Vérifie ta connexion puis réessaie.');}finally{download.innerHTML=originalIcon;download.disabled=false;download.setAttribute('aria-label','Télécharger le média');download.classList.remove('is-downloading');}});
-    actions.appendChild(download);
+    const downloadStatus=document.createElement('span');downloadStatus.className='bc-download-status';
+    download.addEventListener('click',async()=>{const originalIcon=download.innerHTML;download.disabled=true;download.setAttribute('aria-label','Préparation du téléchargement…');download.classList.add('is-downloading');downloadStatus.classList.add('show');downloadStatus.textContent='…';try{const blob=await bcDownloadBlobWithProgress(post.media_url,downloadStatus);const objectUrl=URL.createObjectURL(blob);const link=document.createElement('a');const extension=(blob.type.split('/')[1]|| (post.media_type==='video'?'mp4':'jpg')).split(';')[0].replace('quicktime','mov');link.href=objectUrl;link.download='bope-publication-'+post.id+'.'+extension;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);}catch(error){alert('Impossible de télécharger ce média directement. Vérifie ta connexion puis réessaie.');}finally{download.innerHTML=originalIcon;download.disabled=false;download.setAttribute('aria-label','Télécharger le média');download.classList.remove('is-downloading');setTimeout(()=>{downloadStatus.classList.remove('show');downloadStatus.textContent='';},2200);}});
+    downloadWrap.append(download,downloadStatus);
+    actions.appendChild(downloadWrap);
    }
    card.appendChild(actions);card.append(commentsPanel,sharePanel);list.appendChild(card);
   });
@@ -3489,8 +3517,8 @@ function applyDRoute(route){
    shareClose.addEventListener('click',closeSharePanel);
    share.addEventListener('click',()=>{sharePanel.classList.toggle('is-open');if(!sharePanel.classList.contains('is-open'))friendsBox.classList.remove('is-open');});
    sharePanel.addEventListener('click',event=>event.stopPropagation());
-   const download=document.createElement('button');download.type='button';download.className='bc-reel-action';download.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5"/><path d="M4 17v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>';download.setAttribute('aria-label','Télécharger la vidéo');download.addEventListener('click',async()=>{const originalIcon=download.innerHTML;download.disabled=true;download.setAttribute('aria-label','Préparation du téléchargement…');download.classList.add('is-downloading');try{const response=await fetch(post.media_url);if(!response.ok)throw new Error('Le serveur n’a pas pu fournir la vidéo.');const blob=await response.blob();if(!blob.size)throw new Error('Le fichier vidéo est vide.');const objectUrl=URL.createObjectURL(blob);const link=document.createElement('a');const extension=(blob.type.split('/')[1]||'mp4').split(';')[0].replace('quicktime','mov');link.href=objectUrl;link.download='bope-reel-'+post.id+'.'+extension;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);}catch(error){alert('Impossible de télécharger cette vidéo directement. Vérifie ta connexion puis réessaie. Si le problème persiste, le stockage de la vidéo doit être vérifié.');}finally{download.innerHTML=originalIcon;download.disabled=false;download.setAttribute('aria-label','Télécharger la vidéo');download.classList.remove('is-downloading');}});
-   actions.append(like,comment,share,download);overlay.append(caption,actions);item.append(video,overlay,sound,commentsPanel,sharePanel);list.appendChild(item);
+   const downloadWrap=document.createElement('div');downloadWrap.className='bc-download-wrap';const download=document.createElement('button');download.type='button';download.className='bc-reel-action';download.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5"/><path d="M4 17v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>';download.setAttribute('aria-label','Télécharger la vidéo');const downloadStatus=document.createElement('span');downloadStatus.className='bc-download-status';download.addEventListener('click',async()=>{const originalIcon=download.innerHTML;download.disabled=true;download.setAttribute('aria-label','Préparation du téléchargement…');download.classList.add('is-downloading');downloadStatus.classList.add('show');downloadStatus.textContent='…';try{const blob=await bcDownloadBlobWithProgress(post.media_url,downloadStatus);const objectUrl=URL.createObjectURL(blob);const link=document.createElement('a');const extension=(blob.type.split('/')[1]||'mp4').split(';')[0].replace('quicktime','mov');link.href=objectUrl;link.download='bope-reel-'+post.id+'.'+extension;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);}catch(error){alert('Impossible de télécharger cette vidéo directement. Vérifie ta connexion puis réessaie. Si le problème persiste, le stockage de la vidéo doit être vérifié.');}finally{download.innerHTML=originalIcon;download.disabled=false;download.setAttribute('aria-label','Télécharger la vidéo');download.classList.remove('is-downloading');setTimeout(()=>{downloadStatus.classList.remove('show');downloadStatus.textContent='';},2200);}});downloadWrap.append(download,downloadStatus);
+   actions.append(like,comment,share,downloadWrap);overlay.append(caption,actions);item.append(video,overlay,sound,commentsPanel,sharePanel);list.appendChild(item);
   });
   if('IntersectionObserver' in window){
    const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{
