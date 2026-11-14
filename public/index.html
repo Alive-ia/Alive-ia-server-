@@ -420,6 +420,26 @@
 .bc-reel-like-count{font-size:11px;font-weight:700;line-height:1;color:#fff;text-shadow:0 1px 3px #000}
 .bc-reel-like-heart{position:absolute;left:50%;top:50%;z-index:4;transform:translate(-50%,-50%) scale(.45);font-size:clamp(76px,22vw,112px);line-height:1;color:#FF1E2D;text-shadow:0 3px 18px #0009;pointer-events:none;animation:bcReelHeartPop .95s ease-out forwards}
 @keyframes bcReelHeartPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.35)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}35%{transform:translate(-50%,-50%) scale(1)}78%{opacity:1}100%{opacity:0;transform:translate(-50%,-58%) scale(.9)}}
+.bc-reel-comments-panel{position:absolute;left:0;right:0;bottom:0;z-index:6;height:min(72%,620px);display:flex;flex-direction:column;background:#151515;color:#fff;border-radius:18px 18px 0 0;box-shadow:0 -8px 28px #0008;transform:translateY(105%);transition:transform .25s ease;overflow:hidden;pointer-events:none}
+.bc-reel-comments-panel.is-open{transform:translateY(0);pointer-events:auto}
+.bc-reel-comments-head{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #ffffff20;font-weight:700}
+.bc-reel-comments-head strong{font-size:16px}
+.bc-reel-comments-close{border:0;background:transparent;color:#fff;font-size:26px;line-height:1;padding:0 4px}
+.bc-reel-comments-list{flex:1 1 auto;overflow-y:auto;overscroll-behavior:contain;padding:12px 14px}
+.bc-reel-comment-row{display:flex;align-items:flex-start;gap:10px;margin:0 0 16px}
+.bc-reel-comment-avatar{width:34px;height:34px;flex:0 0 34px;border-radius:50%;object-fit:cover;background:#333}
+.bc-reel-comment-avatar-fallback{display:grid;place-items:center;color:#fff;font-size:16px}
+.bc-reel-comment-body{min-width:0;flex:1}
+.bc-reel-comment-body strong{display:block;font-size:12px;margin:1px 0 4px}
+.bc-reel-comment-body p{margin:0;color:#eee;font-size:13px;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere}
+.bc-reel-comment-time{display:block;margin-top:4px;color:#aaa;font-size:10px}
+.bc-reel-comments-empty{padding:35px 10px;text-align:center;color:#bbb;font-size:13px}
+.bc-reel-comments-form{flex:0 0 auto;display:flex;align-items:flex-end;gap:9px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));border-top:1px solid #ffffff20;background:#151515}
+.bc-reel-comments-input{flex:1;min-width:0;max-height:92px;resize:none;border:1px solid #444;border-radius:20px;background:#252525;color:#fff;padding:10px 14px;font:inherit;font-size:13px;outline:none}
+.bc-reel-comments-input:focus{border-color:#FF1E2D}
+.bc-reel-comments-send{flex:0 0 auto;border:0;border-radius:20px;background:#FF1E2D;color:#fff;font-weight:700;padding:10px 15px}
+.bc-reel-comments-send:disabled{opacity:.55}
+
 .bc-reel-empty{text-align:center;padding:50px 20px;color:#ddd}
 .bc-reel-empty strong{display:block;margin:10px 0;font-size:16px}
 
@@ -3201,6 +3221,17 @@ function applyDRoute(route){
   const reelLikeDataAvailable=!reelReactionsError;
   if(reelReactionsError)console.warn('BOPE REELS : chargement des J’aime impossible',reelReactionsError);
   const reelLikeRows=reelReactions||[];
+  const {data:reelComments,error:reelCommentsError}=await bcClient.from('bope_post_comments').select('id,post_id,author_id,content,created_at').in('post_id',reelPostIds).order('created_at',{ascending:true});
+  const reelCommentDataAvailable=!reelCommentsError;
+  if(reelCommentsError)console.warn('BOPE REELS : chargement des commentaires impossible',reelCommentsError);
+  const reelCommentRows=reelComments||[];
+  const reelCommentAuthorIds=[...new Set(reelCommentRows.map(row=>row.author_id))];
+  let reelCommentProfiles={};
+  if(reelCommentAuthorIds.length){
+   const {data:commentProfiles,error:commentProfilesError}=await bcClient.from('profiles').select('id,display_name,avatar_url').in('id',reelCommentAuthorIds);
+   if(commentProfilesError)console.warn('BOPE REELS : chargement des profils des commentateurs impossible',commentProfilesError);
+   else (commentProfiles||[]).forEach(profile=>{reelCommentProfiles[profile.id]=profile;});
+  }
   list.replaceChildren();
   posts.forEach(post=>{
    const item=document.createElement('article');item.className='bc-reel-item';item.dataset.postId=post.id;item.style.setProperty('--bc-reel-bg','url('+JSON.stringify(post.media_url)+')');
@@ -3245,16 +3276,61 @@ function applyDRoute(route){
     lastReelTap=now;lastReelTapX=touch.clientX;lastReelTapY=touch.clientY;
     if(closeTap){showReelHeart();if(!reelIsLiked)setReelLiked(true);}
    },{passive:true});
-   const comment=document.createElement('button');comment.type='button';comment.className='bc-reel-action';comment.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"/></svg>';comment.setAttribute('aria-label','Commenter');comment.addEventListener('click',async()=>{
+   const reelPostComments=reelCommentRows.filter(row=>row.post_id===post.id);
+   const comment=document.createElement('button');comment.type='button';comment.className='bc-reel-action';comment.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"/></svg><span class="bc-reel-like-count">'+(reelCommentDataAvailable?reelPostComments.length:'—')+'</span>';comment.setAttribute('aria-label','Commentaires');
+   const commentsPanel=document.createElement('section');commentsPanel.className='bc-reel-comments-panel';commentsPanel.setAttribute('aria-label','Commentaires du Reel');commentsPanel.setAttribute('aria-hidden','true');
+   const commentsHead=document.createElement('div');commentsHead.className='bc-reel-comments-head';
+   const commentsTitle=document.createElement('strong');commentsTitle.textContent='Commentaires · '+(reelCommentDataAvailable?reelPostComments.length:'—');
+   const commentsClose=document.createElement('button');commentsClose.type='button';commentsClose.className='bc-reel-comments-close';commentsClose.textContent='×';commentsClose.setAttribute('aria-label','Fermer les commentaires');
+   commentsHead.append(commentsTitle,commentsClose);
+   const commentsList=document.createElement('div');commentsList.className='bc-reel-comments-list';
+   const commentsForm=document.createElement('form');commentsForm.className='bc-reel-comments-form';
+   const commentsInput=document.createElement('textarea');commentsInput.className='bc-reel-comments-input';commentsInput.rows=1;commentsInput.maxLength=2000;commentsInput.placeholder='Écris un commentaire…';commentsInput.setAttribute('aria-label','Écris un commentaire');
+   const commentsSend=document.createElement('button');commentsSend.type='submit';commentsSend.className='bc-reel-comments-send';commentsSend.textContent='Envoyer';
+   commentsForm.append(commentsInput,commentsSend);commentsPanel.append(commentsHead,commentsList,commentsForm);
+   const renderReelComments=()=>{
+    commentsList.replaceChildren();
+    if(!reelCommentDataAvailable){const unavailable=document.createElement('div');unavailable.className='bc-reel-comments-empty';unavailable.textContent='Les commentaires ne sont pas disponibles pour le moment.';commentsList.appendChild(unavailable);return;}
+    if(!reelPostComments.length){const empty=document.createElement('div');empty.className='bc-reel-comments-empty';empty.textContent='Aucun commentaire pour le moment. Sois le premier à commenter !';commentsList.appendChild(empty);return;}
+    [...reelPostComments].reverse().forEach(row=>{
+     const profile=reelCommentProfiles[row.author_id]||{};
+     const line=document.createElement('div');line.className='bc-reel-comment-row';
+     if(profile.avatar_url){const avatar=document.createElement('img');avatar.className='bc-reel-comment-avatar';avatar.src=profile.avatar_url;avatar.alt='';line.appendChild(avatar);}
+     else{const avatar=document.createElement('div');avatar.className='bc-reel-comment-avatar bc-reel-comment-avatar-fallback';avatar.textContent='👤';line.appendChild(avatar);}
+     const body=document.createElement('div');body.className='bc-reel-comment-body';
+     const authorName=document.createElement('strong');authorName.textContent=profile.display_name||'Utilisateur BOPE';
+     const content=document.createElement('p');content.textContent=row.content||'';
+     const date=document.createElement('small');date.className='bc-reel-comment-time';date.textContent=bcSafeDate(row.created_at);
+     body.append(authorName,content,date);line.appendChild(body);commentsList.appendChild(line);
+    });
+   };
+   const updateReelCommentCount=()=>{const count=reelCommentDataAvailable?String(reelPostComments.length):'—';comment.querySelector('span').textContent=count;commentsTitle.textContent='Commentaires · '+count;};
+   const closeReelComments=()=>{commentsPanel.classList.remove('is-open');commentsPanel.setAttribute('aria-hidden','true');};
+   const openReelComments=()=>{if(!bcCurrentUser){alert('Connecte-toi pour consulter et commenter.');return;}renderReelComments();commentsPanel.classList.add('is-open');commentsPanel.setAttribute('aria-hidden','false');};
+   commentsClose.addEventListener('click',closeReelComments);
+   comment.addEventListener('click',openReelComments);
+   let commentTouchStartY=null;
+   commentsHead.addEventListener('touchstart',event=>{commentTouchStartY=event.touches[0]?.clientY??null;},{passive:true});
+   commentsHead.addEventListener('touchend',event=>{const endY=event.changedTouches[0]?.clientY;if(commentTouchStartY!==null&&endY!==undefined&&endY-commentTouchStartY>65)closeReelComments();commentTouchStartY=null;},{passive:true});
+   commentsForm.addEventListener('submit',async event=>{
+    event.preventDefault();
     if(!bcCurrentUser){alert('Connecte-toi pour commenter.');return;}
-    const value=window.prompt('Écris ton commentaire :');if(value===null||!value.trim())return;
-    const clean=value.trim();if(clean.length>2000){alert('Le commentaire ne peut pas dépasser 2 000 caractères.');return;}
-    const {error:commentError}=await bcClient.from('bope_post_comments').insert({post_id:post.id,author_id:bcCurrentUser.id,content:clean});
-    if(commentError)alert('Commentaire impossible : '+commentError.message);else alert('Commentaire publié !');
+    const clean=commentsInput.value.trim();if(!clean)return;
+    if(clean.length>2000){alert('Le commentaire ne peut pas dépasser 2 000 caractères.');return;}
+    commentsSend.disabled=true;commentsSend.textContent='Envoi…';
+    const {data:insertedComment,error:commentError}=await bcClient.from('bope_post_comments').insert({post_id:post.id,author_id:bcCurrentUser.id,content:clean}).select('id,post_id,author_id,content,created_at').single();
+    if(commentError){alert('Commentaire impossible : '+commentError.message);}
+    else{
+     reelPostComments.push(insertedComment);
+     const ownProfile=bcCurrentUser.user_metadata||{};
+     reelCommentProfiles[bcCurrentUser.id]={display_name:ownProfile.display_name||ownProfile.full_name||bcCurrentUser.email||'Moi',avatar_url:ownProfile.avatar_url||null};
+     commentsInput.value='';renderReelComments();updateReelCommentCount();commentsList.scrollTop=0;
+    }
+    commentsSend.disabled=false;commentsSend.textContent='Envoyer';
    });
    const share=document.createElement('button');share.type='button';share.className='bc-reel-action';share.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m-5 5 5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>';share.setAttribute('aria-label','Partager');share.addEventListener('click',()=>window.bcSharePost(post));
    const download=document.createElement('button');download.type='button';download.className='bc-reel-action';download.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5"/><path d="M4 17v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>';download.setAttribute('aria-label','Télécharger la vidéo');download.addEventListener('click',async()=>{const original=download.textContent;download.disabled=true;download.textContent='…';try{const response=await fetch(post.media_url);if(!response.ok)throw new Error('Téléchargement indisponible');const blob=await response.blob();const objectUrl=URL.createObjectURL(blob);const link=document.createElement('a');const extension=(blob.type.split('/')[1]||'mp4').split(';')[0].replace('quicktime','mov');link.href=objectUrl;link.download='bope-reel-'+post.id+'.'+extension;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);}catch(error){window.open(post.media_url,'_blank','noopener');alert('Le téléchargement direct n’est pas disponible ici. La vidéo a été ouverte pour que tu puisses l’enregistrer si ton navigateur le permet.');}finally{download.disabled=false;download.textContent=original;}});
-   actions.append(like,comment,share,download);overlay.append(caption,actions);item.append(video,overlay,sound);list.appendChild(item);
+   actions.append(like,comment,share,download);overlay.append(caption,actions);item.append(video,overlay,sound,commentsPanel);list.appendChild(item);
   });
   if('IntersectionObserver' in window){
    const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{
