@@ -2021,6 +2021,13 @@ function applyDRoute(route){
 #bcMessagesPanel #bcChatMessages .bc-message-line[style*="justify-content:flex-start"] .bc-message-bubble .bc-audio-duration{
   color:#fff!important;
 }
+/* === Harmonisation visuelle des boutons BOPE STORIES === */
+#bopeCreatorsPage .bc-story-close{background:transparent!important;color:#fff!important;border:0!important;border-radius:0!important;box-shadow:none!important;font-size:22px!important;}
+#bopeCreatorsPage .bc-story-submit{background:transparent!important;color:#c62828!important;border:1px solid #c62828!important;border-radius:22px!important;box-shadow:none!important;padding:10px 16px!important;}
+#bopeCreatorsPage .bc-story-reaction{background:transparent!important;border:1px solid transparent!important;color:inherit!important;box-shadow:none!important;cursor:pointer;}
+#bopeCreatorsPage .bc-story-reaction:active{border-color:#c62828!important;}
+#bopeCreatorsPage .bc-story-more,#bopeCreatorsPage .bc-story-send{background:transparent!important;color:#c62828!important;border:1px solid #c62828!important;box-shadow:none!important;}
+#bopeCreatorsPage .bc-story-more:active,#bopeCreatorsPage .bc-story-send:active{background:rgba(198,40,40,.08)!important;}
 </style>
     <h3 class="bc-msg-title">💬 BOPE Messages</h3>
     <p class="bc-msg-subtitle">Tes discussions privées, simplement. 🇨🇩</p>
@@ -2596,13 +2603,13 @@ function applyDRoute(route){
    const tray=document.createElement('div');tray.style.cssText='display:flex;gap:6px;flex-wrap:wrap';
    const allStoryEmojis=['👍','👎','🫶','❤️','😍','😂','🤣','😮','😢','😭','😡','🤔','💔','💋','🤜','🤲','🫲','🫱','🫴','🫳','✊','👊','🤛','👏','🙌','🔥','🎉','🥰','😘','😎','🤩','🙏','💯','😴','🤯','🥳','😇','🤗','😤','🤝','💪','🌹','⭐','🇨🇩'];
    const quickStoryEmojis=['❤️','😍','😂','😮','😢','😡','👍','🫶','🔥','👏','🙏','💯'];
-   const addStoryEmoji=(emoji)=>{const b=document.createElement('button');b.type='button';b.textContent=emoji;b.setAttribute('aria-label','Réagir '+emoji);b.title='Réagir '+emoji;b.style.cssText='border:1px solid #f0d0c5;border-radius:20px;background:#fff;padding:7px 9px;font-size:20px;min-width:40px';b.onclick=()=>window.bcStoryReact(story,emoji);tray.appendChild(b);};
+   const addStoryEmoji=(emoji)=>{const b=document.createElement('button');b.type='button';b.textContent=emoji;b.setAttribute('aria-label','Réagir '+emoji);b.title='Réagir '+emoji;b.className='bc-story-reaction';b.style.cssText='border:1px solid transparent;border-radius:20px;background:transparent;padding:7px 9px;font-size:20px;min-width:40px';b.onclick=()=>window.bcStoryReact(story,emoji);tray.appendChild(b);};
    quickStoryEmojis.forEach(addStoryEmoji);interactions.appendChild(tray);
-   const more=document.createElement('button');more.type='button';more.textContent='😊 Voir tous les emojis';more.style.cssText='margin-top:9px;border:1px solid #e8b9aa;border-radius:18px;background:#fff;padding:7px 12px;color:#9f2626;font-weight:700;font-size:12px';
+   const more=document.createElement('button');more.type='button';more.className='bc-story-more';more.textContent='😊 Voir tous les emojis';more.style.cssText='margin-top:9px;border:1px solid #c62828;border-radius:18px;background:transparent;padding:7px 12px;color:#c62828;font-weight:700;font-size:12px';
    let expanded=false;more.onclick=()=>{expanded=!expanded;tray.replaceChildren();(expanded?allStoryEmojis:quickStoryEmojis).forEach(addStoryEmoji);more.textContent=expanded?'Masquer les emojis':'😊 Voir tous les emojis';};interactions.append(more);
    const form=document.createElement('form');form.style.cssText='display:flex;gap:7px;margin-top:12px';
    const input=document.createElement('input');input.type='text';input.maxLength=2000;input.placeholder='Répondre à cette Story…';input.style.cssText='flex:1;min-width:0;border:1px solid #e7c9c0;border-radius:20px;padding:10px 12px;font-size:13px';
-   const send=document.createElement('button');send.type='submit';send.textContent='Envoyer';send.style.cssText='border:0;border-radius:20px;padding:0 14px;background:#c62828;color:#fff;font-weight:700';
+   const send=document.createElement('button');send.type='submit';send.className='bc-story-send';send.textContent='Envoyer';send.style.cssText='border:1px solid #c62828;border-radius:20px;padding:0 14px;background:transparent;color:#c62828;font-weight:700';
    form.append(input,send);form.onsubmit=e=>{e.preventDefault();window.bcStorySendReply(story,input,send);};interactions.appendChild(form);
    const status=document.createElement('small');status.id='bcStoryInteractionStatus';status.style.cssText='display:block;margin-top:8px;color:#9f2626';interactions.appendChild(status);content.appendChild(interactions);
   }
