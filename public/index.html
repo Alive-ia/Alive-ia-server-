@@ -3333,7 +3333,7 @@ function applyDRoute(route){
      if(bcSendAfterStop){bcSendAfterStop=false;setTimeout(()=>byId('bcSendVoice').click(),0);}}
     else{bcVoiceBlob=null;bcVoiceDuration=0;bcUpdateComposerMode();}
    };
-   bcRecorder.start(250);chatForm.classList.add('bc-recording');chatForm.style.display='flex';voiceHint.style.display='none';byId('bcVoiceActiveControls').style.display='flex';lockedStatus.style.display='none';lockedControls.style.display='none';bcStartVoiceTimer();
+   bcRecorder.start();chatForm.classList.add('bc-recording');chatForm.style.display='flex';voiceHint.style.display='none';byId('bcVoiceActiveControls').style.display='flex';lockedStatus.style.display='none';lockedControls.style.display='none';bcStartVoiceTimer();
   }catch(err){bcStopAudioStream();alert('Microphone inaccessible. Autorise le micro dans les paramètres du navigateur.');}
  }
  function bcStopVoiceRecording(cancel){if(!bcRecorder||bcRecorder.state==='inactive')return;bcRecordCancelled=!!cancel;try{bcRecorder.stop();}catch(e){bcResetVoiceRecordingUI();}}
