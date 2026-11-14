@@ -454,6 +454,19 @@
 .bc-reel-empty{text-align:center;padding:50px 20px;color:#ddd}
 .bc-reel-empty strong{display:block;margin:10px 0;font-size:16px}
 
+.bc-feed-actions{display:flex;align-items:center;justify-content:space-around;gap:10px;padding:10px 4px;border-top:1px solid #e4e6eb;margin-top:8px}
+.bc-feed-actions .bc-reel-action{width:46px;min-width:46px;color:#65676b;text-shadow:none}
+.bc-feed-actions .bc-reel-action svg{width:25px;height:25px}
+.bc-feed-actions .bc-reel-like-count{color:#65676b;text-shadow:none;font-size:11px}
+.bc-feed-actions .bc-reel-action.is-liked{color:#FF1E2D}
+.bc-feed-actions .bc-reel-action.is-liked svg{fill:#FF1E2D;stroke:#FF1E2D;animation:bcReelLikeBounce .28s ease}
+.bc-feed-comments-panel{display:none;position:relative;flex-direction:column;height:360px;max-height:65vh;margin-top:8px;background:#151515;color:#fff;border-radius:16px;box-shadow:0 4px 18px #0003;overflow:hidden}
+.bc-feed-comments-panel.is-open{display:flex}
+.bc-feed-comments-panel .bc-reel-comments-list{min-height:0}
+.bc-feed-comments-panel .bc-reel-comments-form{padding-bottom:10px}
+.bc-feed-share-panel{display:none;position:relative;margin-top:8px;padding:14px;background:#171717;color:#fff;border:1px solid #ffffff22;border-radius:16px;box-shadow:0 5px 24px #0003;max-height:65vh;overflow:auto}
+.bc-feed-share-panel.is-open{display:block}
+.bc-feed-share-panel .bc-reel-share-option{cursor:pointer}
 .bc-feed-heading{display:flex;align-items:center;justify-content:space-between;padding:13px 10px 9px;margin:0;background:#fff}
 .bc-feed-heading strong{font-size:15px;color:#1c1e21}
 .bc-feed-heading small{font-size:11px;color:#65676b}
@@ -2433,7 +2446,7 @@ function applyDRoute(route){
   const list=byId('bcPostsList');list.replaceChildren();
   byId('bcPostsEmpty').style.display=posts.length?'none':'block';
   posts.forEach(post=>{
-   const card=document.createElement('article');card.className='bc-post-card';card.dataset.postId=post.id;
+   const card=document.createElement('article');card.className='bc-post-card';card.dataset.postId=post.id;card.style.position='relative';
    const head=document.createElement('div');head.className='bc-post-author';
    if(post.profiles&&post.profiles.avatar_url){const avatar=document.createElement('img');avatar.className='bc-post-avatar';avatar.src=post.profiles.avatar_url;avatar.alt='';head.appendChild(avatar);}
    else{const avatar=document.createElement('div');avatar.className='bc-post-avatar';avatar.textContent='👤';head.appendChild(avatar);}
@@ -2441,56 +2454,145 @@ function applyDRoute(route){
    const date=document.createElement('small');date.textContent=bcSafeDate(post.created_at)+(post.profiles&&post.profiles.username?' • @'+post.profiles.username:'');
    meta.append(name,date);head.appendChild(meta);card.appendChild(head);
    if(post.content){const body=document.createElement('p');const style=bcPostStyleNames.includes(post.background_style)?post.background_style:'default';body.className='bc-post-text'+(style==='default'?'':' bc-post-bg-'+style);body.textContent=post.content;card.appendChild(body);}
-   if(post.media_url){let media;if(post.media_type==='video'){card.classList.add('has-video-post');const frame=document.createElement('div');frame.className='bc-post-video-frame';media=document.createElement('video');media.playsInline=true;media.preload='metadata';media.controls=false;media.setAttribute('controlsList','nodownload noplaybackrate');media.className='bc-post-media';const play=document.createElement('button');play.type='button';play.className='bc-post-video-play';play.textContent='▶';play.setAttribute('aria-label','Lire la vidéo');const duration=document.createElement('small');duration.className='bc-post-video-duration';duration.textContent='0:00';const formatVideoTime=t=>{if(!Number.isFinite(t)||t<0)return '0:00';const s=Math.floor(t);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};const pauseOtherVideos=()=>{document.querySelectorAll('video').forEach(video=>{if(video!==media)video.pause();});};const toggleVideo=()=>{if(media.paused){pauseOtherVideos();const promise=media.play();if(promise&&promise.catch)promise.catch(()=>{});}else media.pause();};media.addEventListener('loadedmetadata',()=>{const portrait=media.videoHeight>media.videoWidth;frame.classList.toggle('is-portrait',portrait);frame.style.aspectRatio=portrait?'9 / 16':'16 / 9';duration.textContent=formatVideoTime(media.duration);});media.addEventListener('timeupdate',()=>{duration.textContent=formatVideoTime(media.duration);});media.addEventListener('play',()=>{pauseOtherVideos();frame.classList.remove('is-paused');play.textContent='Ⅱ';});media.addEventListener('pause',()=>{if(!media.ended){frame.classList.add('is-paused');play.textContent='▶';}});media.addEventListener('ended',()=>{frame.classList.add('is-paused');play.textContent='▶';});media.addEventListener('click',toggleVideo);play.addEventListener('click',toggleVideo);frame.classList.add('is-paused');frame.append(media,play,duration);media.src=post.media_url;card.appendChild(frame);if('IntersectionObserver' in window){const videoVisibilityObserver=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.target===media&&(!entry.isIntersecting||entry.intersectionRatio<0.5)){media.pause();}});},{threshold:[0,0.5,1]});videoVisibilityObserver.observe(frame);}}else{media=document.createElement('img');media.alt='Photo publiée sur BOPE';media.className='bc-post-media';media.src=post.media_url;card.appendChild(media);}}
-   const postReactions=(reactions||[]).filter(r=>r.post_id===post.id);
-   const counts={};postReactions.forEach(r=>{counts[r.reaction_type]=(counts[r.reaction_type]||0)+1;});
-   const mine=bcCurrentUser?postReactions.find(r=>r.user_id===bcCurrentUser.id):null;
-   const area=document.createElement('div');area.className='bc-reaction-area';
-   const summary=document.createElement('div');summary.className='bc-reaction-summary';
-   const summaryItems=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
-   summary.textContent=summaryItems.length?summaryItems.map(([emoji,count])=>emoji+' '+count).join('  '):'Sois le premier à réagir';
-   area.appendChild(summary);
-   const tray=document.createElement('div');tray.className='bc-reaction-tray';
-   bcReactionEmojis.forEach(emoji=>{const choice=document.createElement('button');choice.type='button';choice.className='bc-reaction-choice';choice.textContent=emoji;choice.title='Réagir avec '+emoji;choice.setAttribute('aria-label','Réagir avec '+emoji);choice.addEventListener('click',()=>window.bcReactToPost(post.id,emoji));tray.appendChild(choice);});
-   area.appendChild(tray);
-   const postComments=(comments||[]).filter(c=>c.post_id===post.id);
-   const commentArea=document.createElement('div');commentArea.className='bc-comment-area';
-   const actions=document.createElement('div');actions.className='bc-reaction-actions';
-   const makeActionIcon=(path)=>'<svg class="bc-action-icon" viewBox="0 0 24 24" aria-hidden="true">'+path+'</svg>';
-   const main=document.createElement('button');main.type='button';main.className='bc-reaction-main'+(mine?' selected':'');main.innerHTML=makeActionIcon('<path d="M7 10v11H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3Zm0 0 5-8c1.5 0 2.5 1.2 2.2 2.7L13 10h5.5a2.5 2.5 0 0 1 2.4 3.2l-1.8 6A2.5 2.5 0 0 1 16.7 21H7"/>')+'<small class="bc-action-label">'+(mine?'Réagir':'J’aime')+'</small>';main.setAttribute('aria-label',mine?'Modifier la réaction':'J’aime');main.addEventListener('click',()=>tray.classList.toggle('show'));
-   const toggle=document.createElement('button');toggle.type='button';toggle.className='bc-reaction-action';toggle.innerHTML=makeActionIcon('<path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"/>')+'<small class="bc-action-label">Commenter</small>';
-   toggle.setAttribute('aria-label','Commenter, '+postComments.length+' commentaires');toggle.addEventListener('click',()=>{form.classList.toggle('show');if(form.classList.contains('show'))input.focus();});
-   const download=document.createElement('button');download.type='button';download.className='bc-reaction-action bc-download-action';download.innerHTML=makeActionIcon('<path d="M12 3v12m-5-5 5 5 5-5"/><path d="M4 17v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/>')+'<small class="bc-action-label">Télécharger</small>';download.disabled=!post.media_url;download.setAttribute('aria-label','Télécharger le média');
-   download.addEventListener('click',()=>window.bcDownloadPostMedia(post.media_url,post.media_type,post.id));
-   const share=document.createElement('button');share.type='button';share.className='bc-reaction-action';share.innerHTML=makeActionIcon('<path d="M12 16V3m-5 5 5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/>')+'<small class="bc-action-label">Partager</small>';
-   share.setAttribute('aria-label','Partager la publication');share.addEventListener('click',()=>window.bcSharePost(post));
-   actions.append(main,toggle,download,share);area.appendChild(actions);card.appendChild(area);
-   const commentsList=document.createElement('div');commentsList.className='bc-comments-list';
-   postComments.forEach(comment=>{
-    const profile=(commentProfiles||{})[comment.author_id]||{};
-    const row=document.createElement('div');row.className='bc-comment';
-    if(profile.avatar_url){const avatar=document.createElement('img');avatar.className='bc-comment-avatar';avatar.src=profile.avatar_url;avatar.alt='';row.appendChild(avatar);}
-    else{const avatar=document.createElement('div');avatar.className='bc-comment-avatar';avatar.textContent='👤';row.appendChild(avatar);}
-    const wrap=document.createElement('div');wrap.style.flex='1';wrap.style.minWidth='0';
-    const bubble=document.createElement('div');bubble.className='bc-comment-bubble';
-    const author=document.createElement('strong');author.textContent=profile.display_name||'Utilisateur BOPE';
-    const textNode=document.createElement('p');textNode.textContent=comment.content;bubble.append(author,textNode);wrap.appendChild(bubble);
-    const metaLine=document.createElement('div');metaLine.className='bc-comment-meta';metaLine.textContent=bcSafeDate(comment.created_at);
-    if(bcCurrentUser&&comment.author_id===bcCurrentUser.id){
-     const edit=document.createElement('button');edit.type='button';edit.textContent='Modifier';edit.addEventListener('click',()=>window.bcEditComment(comment.id,comment.content));
-     const del=document.createElement('button');del.type='button';del.textContent='Supprimer';del.addEventListener('click',()=>window.bcDeleteComment(comment.id));
-     metaLine.append(edit,del);
-    }
-    wrap.appendChild(metaLine);row.appendChild(wrap);commentsList.appendChild(row);
+   let media=null;
+   if(post.media_url){
+    if(post.media_type==='video'){
+     card.classList.add('has-video-post');const frame=document.createElement('div');frame.className='bc-post-video-frame';media=document.createElement('video');media.playsInline=true;media.preload='metadata';media.controls=false;media.setAttribute('controlsList','nodownload noplaybackrate');media.className='bc-post-media';
+     const play=document.createElement('button');play.type='button';play.className='bc-post-video-play';play.textContent='▶';play.setAttribute('aria-label','Lire la vidéo');
+     const duration=document.createElement('small');duration.className='bc-post-video-duration';duration.textContent='0:00';
+     const formatVideoTime=t=>{if(!Number.isFinite(t)||t<0)return '0:00';const seconds=Math.floor(t);return Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0');};
+     const pauseOtherVideos=()=>{document.querySelectorAll('video').forEach(video=>{if(video!==media)video.pause();});};
+     const toggleVideo=()=>{if(media.paused){pauseOtherVideos();const promise=media.play();if(promise&&promise.catch)promise.catch(()=>{});}else media.pause();};
+     media.addEventListener('loadedmetadata',()=>{const portrait=media.videoHeight>media.videoWidth;frame.classList.toggle('is-portrait',portrait);frame.style.aspectRatio=portrait?'9 / 16':'16 / 9';duration.textContent=formatVideoTime(media.duration);});
+     media.addEventListener('timeupdate',()=>{duration.textContent=formatVideoTime(media.duration);});
+     media.addEventListener('play',()=>{pauseOtherVideos();frame.classList.remove('is-paused');play.textContent='Ⅱ';});
+     media.addEventListener('pause',()=>{if(!media.ended){frame.classList.add('is-paused');play.textContent='▶';}});
+     media.addEventListener('ended',()=>{frame.classList.add('is-paused');play.textContent='▶';});
+     media.addEventListener('click',toggleVideo);play.addEventListener('click',toggleVideo);frame.classList.add('is-paused');frame.append(media,play,duration);media.src=post.media_url;card.appendChild(frame);
+     if('IntersectionObserver' in window){const videoVisibilityObserver=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.target===media&&(!entry.isIntersecting||entry.intersectionRatio<0.5))media.pause();});},{threshold:[0,0.5,1]});videoVisibilityObserver.observe(frame);}
+    }else{media=document.createElement('img');media.alt='Photo publiée sur BOPE';media.className='bc-post-media';media.src=post.media_url;card.appendChild(media);}
+   }
+   const postReactions=(reactions||[]).filter(row=>row.post_id===post.id);
+   let likeCount=postReactions.filter(row=>row.reaction_type==='👍').length;
+   let isLiked=!!(bcCurrentUser&&postReactions.some(row=>row.user_id===bcCurrentUser.id&&row.reaction_type==='👍'));
+   let likeBusy=false;
+   const postComments=(comments||[]).filter(row=>row.post_id===post.id);
+   const actions=document.createElement('div');actions.className='bc-feed-actions';
+   const makeIcon=path=>'<svg viewBox="0 0 24 24" aria-hidden="true">'+path+'</svg>';
+   const like=document.createElement('button');like.type='button';like.className='bc-reel-action';
+   like.innerHTML=makeIcon('<path d="M7 10v11H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3Zm0 0 5-8c1.5 0 2.5 1.2 2.2 2.7L13 10h5.5a2.5 2.5 0 0 1 2.4 3.2l-1.8 6A2.5 2.5 0 0 1 16.7 21H7"/>')+'<span class="bc-reel-like-count"></span>';
+   const updateLike=()=>{like.classList.toggle('is-liked',isLiked);like.querySelector('.bc-reel-like-count').textContent=String(likeCount);like.setAttribute('aria-label',isLiked?'Retirer le J’aime':'J’aime');};
+   const setLiked=async desired=>{
+    if(!bcClient||!bcCurrentUser){alert('Connecte-toi pour aimer une publication.');return;}
+    if(likeBusy||desired===isLiked)return;
+    likeBusy=true;like.disabled=true;
+    let result;
+    if(desired)result=await bcClient.from('bope_post_reactions').upsert({post_id:post.id,user_id:bcCurrentUser.id,reaction_type:'👍'},{onConflict:'post_id,user_id'});
+    else result=await bcClient.from('bope_post_reactions').delete().eq('post_id',post.id).eq('user_id',bcCurrentUser.id).eq('reaction_type','👍');
+    if(result.error)alert('Le J’aime n’a pas pu être enregistré : '+result.error.message);
+    else{isLiked=desired;likeCount=Math.max(0,likeCount+(desired?1:-1));updateLike();}
+    likeBusy=false;like.disabled=false;
+   };
+   updateLike();like.addEventListener('click',()=>setLiked(!isLiked));
+   if(media){
+    const showHeart=()=>{const heart=document.createElement('div');heart.className='bc-reel-like-heart';heart.textContent='♥';card.appendChild(heart);setTimeout(()=>heart.remove(),1000);};
+    media.addEventListener('dblclick',()=>{showHeart();if(!isLiked)setLiked(true);});
+    let lastTap=0,lastX=0,lastY=0;
+    media.addEventListener('touchend',event=>{if(!event.changedTouches||!event.changedTouches.length)return;const touch=event.changedTouches[0],now=Date.now();const doubleTap=now-lastTap<320&&Math.abs(touch.clientX-lastX)<45&&Math.abs(touch.clientY-lastY)<45;lastTap=now;lastX=touch.clientX;lastY=touch.clientY;if(doubleTap){showHeart();if(!isLiked)setLiked(true);}},{passive:true});
+   }
+   const comment=document.createElement('button');comment.type='button';comment.className='bc-reel-action';
+   comment.innerHTML=makeIcon('<path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"/>')+'<span class="bc-reel-like-count">'+postComments.length+'</span>';
+   comment.setAttribute('aria-label','Commentaires');
+   const commentsPanel=document.createElement('section');commentsPanel.className='bc-feed-comments-panel';commentsPanel.setAttribute('aria-label','Commentaires de la publication');
+   const commentsHead=document.createElement('div');commentsHead.className='bc-reel-comments-head';
+   const commentsTitle=document.createElement('strong');commentsTitle.textContent='Commentaires · '+postComments.length;
+   const commentsClose=document.createElement('button');commentsClose.type='button';commentsClose.className='bc-reel-comments-close';commentsClose.textContent='×';commentsClose.setAttribute('aria-label','Fermer les commentaires');
+   commentsHead.append(commentsTitle,commentsClose);
+   const commentsList=document.createElement('div');commentsList.className='bc-reel-comments-list';
+   const commentsForm=document.createElement('form');commentsForm.className='bc-reel-comments-form';
+   const commentsInput=document.createElement('textarea');commentsInput.className='bc-reel-comments-input';commentsInput.rows=1;commentsInput.maxLength=2000;commentsInput.placeholder='Écris un commentaire…';commentsInput.setAttribute('aria-label','Écris un commentaire');
+   const commentsSend=document.createElement('button');commentsSend.type='submit';commentsSend.className='bc-reel-comments-send';commentsSend.textContent='Envoyer';
+   commentsForm.append(commentsInput,commentsSend);commentsPanel.append(commentsHead,commentsList,commentsForm);
+   const renderComments=()=>{
+    commentsList.replaceChildren();
+    if(!postComments.length){const empty=document.createElement('div');empty.className='bc-reel-comments-empty';empty.textContent='Aucun commentaire pour le moment. Sois le premier à commenter !';commentsList.appendChild(empty);return;}
+    [...postComments].reverse().forEach(row=>{
+     const profile=(commentProfiles||{})[row.author_id]||{};
+     const line=document.createElement('div');line.className='bc-reel-comment-row';
+     if(profile.avatar_url){const avatar=document.createElement('img');avatar.className='bc-reel-comment-avatar';avatar.src=profile.avatar_url;avatar.alt='';line.appendChild(avatar);}
+     else{const avatar=document.createElement('div');avatar.className='bc-reel-comment-avatar bc-reel-comment-avatar-fallback';avatar.textContent='👤';line.appendChild(avatar);}
+     const body=document.createElement('div');body.className='bc-reel-comment-body';
+     const authorName=document.createElement('strong');authorName.textContent=profile.display_name||'Utilisateur BOPE';
+     const content=document.createElement('p');content.textContent=row.content||'';
+     const date=document.createElement('small');date.className='bc-reel-comment-time';date.textContent=bcSafeDate(row.created_at);
+     body.append(authorName,content,date);line.appendChild(body);commentsList.appendChild(line);
+    });
+   };
+   const updateCommentCount=()=>{comment.querySelector('span').textContent=String(postComments.length);commentsTitle.textContent='Commentaires · '+postComments.length;};
+   const closeComments=()=>commentsPanel.classList.remove('is-open');
+   const openComments=()=>{if(!bcCurrentUser){alert('Connecte-toi pour consulter et commenter.');return;}renderComments();commentsPanel.classList.add('is-open');commentsInput.focus();};
+   commentsClose.addEventListener('click',closeComments);comment.addEventListener('click',openComments);
+   let commentTouchStartY=null;
+   commentsHead.addEventListener('touchstart',event=>{commentTouchStartY=event.touches[0]?.clientY??null;},{passive:true});
+   commentsHead.addEventListener('touchend',event=>{const endY=event.changedTouches[0]?.clientY;if(commentTouchStartY!==null&&endY!==undefined&&endY-commentTouchStartY>65)closeComments();commentTouchStartY=null;},{passive:true});
+   commentsForm.addEventListener('submit',async event=>{
+    event.preventDefault();if(!bcCurrentUser){alert('Connecte-toi pour commenter.');return;}
+    const clean=commentsInput.value.trim();if(!clean)return;if(clean.length>2000){alert('Le commentaire ne peut pas dépasser 2 000 caractères.');return;}
+    commentsSend.disabled=true;commentsSend.textContent='Envoi…';
+    const {data:insertedComment,error:commentError}=await bcClient.from('bope_post_comments').insert({post_id:post.id,author_id:bcCurrentUser.id,content:clean}).select('id,post_id,author_id,content,created_at').single();
+    if(commentError)alert('Commentaire impossible : '+commentError.message);
+    else{postComments.push(insertedComment);if(!commentProfiles[bcCurrentUser.id]){const own=bcCurrentUser.user_metadata||{};commentProfiles[bcCurrentUser.id]={display_name:own.display_name||own.full_name||bcCurrentUser.email||'Moi',avatar_url:own.avatar_url||null};}commentsInput.value='';renderComments();updateCommentCount();commentsList.scrollTop=0;}
+    commentsSend.disabled=false;commentsSend.textContent='Envoyer';
    });
-   commentArea.appendChild(commentsList);
-   const form=document.createElement('form');form.className='bc-comment-form';
-   const input=document.createElement('input');input.className='bc-comment-input';input.type='text';input.maxLength=2000;input.placeholder='Écrire un commentaire…';input.setAttribute('aria-label','Écrire un commentaire');
-   const send=document.createElement('button');send.className='bc-comment-send';send.type='submit';send.textContent='Envoyer';
-   form.append(input,send);form.addEventListener('submit',e=>{e.preventDefault();window.bcSubmitComment(post.id,input,send);});
-   commentArea.appendChild(form);
-   card.appendChild(commentArea);
-   list.appendChild(card);
+   const share=document.createElement('button');share.type='button';share.className='bc-reel-action';
+   share.innerHTML=makeIcon('<path d="M12 16V3m-5 5 5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/>');share.setAttribute('aria-label','Partager');
+   const shareUrl=new URL('/publication/'+encodeURIComponent(post.id),window.location.origin).href;
+   const shareText=(post.content||'Découvre cette publication sur BOPE 🇨🇩')+' — BOPE CRÉATEURS';
+   const sharePanel=document.createElement('section');sharePanel.className='bc-feed-share-panel';sharePanel.setAttribute('aria-label','Partager cette publication');
+   const shareHead=document.createElement('div');shareHead.className='bc-reel-share-head';
+   const shareTitle=document.createElement('strong');shareTitle.textContent='Partager cette publication';
+   const shareClose=document.createElement('button');shareClose.type='button';shareClose.className='bc-reel-share-close';shareClose.textContent='×';shareClose.setAttribute('aria-label','Fermer');
+   shareHead.append(shareTitle,shareClose);
+   const makeShareOption=(icon,label)=>{const button=document.createElement('button');button.type='button';button.className='bc-reel-share-option';button.textContent=icon+'  '+label;return button;};
+   const copyOption=makeShareOption('🔗','Copier le lien'),whatsOption=makeShareOption('🟢','Partager sur WhatsApp'),faceOption=makeShareOption('🔵','Partager sur Facebook'),friendOption=makeShareOption('💬','Envoyer à un ami BOPE');
+   const friendsBox=document.createElement('div');friendsBox.className='bc-reel-share-friends';
+   sharePanel.append(shareHead,copyOption,whatsOption,faceOption,friendOption,friendsBox);
+   const closeShare=()=>{sharePanel.classList.remove('is-open');friendsBox.classList.remove('is-open');};
+   const copyLink=async()=>{try{if(navigator.clipboard&&navigator.clipboard.writeText)await navigator.clipboard.writeText(shareUrl);else{const area=document.createElement('textarea');area.value=shareUrl;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();const ok=document.execCommand('copy');area.remove();if(!ok)throw new Error('Copie indisponible');}copyOption.textContent='✓  Lien copié';setTimeout(()=>{copyOption.textContent='🔗  Copier le lien';},1800);}catch(error){alert('Impossible de copier le lien sur cet appareil.');}};
+   copyOption.addEventListener('click',copyLink);
+   whatsOption.addEventListener('click',()=>window.open('https://wa.me/?text='+encodeURIComponent(shareText+' '+shareUrl),'_blank','noopener,noreferrer'));
+   faceOption.addEventListener('click',()=>window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(shareUrl),'_blank','noopener,noreferrer'));
+   friendOption.addEventListener('click',async()=>{
+    if(!bcClient||!bcCurrentUser){alert('Connecte-toi pour envoyer une publication à un ami BOPE.');return;}
+    friendsBox.classList.add('is-open');friendsBox.textContent='Chargement de tes amis…';
+    const {data:links,error:linksError}=await bcClient.from('bope_friendships').select('user_one,user_two').or('user_one.eq.'+bcCurrentUser.id+',user_two.eq.'+bcCurrentUser.id);
+    if(linksError){friendsBox.textContent='Impossible de charger tes amis : '+linksError.message;return;}
+    const friendIds=(links||[]).map(row=>row.user_one===bcCurrentUser.id?row.user_two:row.user_one);
+    if(!friendIds.length){friendsBox.textContent='Tu n’as pas encore d’ami BOPE. Ajoute des amis pour leur envoyer des publications.';return;}
+    const {data:people,error:peopleError}=await bcClient.from('profiles').select('id,display_name,username,avatar_url').in('id',friendIds).order('display_name');
+    if(peopleError){friendsBox.textContent='Impossible de charger les profils : '+peopleError.message;return;}
+    friendsBox.replaceChildren();
+    (people||[]).forEach(person=>{
+     const row=document.createElement('button');row.type='button';row.className='bc-reel-share-friend';
+     const avatar=document.createElement('img');avatar.src=person.avatar_url||'';avatar.alt='';avatar.loading='lazy';
+     const friendName=document.createElement('span');friendName.textContent=(person.display_name||'Utilisateur BOPE')+' · @'+(person.username||'utilisateur');
+     row.append(avatar,friendName);
+     row.addEventListener('click',async()=>{row.disabled=true;friendName.textContent='Envoi…';const {error:sendError}=await bcClient.from('bope_messages').insert({sender_id:bcCurrentUser.id,recipient_id:person.id,content:'📣 '+shareText+' '+shareUrl});if(sendError){alert('Envoi impossible : '+sendError.message);row.disabled=false;friendName.textContent=(person.display_name||'Utilisateur BOPE')+' · @'+(person.username||'utilisateur');}else{friendName.textContent='✓ Envoyé à '+(person.display_name||'ton ami');setTimeout(closeShare,900);}});
+     friendsBox.appendChild(row);
+    });
+    if(!(people||[]).length)friendsBox.textContent='Aucun ami disponible.';
+   });
+   shareClose.addEventListener('click',closeShare);
+   share.addEventListener('click',()=>{sharePanel.classList.toggle('is-open');if(!sharePanel.classList.contains('is-open'))friendsBox.classList.remove('is-open');});
+   sharePanel.addEventListener('click',event=>event.stopPropagation());
+   actions.append(like,comment,share);
+   if(post.media_url){
+    const download=document.createElement('button');download.type='button';download.className='bc-reel-action';
+    download.innerHTML=makeIcon('<path d="M12 3v12m-5-5 5 5 5-5"/><path d="M4 17v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/>');download.setAttribute('aria-label','Télécharger le média');
+    download.addEventListener('click',async()=>{const originalIcon=download.innerHTML;download.disabled=true;download.setAttribute('aria-label','Préparation du téléchargement…');download.classList.add('is-downloading');try{const response=await fetch(post.media_url);if(!response.ok)throw new Error('Le serveur n’a pas pu fournir le média.');const blob=await response.blob();if(!blob.size)throw new Error('Le fichier est vide.');const objectUrl=URL.createObjectURL(blob);const link=document.createElement('a');const extension=(blob.type.split('/')[1]|| (post.media_type==='video'?'mp4':'jpg')).split(';')[0].replace('quicktime','mov');link.href=objectUrl;link.download='bope-publication-'+post.id+'.'+extension;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);}catch(error){alert('Impossible de télécharger ce média directement. Vérifie ta connexion puis réessaie.');}finally{download.innerHTML=originalIcon;download.disabled=false;download.setAttribute('aria-label','Télécharger le média');download.classList.remove('is-downloading');}});
+    actions.appendChild(download);
+   }
+   card.appendChild(actions);card.append(commentsPanel,sharePanel);list.appendChild(card);
   });
  }
  window.bcLoadPosts=async function(markSeen=false){
