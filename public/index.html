@@ -285,12 +285,13 @@
 @media(max-width:360px){.bc-main-nav{margin-left:-10px;margin-right:-10px}.bc-main-nav button span{font-size:22px}}
 /* Navigation BOPE : grandes zones tactiles, icônes pleines/contour façon Facebook */
 .bc-main-nav{position:fixed;z-index:10070;left:50%;bottom:0;transform:translateX(-50%);width:min(100%,520px);box-sizing:border-box;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));align-items:stretch;gap:0;margin:0;padding:5px 4px calc(5px + env(safe-area-inset-bottom));background:#080808;border:0;border-top:1px solid #303030;box-shadow:0 -4px 16px rgba(0,0,0,.28)}
-.bc-main-nav button{position:relative;min-width:0;min-height:58px;padding:5px 1px 7px;border:0;border-radius:10px;background:transparent;color:#b9bdc5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.bc-main-nav button{position:relative;min-width:0;min-height:54px;padding:7px 1px 5px;border:0;border-radius:10px;background:transparent;color:#b9bdc5;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:0}
 .bc-main-nav button .bc-nav-icon{position:relative;width:34px;height:32px;display:grid;place-items:center;overflow:visible}
 .bc-main-nav button svg{width:28px;height:28px;display:block;overflow:visible}
 .bc-main-nav button svg path{stroke:currentColor;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round;fill:none}
 .bc-main-nav button .icon-solid{display:none}
-.bc-main-nav button small{position:static;width:auto;height:auto;padding:0;margin:0;overflow:visible;clip:auto;white-space:nowrap;font-size:9px;line-height:11px;font-weight:700;color:inherit}
+/* Libellés conservés pour l'accessibilité, mais masqués visuellement */
+.bc-main-nav button small{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 .bc-main-nav button.active{color:#fff;background:transparent;box-shadow:none}
 .bc-main-nav button.active .icon-outline{display:none}
 .bc-main-nav button.active .icon-solid{display:block}
@@ -298,10 +299,9 @@
 .bc-main-nav button.active:after{content:"";position:absolute;bottom:-5px;left:15%;right:15%;height:3px;border-radius:3px 3px 0 0;background:#1877f2}
 .bc-main-nav button.reel .bc-nav-icon{width:38px;height:36px}
 .bc-main-nav button.reel svg{width:31px;height:31px}
-.bc-main-nav button.reel small{font-size:10px}
-.bc-nav-badge{position:absolute;top:-5px;right:-7px;z-index:2;min-width:18px;height:18px;padding:0 4px;box-sizing:border-box;border:2px solid #080808;border-radius:999px;background:#e41e3f;color:#fff;font:700 10px/14px Arial,sans-serif;text-align:center;place-items:center;white-space:nowrap}
+.bc-nav-badge{position:absolute;top:-4px;right:-7px;z-index:2;min-width:18px;height:18px;padding:0 4px;box-sizing:border-box;border:2px solid #080808;border-radius:999px;background:#e41e3f;color:#fff;font:700 10px/14px Arial,sans-serif;text-align:center;place-items:center;white-space:nowrap}
 .bc-shell{padding-bottom:100px!important}
-@media(max-width:360px){.bc-main-nav button{min-height:56px}.bc-main-nav button svg{width:26px;height:26px}.bc-main-nav button.reel svg{width:29px;height:29px}.bc-main-nav button small{font-size:8px}}
+@media(max-width:360px){.bc-main-nav button{min-height:52px}.bc-main-nav button svg{width:26px;height:26px}.bc-main-nav button.reel svg{width:29px;height:29px}}
 
 .bc-notification-item{display:flex;gap:10px;align-items:flex-start;padding:11px 9px;border-bottom:1px solid #edf0f4;border-radius:9px;cursor:pointer}
 .bc-notification-item.unread{background:#edf5ff}
