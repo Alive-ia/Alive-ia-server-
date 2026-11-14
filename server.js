@@ -358,56 +358,36 @@ async function bopeDemoEnsureAccounts() {
 }
 
 
-// Téléversement sécurisé de médias vers les comptes de démonstration BOPE.
+// Téléversement sécurisé et idempotent de médias vers les comptes de démonstration BOPE.
 app.post('/api/bope-demo/upload', express.raw({ type: 'application/octet-stream', limit: '50mb' }), async (req, res) => {
   if (!bopeDemoAuthorized(req)) return res.status(403).json({ ok: false, message: 'Code administrateur incorrect.' });
   const username = String(req.query.account || '');
   const account = BOPE_DEMO_ACCOUNTS.find(item => item.username === username);
   const mime = String(req.get('x-media-type') || '').toLowerCase();
-  const allowed = {
-    'video/mp4': 'mp4',
-    'video/webm': 'webm',
-    'image/jpeg': 'jpg',
-    'image/png': 'png',
-    'image/webp': 'webp'
-  };
+  const uploadId = String(req.get('x-upload-id') || '');
+  const allowed = { 'video/mp4': 'mp4', 'video/webm': 'webm', 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
   if (!account) return res.status(400).json({ ok: false, message: 'Choisis un compte BOPE valide.' });
   if (!allowed[mime]) return res.status(400).json({ ok: false, message: 'Format refusé. Utilise MP4, WEBM, JPG, PNG ou WEBP.' });
+  if (!/^[a-zA-Z0-9_-]{8,80}$/.test(uploadId)) return res.status(400).json({ ok: false, message: 'Identifiant de transfert invalide.' });
   if (!Buffer.isBuffer(req.body) || !req.body.length) return res.status(400).json({ ok: false, message: 'Fichier vide ou non reçu.' });
   try {
     const accounts = await bopeDemoEnsureAccounts();
     const target = accounts.find(item => item.username === username);
     if (!target) throw new Error('Compte BOPE démo introuvable.');
-    const safeName = String(req.get('x-file-name') || 'media')
-      .normalize('NFKD').replace(/[^a-zA-Z0-9._-]/g, '-').slice(0, 70) || 'media';
-    const fileName = Date.now() + '-' + require('crypto').randomBytes(5).toString('hex') + '-' + safeName.replace(/\.[^.]+$/, '') + '.' + allowed[mime];
-    const storagePath = target.id + '/' + fileName;
-    const encodedPath = storagePath.split('/').map(encodeURIComponent).join('/');
-    await bopeDemoRequest('/storage/v1/object/bope-posts/' + encodedPath, {
-      method: 'POST',
-      headers: { 'Content-Type': mime, 'x-upsert': 'false' },
-      body: req.body
-    });
+    const safeName = String(req.get('x-file-name') || 'media').normalize('NFKD').replace(/[^a-zA-Z0-9._-]/g, '-').slice(0, 70) || 'media';
+    const baseName = safeName.replace(/\.[^.]+$/, '').slice(0, 55) || 'media';
+    const fileName = 'demo-' + uploadId + '-' + baseName + '.' + allowed[mime];
+    const encodedPath = (target.id + '/' + fileName).split('/').map(encodeURIComponent).join('/');
     const cfg = bopeDemoSupabaseConfig();
     const mediaUrl = cfg.url + '/storage/v1/object/public/bope-posts/' + encodedPath;
-    const caption = String(req.query.caption || '').trim().slice(0, 1000) || safeName.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ');
-    const post = {
-      author_id: target.id,
-      content: caption,
-      media_url: mediaUrl,
-      media_type: mime.startsWith('video/') ? 'video' : 'image',
-      background_style: 'default'
-    };
-    const created = await bopeDemoRequest('/rest/v1/bope_posts', {
-      method: 'POST',
-      headers: { Prefer: 'return=representation' },
-      body: JSON.stringify(post)
-    });
+    const existing = await bopeDemoRequest('/rest/v1/bope_posts?media_url=eq.' + encodeURIComponent(mediaUrl) + '&select=id&limit=1', { method: 'GET' });
+    if (Array.isArray(existing) && existing[0]) return res.json({ ok: true, alreadyPublished: true, account: account.display_name, mediaUrl, postId: existing[0].id });
+    await bopeDemoRequest('/storage/v1/object/bope-posts/' + encodedPath, { method: 'POST', headers: { 'Content-Type': mime, 'x-upsert': 'true' }, body: req.body });
+    const caption = String(req.query.caption || '').trim().slice(0, 1000) || baseName.replace(/[-_]+/g, ' ');
+    const post = { author_id: target.id, content: caption, media_url: mediaUrl, media_type: mime.startsWith('video/') ? 'video' : 'image', background_style: 'default' };
+    const created = await bopeDemoRequest('/rest/v1/bope_posts', { method: 'POST', headers: { Prefer: 'return=representation' }, body: JSON.stringify(post) });
     return res.json({ ok: true, account: account.display_name, mediaType: post.media_type, mediaUrl, postId: Array.isArray(created) && created[0] ? created[0].id : null });
-  } catch (error) {
-    console.error('BOPE demo media upload:', error.message);
-    return res.status(500).json({ ok: false, message: error.message });
-  }
+  } catch (error) { console.error('BOPE demo media upload:', error.message); return res.status(500).json({ ok: false, message: error.message }); }
 });
 
 app.get('/bope-demo-admin', (req, res) => {
