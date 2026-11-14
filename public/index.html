@@ -2418,6 +2418,31 @@ function applyDRoute(route){
    const link=document.createElement('a');link.href=url;link.target='_blank';link.rel='noopener';link.download=filename;document.body.appendChild(link);link.click();link.remove();
   }
  };
+ window.bcCreatePostShare=async function(postId){
+  if(!bcClient||!bcCurrentUser){alert('Connecte-toi pour repartager une publication sur ton profil.');return false;}
+  const personalComment=window.prompt('Ajoute un commentaire personnel (facultatif) :','');if(personalComment===null)return false;
+  const clean=personalComment.trim();if(clean.length>2000){alert('Ton commentaire ne peut pas dépasser 2 000 caractères.');return false;}
+  const {error}=await bcClient.from('bope_post_shares').insert({post_id:postId,user_id:bcCurrentUser.id,comment:clean||null});
+  if(error){alert(error.code==='23505'?'Tu as déjà repartagé cette publication sur ton profil.':'Impossible de repartager cette publication : '+error.message);return false;}
+  alert('Publication repartagée sur ton profil BOPE !');await window.bcLoadPosts();
+  if(typeof window.bcLoadReels==='function'&&byId('bcReelsPanel')?.style.display!=='none')await window.bcLoadReels();return true;
+ };
+ function bcRenderSharedPostCards(shares,posts,shareProfiles){
+  const list=byId('bcPostsList');if(!list||!shares||!shares.length)return;const postMap=new Map((posts||[]).map(post=>[post.id,post]));
+  [...shares].sort((a,b)=>Date.parse(b.created_at||0)-Date.parse(a.created_at||0)).forEach(row=>{
+   const original=postMap.get(row.post_id);if(!original)return;const card=document.createElement('article');card.className='bc-post-card bc-shared-post-card';card.dataset.postId=original.id;
+   const sharer=(shareProfiles||{})[row.user_id]||{},head=document.createElement('div');head.className='bc-post-author';
+   if(sharer.avatar_url){const avatar=document.createElement('img');avatar.className='bc-post-avatar';avatar.src=sharer.avatar_url;avatar.alt='';head.appendChild(avatar);}else{const avatar=document.createElement('div');avatar.className='bc-post-avatar';avatar.textContent='👤';head.appendChild(avatar);}
+   const meta=document.createElement('div'),name=document.createElement('strong'),date=document.createElement('small');name.textContent=(sharer.display_name||'Utilisateur BOPE')+' a repartagé une publication';date.textContent=bcSafeDate(row.created_at)+(sharer.username?' • @'+sharer.username:'');meta.append(name,date);head.appendChild(meta);card.appendChild(head);
+   if(row.comment){const note=document.createElement('p');note.className='bc-post-text';note.textContent=row.comment;card.appendChild(note);}
+   const box=document.createElement('div');box.style.cssText='border:1px solid #383838;border-radius:12px;padding:10px;margin-top:8px';
+   const oh=document.createElement('div');oh.className='bc-post-author';if(original.profiles&&original.profiles.avatar_url){const av=document.createElement('img');av.className='bc-post-avatar';av.src=original.profiles.avatar_url;av.alt='';oh.appendChild(av);}
+   const om=document.createElement('div'),on=document.createElement('strong'),od=document.createElement('small');on.textContent=(original.profiles&&original.profiles.display_name)||'Utilisateur BOPE';od.textContent='Publication originale · '+bcSafeDate(original.created_at);om.append(on,od);oh.appendChild(om);box.appendChild(oh);
+   if(original.content){const body=document.createElement('p');body.className='bc-post-text';body.textContent=original.content;box.appendChild(body);}
+   if(original.media_url){const media=original.media_type==='video'?document.createElement('video'):document.createElement('img');media.className='bc-post-media';media.src=original.media_url;if(media.tagName==='VIDEO'){media.controls=true;media.playsInline=true;media.preload='metadata';}else media.alt='Photo de la publication originale';box.appendChild(media);}
+   card.appendChild(box);list.prepend(card);
+  });
+ }
  window.bcSharePost=async function(post){
   const shareUrl=new URL('/publication/'+encodeURIComponent(post.id),window.location.origin).href;
   const text=(post.content||'Découvre cette publication sur BOPE CRÉATEURS')+' — BOPE CRÉATEURS';
@@ -2467,7 +2492,7 @@ function applyDRoute(route){
   status.classList.add('show');status.textContent='100%';status.setAttribute('aria-label','Téléchargement terminé');
   return blob;
  }
- function bcRenderPosts(posts,reactions,comments,commentProfiles){
+ function bcRenderPosts(posts,reactions,comments,commentProfiles,shareCounts){
   const list=byId('bcPostsList');list.replaceChildren();
   byId('bcPostsEmpty').style.display=posts.length?'none':'block';
   posts.forEach(post=>{
@@ -2572,6 +2597,7 @@ function applyDRoute(route){
    const share=document.createElement('button');share.type='button';share.className='bc-reel-action';
    share.innerHTML=makeIcon('<path d="M12 16V3m-5 5 5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/>');share.setAttribute('aria-label','Partager');
    const shareUrl=new URL('/publication/'+encodeURIComponent(post.id),window.location.origin).href;
+   const shareCount=(shareCounts||{})[post.id]||0;share.innerHTML+='<span class="bc-reel-like-count">'+shareCount+'</span>';
    const shareText=(post.content||'Découvre cette publication sur BOPE 🇨🇩')+' — BOPE CRÉATEURS';
    const sharePanel=document.createElement('section');sharePanel.className='bc-feed-share-panel';sharePanel.setAttribute('aria-label','Partager cette publication');
    const shareHead=document.createElement('div');shareHead.className='bc-reel-share-head';
@@ -2579,9 +2605,10 @@ function applyDRoute(route){
    const shareClose=document.createElement('button');shareClose.type='button';shareClose.className='bc-reel-share-close';shareClose.textContent='×';shareClose.setAttribute('aria-label','Fermer');
    shareHead.append(shareTitle,shareClose);
    const makeShareOption=(icon,label)=>{const button=document.createElement('button');button.type='button';button.className='bc-reel-share-option';button.textContent=icon+'  '+label;return button;};
+   const profileOption=makeShareOption('↗️','Repartager sur mon profil');profileOption.addEventListener('click',async()=>{profileOption.disabled=true;profileOption.textContent='↗️  Publication…';const ok=await window.bcCreatePostShare(post.id);profileOption.disabled=false;profileOption.textContent=ok?'✓  Repartagé':'↗️  Repartager sur mon profil';if(ok)closeShare();});
    const copyOption=makeShareOption('🔗','Copier le lien'),whatsOption=makeShareOption('🟢','Partager sur WhatsApp'),faceOption=makeShareOption('🔵','Partager sur Facebook'),friendOption=makeShareOption('💬','Envoyer à un ami BOPE');
    const friendsBox=document.createElement('div');friendsBox.className='bc-reel-share-friends';
-   sharePanel.append(shareHead,copyOption,whatsOption,faceOption,friendOption,friendsBox);
+   sharePanel.append(shareHead,profileOption,copyOption,whatsOption,faceOption,friendOption,friendsBox);
    const closeShare=()=>{sharePanel.classList.remove('is-open');friendsBox.classList.remove('is-open');};
    const copyLink=async()=>{try{if(navigator.clipboard&&navigator.clipboard.writeText)await navigator.clipboard.writeText(shareUrl);else{const area=document.createElement('textarea');area.value=shareUrl;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();const ok=document.execCommand('copy');area.remove();if(!ok)throw new Error('Copie indisponible');}copyOption.textContent='✓  Lien copié';setTimeout(()=>{copyOption.textContent='🔗  Copier le lien';},1800);}catch(error){alert('Impossible de copier le lien sur cet appareil.');}};
    copyOption.addEventListener('click',copyLink);
@@ -2631,7 +2658,7 @@ function applyDRoute(route){
   if(sharedPostId)postsQuery=postsQuery.eq('id',sharedPostId);else postsQuery=postsQuery.limit(50);
   const {data,error}=await postsQuery;
   if(error){byId('bcPostStatus').textContent='Impossible de charger les publications : '+error.message;return;}
-  const posts=data||[],ids=posts.map(p=>p.id);let reactions=[],comments=[],commentProfiles={};
+  const posts=data||[],ids=posts.map(p=>p.id);let reactions=[],comments=[],commentProfiles={},postShares=[],shareProfiles={},shareCounts={};
   if(ids.length){
    const {data:reactionData,error:reactionError}=await bcClient.from('bope_post_reactions').select('post_id,user_id,reaction_type').in('post_id',ids);
    if(reactionError){byId('bcPostStatus').textContent='Réactions indisponibles : '+reactionError.message;}
@@ -2648,7 +2675,14 @@ function applyDRoute(route){
     }
    }
   }
-  bcRenderPosts(posts,reactions,comments,commentProfiles);
+  if(ids.length){
+   const {data:shareRows,error:shareError}=await bcClient.from('bope_post_shares').select('id,post_id,user_id,comment,created_at').in('post_id',ids).order('created_at',{ascending:false});
+   if(shareError)byId('bcPostStatus').textContent='Repartages momentanément indisponibles : '+shareError.message;
+   else{postShares=shareRows||[];postShares.forEach(row=>{shareCounts[row.post_id]=(shareCounts[row.post_id]||0)+1;});
+    const sharerIds=[...new Set(postShares.map(row=>row.user_id))];if(sharerIds.length){const {data:profiles,error:pe}=await bcClient.from('profiles').select('id,display_name,username,avatar_url').in('id',sharerIds);if(!pe)(profiles||[]).forEach(p=>{shareProfiles[p.id]=p;});}
+   }
+  }
+  bcRenderPosts(posts,reactions,comments,commentProfiles,shareCounts);bcRenderSharedPostCards(postShares,posts,shareProfiles);
   if(markSeen){
    posts.forEach(post=>bcFeedSeenIds.add(post.id));
    const newest=posts.reduce((max,post)=>{const time=Date.parse(post.created_at||'');return Number.isFinite(time)&&time>max?time:max;},0);
@@ -3358,6 +3392,8 @@ function applyDRoute(route){
   if(error){list.innerHTML='<div class="bc-reel-empty">Impossible de charger les vidéos : '+String(error.message||'erreur').replace(/[<>]/g,'')+'</div>';return;}
   if(!posts||!posts.length){list.innerHTML='<div class="bc-reel-empty"><div style="font-size:38px">🎬</div><strong>Aucun Reel pour le moment</strong><p>Les vidéos publiées dans le fil BOPE apparaîtront automatiquement ici.</p></div>';return;}
   const reelPostIds=posts.map(post=>post.id);
+  const {data:reelShares,error:reelSharesError}=await bcClient.from('bope_post_shares').select('post_id').in('post_id',reelPostIds);
+  const reelShareCounts={};if(!reelSharesError)(reelShares||[]).forEach(row=>{reelShareCounts[row.post_id]=(reelShareCounts[row.post_id]||0)+1;});
   const {data:reelReactions,error:reelReactionsError}=await bcClient.from('bope_post_reactions').select('post_id,user_id,reaction_type').in('post_id',reelPostIds).eq('reaction_type','👍');
   const reelLikeDataAvailable=!reelReactionsError;
   if(reelReactionsError)console.warn('BOPE REELS : chargement des J’aime impossible',reelReactionsError);
@@ -3471,6 +3507,7 @@ function applyDRoute(route){
    });
    const share=document.createElement('button');share.type='button';share.className='bc-reel-action';share.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m-5 5 5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>';share.setAttribute('aria-label','Partager');
    const shareUrl=new URL('/publication/'+encodeURIComponent(post.id),window.location.origin).href;
+   const reelShareCount=reelShareCounts[post.id]||0;share.innerHTML+='<span class="bc-reel-like-count">'+reelShareCount+'</span>';
    const shareText=(post.content||'Découvre ce Reel sur BOPE 🇨🇩')+' — BOPE REELS';
    const sharePanel=document.createElement('section');sharePanel.className='bc-reel-share-panel';sharePanel.setAttribute('aria-label','Partager ce Reel');
    const shareHead=document.createElement('div');shareHead.className='bc-reel-share-head';
@@ -3478,12 +3515,13 @@ function applyDRoute(route){
    const shareClose=document.createElement('button');shareClose.type='button';shareClose.className='bc-reel-share-close';shareClose.textContent='×';shareClose.setAttribute('aria-label','Fermer');
    shareHead.append(shareTitle,shareClose);
    const makeShareOption=(icon,label)=>{const button=document.createElement('button');button.type='button';button.className='bc-reel-share-option';button.textContent=icon+'  '+label;return button;};
+   const profileOption=makeShareOption('↗️','Repartager sur mon profil');profileOption.addEventListener('click',async()=>{profileOption.disabled=true;profileOption.textContent='↗️  Publication…';const ok=await window.bcCreatePostShare(post.id);profileOption.disabled=false;profileOption.textContent=ok?'✓  Repartagé':'↗️  Repartager sur mon profil';if(ok)closeSharePanel();});
    const copyOption=makeShareOption('🔗','Copier le lien');
    const whatsOption=makeShareOption('🟢','Partager sur WhatsApp');
    const faceOption=makeShareOption('🔵','Partager sur Facebook');
    const friendOption=makeShareOption('💬','Envoyer à un ami BOPE');
    const friendsBox=document.createElement('div');friendsBox.className='bc-reel-share-friends';
-   sharePanel.append(shareHead,copyOption,whatsOption,faceOption,friendOption,friendsBox);
+   sharePanel.append(shareHead,profileOption,copyOption,whatsOption,faceOption,friendOption,friendsBox);
    const closeSharePanel=()=>{sharePanel.classList.remove('is-open');friendsBox.classList.remove('is-open');};
    const copyReelLink=async()=>{try{if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(shareUrl);}else{const area=document.createElement('textarea');area.value=shareUrl;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();const ok=document.execCommand('copy');area.remove();if(!ok)throw new Error('Copie indisponible');}copyOption.textContent='✓  Lien copié';setTimeout(()=>{copyOption.textContent='🔗  Copier le lien';},1800);}catch(error){alert('Impossible de copier le lien sur cet appareil.');}};
    copyOption.addEventListener('click',copyReelLink);
