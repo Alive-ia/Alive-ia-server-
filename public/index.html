@@ -1598,7 +1598,7 @@ function applyDRoute(route){
     <div style="display:flex;gap:8px;align-items:center"><button type="button" onclick="bcOpenAccountSwitcher()" style="border:0;border-radius:18px;background:#fff0e8;color:#c62828;padding:8px 10px;font-size:12px;font-weight:700">⇄ Changer de compte</button><button type="button" aria-label="Rechercher" style="width:36px;height:36px;border:0;border-radius:50%;background:#e4e6eb;color:#1c1e21;font-size:18px">⌕</button><button type="button" aria-label="Messages" onclick="bcNavigate('messages')" style="width:36px;height:36px;border:0;border-radius:50%;background:#e4e6eb;color:#1c1e21;font-size:18px">▱</button></div>
    </div>
    <nav class="bc-main-nav" aria-label="Navigation BS">
-    <button type="button" class="active " data-bc-tab="home" onclick="bcNavigate('home')" aria-label="Accueil" title="Accueil" aria-current="page"><span class="bc-nav-icon"><svg class="icon-outline" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/></svg><svg class="icon-solid" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5M5 9v12h14V9M9 21v-6h6v6"/></svg></span><small>Accueil</small></button>
+    <button type="button" class="active " data-bc-tab="home" onclick="bcNavigate('home')" aria-label="Accueil" title="Accueil" aria-current="page"><span class="bc-nav-icon"><svg class="icon-outline" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/></svg><svg class="icon-solid" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5M5 9v12h14V9M9 21v-6h6v6"/></svg><b id="bcFeedNavBadge" class="bc-nav-badge" style="display:none"></b></span><small>Accueil</small></button>
     <button type="button" class="" data-bc-tab="friends" onclick="bcNavigate('friends')" aria-label="Amis" title="Amis"><span class="bc-nav-icon"><svg class="icon-outline" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M20 8v6M23 11h-6"/></svg><svg class="icon-solid" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M4 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2zM20 8v6M23 11h-6"/></svg><b id="bcFriendsBadge" class="bc-nav-badge" style="display:none"></b></span><small>Amis</small></button>
     <button type="button" class="" data-bc-tab="messages" onclick="bcNavigate('messages')" aria-label="Messages" title="Messages"><span class="bc-nav-icon"><svg class="icon-outline" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 9 9 0 0 1-4-.9L3 21l1.9-5.5a9 9 0 1 1 16.1-4z"/></svg><svg class="icon-solid" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 9 9 0 0 1-4-.9L3 21l1.9-5.5a9 9 0 1 1 16.1-4z"/></svg></span><small>Messages</small></button>
     <button type="button" class="reel" data-bc-tab="videos" onclick="bcNavigate('videos')" aria-label="Reels" title="Reels"><span class="bc-nav-icon"><svg class="icon-outline" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h11a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2M17 10l5-3v10l-5-3z"/></svg><svg class="icon-solid" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h11a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2M17 10l5-3v10l-5-3z"/></svg></span><small>Reels</small></button>
@@ -1652,7 +1652,6 @@ function applyDRoute(route){
   <button type="button" id="bcFeedRefresh" onclick="bcRefreshFeed()" aria-label="Actualiser les publications" title="Actualiser">↻</button>
   <button type="button" id="bcFeedTop" onclick="bcScrollFeedTop()" aria-label="Retour en haut" title="Retour en haut">↑</button>
  </div>
- <button type="button" id="bcNewPostsBadge" class="bc-new-posts-badge" onclick="bcRefreshFeed()" aria-live="polite" aria-label="Afficher les nouvelles publications"></button>
 </section>
    <section class="bc-tab-panel" id="bcTabPanel" aria-live="polite">
     <div class="bc-panel-icon" id="bcPanelIcon">🇨🇩</div>
@@ -3781,14 +3780,13 @@ function applyDRoute(route){
 
  window.bcScrollFeedTop=function(){
   const page=byId('bopeCreatorsPage');if(page)page.scrollTo({top:0,behavior:'smooth'});
- };
- function bcSetNewPostsBadge(count){
-  const badge=byId('bcNewPostsBadge');if(!badge)return;
-  const n=Math.max(0,Number(count)||0);
-  badge.textContent=n+' nouvelle'+(n>1?'s':'')+' publication'+(n>1?'s':'');
-  badge.classList.toggle('show',n>0);
-  badge.setAttribute('aria-label',n+' nouvelle'+(n>1?'s':'')+' publication'+(n>1?'s':'')+' disponible'+(n>1?'s':'')+'. Appuie pour actualiser le fil.');
- }
+ };  function bcSetNewPostsBadge(count){
+   const badge=byId('bcFeedNavBadge');if(!badge)return;
+   const n=Math.max(0,Number(count)||0);
+   badge.textContent=n>99?'99+':String(n);
+   badge.style.display=n>0?'grid':'none';
+   badge.setAttribute('aria-label',n+' nouvelle'+(n>1?'s':'')+' publication'+(n>1?'s':'')+' disponible'+(n>1?'s':'')+'. Appuie sur Accueil pour actualiser le fil.');
+  }
  window.bcCheckForNewPosts=async function(){
   if(!bcClient||!bcCurrentUser||!bcFeedNewestAt||bcFeedPollBusy)return;
   const page=byId('bopeCreatorsPage');
