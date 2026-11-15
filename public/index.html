@@ -2526,12 +2526,12 @@ function applyDRoute(route){
    let media=null;
    if(post.media_url){
     if(post.media_type==='video'){
-     card.classList.add('has-video-post');const frame=document.createElement('div');frame.className='bc-post-video-frame';media=document.createElement('video');media.playsInline=true;media.preload='none';media.dataset.lazySrc=post.media_url;media.controls=false;media.setAttribute('controlsList','nodownload noplaybackrate');media.className='bc-post-media';
+     card.classList.add('has-video-post');const frame=document.createElement('div');frame.className='bc-post-video-frame';media=document.createElement('video');media.playsInline=true;media.preload='metadata';media.src=post.media_url;media.controls=false;media.setAttribute('controlsList','nodownload noplaybackrate');media.className='bc-post-media';
      const play=document.createElement('button');play.type='button';play.className='bc-post-video-play';play.textContent='▶';play.setAttribute('aria-label','Lire la vidéo');
      const duration=document.createElement('small');duration.className='bc-post-video-duration';duration.textContent='0:00';
      const formatVideoTime=t=>{if(!Number.isFinite(t)||t<0)return '0:00';const seconds=Math.floor(t);return Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0');};
      const pauseOtherVideos=()=>{document.querySelectorAll('video').forEach(video=>{if(video!==media)video.pause();});};
-     const toggleVideo=()=>{if(media.paused){pauseOtherVideos();if(!media.src&&media.dataset.lazySrc){media.src=media.dataset.lazySrc;media.load();}const promise=media.play();if(promise&&promise.catch)promise.catch(()=>{});}else media.pause();};
+     const toggleVideo=()=>{if(media.paused){pauseOtherVideos();const promise=media.play();if(promise&&promise.catch)promise.catch(()=>{});}else media.pause();};
      media.addEventListener('loadedmetadata',()=>{const portrait=media.videoHeight>media.videoWidth;frame.classList.toggle('is-portrait',portrait);frame.style.aspectRatio=portrait?'9 / 16':'16 / 9';duration.textContent=formatVideoTime(media.duration);});
      media.addEventListener('timeupdate',()=>{duration.textContent=formatVideoTime(media.duration);});
      media.addEventListener('play',()=>{pauseOtherVideos();frame.classList.remove('is-paused');play.textContent='Ⅱ';});
