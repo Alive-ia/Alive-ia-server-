@@ -3399,7 +3399,10 @@ function applyDRoute(route){
    if(bcReplyTarget)payload.reply_to_message_id=bcReplyTarget.id;
    const {error:insertError}=await bcClient.from('bope_messages').insert(payload);
    if(insertError){await bcClient.storage.from('bope-audios').remove([path]);throw insertError;}
-   bcClearVoicePreview();window.bcClearReplyTarget();await window.bcLoadChatMessages(true);
+   // Le vocal est déjà enregistré : une erreur de rafraîchissement ne doit pas annoncer un faux échec d'envoi.
+   bcClearVoicePreview();window.bcClearReplyTarget();
+   try{await window.bcLoadChatMessages(true);}
+   catch(refreshError){console.warn('BOPE SOCIAL : vocal envoyé, mais actualisation de la conversation impossible.',refreshError);alert('Ton message vocal a bien été envoyé. La conversation n’a pas pu s’actualiser immédiatement ; réessaie dans quelques secondes.');}
   }catch(err){alert('Message vocal non envoyé : '+err.message);}
   finally{sendVoice.disabled=false;sendVoice.textContent='Envoyer';}
  });
