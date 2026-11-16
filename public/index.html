@@ -3013,7 +3013,7 @@ function applyDRoute(route){
  window.bcOpenConversation=async function(person,storyContext){
   if(bcChatRefreshTimer){clearInterval(bcChatRefreshTimer);bcChatRefreshTimer=null;}
   if(bcChatReadTimer){clearTimeout(bcChatReadTimer);bcChatReadTimer=null;}
-  bcActiveChat=person;byId('bopeCreatorsPage').classList.add('bc-conversation-open');byId('bcMessagesPanel').classList.add('bc-chat-fullscreen');document.documentElement.style.overflow='hidden';byId('bcConversationView').style.display='flex';byId('bcChatName').textContent=person.display_name||'Utilisateur BOPE';byId('bcChatAvatar').src=person.avatar_url||'';
+  bcActiveChat=person;bcRenderedChatSignature='';byId('bopeCreatorsPage').classList.add('bc-conversation-open');byId('bcMessagesPanel').classList.add('bc-chat-fullscreen');document.documentElement.style.overflow='hidden';byId('bcConversationView').style.display='flex';byId('bcChatName').textContent=person.display_name||'Utilisateur BOPE';byId('bcChatAvatar').src=person.avatar_url||'';
   const contextBox=byId('bcStoryReplyContext');
   if(contextBox){contextBox.replaceChildren();contextBox.style.display=storyContext?'block':'none';
    if(storyContext&&storyContext.reply){
@@ -3037,6 +3037,7 @@ function applyDRoute(route){
  let bcSelectionMode=false;
  let bcSelectedMessageIds=new Set();
  let bcLoadedChatMessages=[];
+ let bcRenderedChatSignature='';
  window.bcCancelMessageSelection=function(){bcSelectionMode=false;bcSelectedMessageIds.clear();const bar=byId('bcMessageSelectionBar');if(bar)bar.style.display='none';document.querySelectorAll('#bcChatMessages .bc-message-selected').forEach(el=>el.classList.remove('bc-message-selected'));};
  window.bcToggleMessageSelection=function(msg,bubble){if(!bcSelectionMode)return; if(bcSelectedMessageIds.has(msg.id)){bcSelectedMessageIds.delete(msg.id);bubble.classList.remove('bc-message-selected');}else{bcSelectedMessageIds.add(msg.id);bubble.classList.add('bc-message-selected');}const count=bcSelectedMessageIds.size;byId('bcMessageSelectionCount').textContent=count+' sélectionné'+(count>1?'s':'');};
  byId('bcMessageSelectionBar').addEventListener('click',async function(event){const button=event.target.closest('[data-bulk-action]');if(!button)return;const action=button.dataset.bulkAction,ids=[...bcSelectedMessageIds];if(action==='cancel'){window.bcCancelMessageSelection();return;}if(!ids.length){alert('Sélectionne au moins un message.');return;}
@@ -3091,6 +3092,15 @@ function applyDRoute(route){
   const hiddenIds=new Set((hiddenRows||[]).map(row=>row.message_id));
   const visibleMessages=(data||[]).filter(item=>!hiddenIds.has(item.id));
   bcLoadedChatMessages=visibleMessages;
+  // Ne reconstruire les bulles que si le contenu a réellement changé.
+  // Les lecteurs audio conservent ainsi leur chargement et leur position entre deux rafraîchissements.
+  const renderSignature=JSON.stringify({chatId,messages:visibleMessages.map(item=>[
+   item.id,item.content,item.created_at,item.reply_to_message_id,item.edited_at,
+   item.is_deleted_for_everyone,item.forwarded_from_message_id,item.media_path,
+   item.media_type,item.media_duration,item.delivered_at,item.read_at
+  ])});
+  if(renderSignature===bcRenderedChatSignature)return;
+  bcRenderedChatSignature=renderSignature;
   box.replaceChildren();
   if(!visibleMessages.length){const empty=document.createElement('p');empty.textContent='Aucun message à afficher. Dis bonjour ! 👋';empty.style.cssText='text-align:center;color:#667085;font-size:13px;margin:30px 0';box.appendChild(empty);}
   const messageMap=new Map(visibleMessages.map(item=>[item.id,item]));visibleMessages.forEach(msg=>{const line=document.createElement('div');line.className='bc-message-line';line.style.cssText='display:flex;margin:7px 0;'+(msg.sender_id===userId?'justify-content:flex-end':'justify-content:flex-start');if(msg.sender_id!==userId&&chatSnapshot.avatar_url){const avatar=document.createElement('img');avatar.className='bc-message-avatar';avatar.src=chatSnapshot.avatar_url;avatar.alt='Photo de profil';avatar.loading='lazy';line.appendChild(avatar);}const bubble=document.createElement('div');bubble.className='bc-message-bubble';if(msg.reply_to_message_id&&messageMap.has(msg.reply_to_message_id)){const original=messageMap.get(msg.reply_to_message_id);const quote=document.createElement('div');quote.textContent='↪ '+(original.content||'Message d’origine');quote.style.cssText='font-size:11px;opacity:.82;border-left:3px solid currentColor;padding-left:7px;margin-bottom:6px';bubble.appendChild(quote);}const body=document.createElement('div');if(msg.is_deleted_for_everyone){body.textContent='🚫 Ce message a été retiré.';}else if(msg.media_path&&msg.media_type){body.style.cssText='display:block;max-width:260px;white-space:normal';
