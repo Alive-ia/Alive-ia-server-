@@ -3247,7 +3247,7 @@ function applyDRoute(route){
    };
    bcVoiceRecorder.start(250);bcVoiceStartedAt=Date.now();bcVoiceComposer.style.display='flex';bcVoiceStatus.textContent='🔴 Enregistrement… glisse ↑ pour verrouiller';bcVoiceButton.style.display='none';
    byId('bcVoicePauseButton').style.display='inline-flex';byId('bcVoiceStopButton').style.display='inline-flex';
-   bcVoiceTimerId=setInterval(()=>{if(bcVoiceRecorder&&bcVoiceRecorder.state==='recording'){bcVoiceElapsed+=(Date.now()-bcVoiceStartedAt)/1000;bcVoiceStartedAt=Date.now();bcVoiceTimer.textContent=bcVoiceFormatTime(bcVoiceElapsed);}},500);
+   bcVoiceTimerId=setInterval(()=>{if(bcVoiceRecorder&&bcVoiceRecorder.state==='recording'){bcVoiceElapsed+=(Date.now()-bcVoiceStartedAt)/1000;bcVoiceStartedAt=Date.now();bcVoiceTimer.textContent=bcVoiceFormatTime(bcVoiceElapsed);}},500);if(bcVoiceReleased&&!bcVoiceLocked)bcVoiceFinish(bcVoiceCancelled);
   }catch(error){bcVoiceStopStream();bcVoiceReset();alert('Impossible d’accéder au microphone. Vérifie l’autorisation du navigateur.');}
  }
  function bcVoiceFinish(cancel){
