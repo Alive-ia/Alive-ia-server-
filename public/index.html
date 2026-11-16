@@ -3265,7 +3265,7 @@ function applyDRoute(route){
   const dx=e.clientX-bcVoicePointer.x,dy=e.clientY-bcVoicePointer.y;
   if(dx<-85){bcVoiceStatus.textContent='Relâche pour annuler';bcVoiceCancelled=true;}
   else if(dy<-65){bcVoiceLocked=true;bcVoicePointer=null;bcVoiceStatus.textContent='🔒 Enregistrement verrouillé';}
-  else{bcVoiceStatus.textContent='🔴 Enregistrement… glisse ↑ pour verrouiller';}
+  else{bcVoiceCancelled=false;bcVoiceStatus.textContent='🔴 Enregistrement… glisse ↑ pour verrouiller';}
  });
  const bcVoicePointerEnd=e=>{if(!bcVoicePointer||e.pointerId!==bcVoicePointer.id)return;bcVoicePointer=null;if(bcVoiceRecorder&&bcVoiceRecorder.state!=='inactive')bcVoiceFinish(bcVoiceCancelled);};
  ['pointerup','pointercancel','lostpointercapture'].forEach(type=>bcVoiceButton.addEventListener(type,bcVoicePointerEnd));
