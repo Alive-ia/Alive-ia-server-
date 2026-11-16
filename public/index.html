@@ -304,6 +304,8 @@
 @media(max-width:360px){.bc-main-nav{width:calc(100% + 32px);margin-left:-16px;margin-right:-16px}.bc-main-nav button{min-height:48px}.bc-main-nav button svg{width:26px;height:26px}.bc-main-nav button.reel svg{width:29px;height:29px}}
 /* Barre fixe en haut : conserve le blanc actif malgré les règles du thème sombre */
 #bopeCreatorsPage .bc-main-nav button.active{color:#fff!important}
+/* En conversation privée, masquer la navigation principale BOPE */
+#bopeCreatorsPage.bc-conversation-open .bc-main-nav{display:none!important}
 
 .bc-notification-item{display:flex;gap:10px;align-items:flex-start;padding:11px 9px;border-bottom:1px solid #edf0f4;border-radius:9px;cursor:pointer}
 .bc-notification-item.unread{background:#edf5ff}
@@ -3010,7 +3012,7 @@ function applyDRoute(route){
  window.bcOpenConversation=async function(person,storyContext){
   if(bcChatRefreshTimer){clearInterval(bcChatRefreshTimer);bcChatRefreshTimer=null;}
   if(bcChatReadTimer){clearTimeout(bcChatReadTimer);bcChatReadTimer=null;}
-  bcActiveChat=person;byId('bcMessagesPanel').classList.add('bc-chat-fullscreen');document.documentElement.style.overflow='hidden';byId('bcConversationView').style.display='flex';byId('bcChatName').textContent=person.display_name||'Utilisateur BOPE';byId('bcChatAvatar').src=person.avatar_url||'';
+  bcActiveChat=person;byId('bopeCreatorsPage').classList.add('bc-conversation-open');byId('bcMessagesPanel').classList.add('bc-chat-fullscreen');document.documentElement.style.overflow='hidden';byId('bcConversationView').style.display='flex';byId('bcChatName').textContent=person.display_name||'Utilisateur BOPE';byId('bcChatAvatar').src=person.avatar_url||'';
   const contextBox=byId('bcStoryReplyContext');
   if(contextBox){contextBox.replaceChildren();contextBox.style.display=storyContext?'block':'none';
    if(storyContext&&storyContext.reply){
@@ -3029,7 +3031,7 @@ function applyDRoute(route){
   await window.bcLoadChatMessages(true);byId('bcChatInput').focus();
   bcChatRefreshTimer=setInterval(()=>{if(document.visibilityState==='visible'&&bcActiveChat)window.bcLoadChatMessages();},5000);
  };
- window.bcCloseConversation=function(){if(bcChatRefreshTimer){clearInterval(bcChatRefreshTimer);bcChatRefreshTimer=null;}if(bcChatReadTimer){clearTimeout(bcChatReadTimer);bcChatReadTimer=null;}bcActiveChat=null;byId('bcMessagesPanel').classList.remove('bc-chat-fullscreen');document.documentElement.style.overflow='';const contextBox=byId('bcStoryReplyContext');if(contextBox){contextBox.replaceChildren();contextBox.style.display='none';}byId('bcConversationView').style.display='none';};
+ window.bcCloseConversation=function(){if(bcChatRefreshTimer){clearInterval(bcChatRefreshTimer);bcChatRefreshTimer=null;}if(bcChatReadTimer){clearTimeout(bcChatReadTimer);bcChatReadTimer=null;}bcActiveChat=null;byId('bopeCreatorsPage').classList.remove('bc-conversation-open');byId('bcMessagesPanel').classList.remove('bc-chat-fullscreen');document.documentElement.style.overflow='';const contextBox=byId('bcStoryReplyContext');if(contextBox){contextBox.replaceChildren();contextBox.style.display='none';}byId('bcConversationView').style.display='none';};
  let bcSelectedMessage=null;
  let bcSelectionMode=false;
  let bcSelectedMessageIds=new Set();
