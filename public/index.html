@@ -1722,6 +1722,12 @@ function applyDRoute(route){
         align-self:flex-end;margin:0 5px 2px 0;background:#292929;
       }
       #bcMessagesPanel .bc-message-line{align-items:flex-end;gap:0}
+      /* Photos compactes dans les bulles, ouverture en plein écran au toucher */
+      #bcMessagesPanel #bcChatMessages .bc-message-bubble img{
+        display:block!important;width:auto!important;max-width:min(190px,58vw)!important;
+        max-height:220px!important;height:auto!important;object-fit:contain!important;
+        border-radius:9px!important;cursor:zoom-in!important;
+      }
       @media(max-width:420px){
         #bcMessagesPanel #bcChatMessages .bc-message-bubble{max-width:76%!important}
       }
@@ -3091,7 +3097,23 @@ function applyDRoute(route){
      if(signedError||!signedData?.signedUrl){loading.textContent='Média indisponible';console.warn('BOPE média:',signedError);return;}
      const url=signedData.signedUrl;body.replaceChildren();
      if(String(msg.media_type).startsWith('image/')){
-      const img=document.createElement('img');img.src=url;img.alt=msg.content||'Image reçue';img.loading='lazy';img.style.cssText='display:block;max-width:100%;max-height:300px;object-fit:contain;border-radius:9px';body.appendChild(img);
+      const img=document.createElement('img');img.src=url;img.alt=msg.content||'Image reçue';img.loading='lazy';img.style.cssText='display:block;width:auto;max-width:min(190px,58vw);max-height:220px;height:auto;object-fit:contain;border-radius:9px;cursor:zoom-in';
+      img.addEventListener('click',event=>{
+       event.stopPropagation();
+       const overlay=document.createElement('div');
+       overlay.setAttribute('role','dialog');overlay.setAttribute('aria-label','Photo agrandie');
+       overlay.style.cssText='position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.94);display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box';
+       const close=document.createElement('button');close.type='button';close.textContent='✕';close.setAttribute('aria-label','Fermer la photo');
+       close.style.cssText='position:absolute;top:calc(14px + env(safe-area-inset-top));right:16px;width:42px;height:42px;border:0;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;font-size:23px';
+       const large=document.createElement('img');large.src=url;large.alt=img.alt;
+       large.style.cssText='display:block;max-width:100%;max-height:88vh;width:auto;height:auto;object-fit:contain;border-radius:6px';
+       const closeOverlay=()=>overlay.remove();
+       close.addEventListener('click',closeOverlay);
+       overlay.addEventListener('click',event=>{if(event.target===overlay)closeOverlay();});
+       large.addEventListener('click',event=>event.stopPropagation());
+       overlay.append(close,large);document.body.appendChild(overlay);
+      });
+      body.appendChild(img);
      }else if(String(msg.media_type).startsWith('video/')){
       const video=document.createElement('video');video.src=url;video.controls=true;video.playsInline=true;video.preload='none';video.style.cssText='display:block;width:100%;max-width:260px;max-height:300px;border-radius:9px';body.appendChild(video);
      }else{
