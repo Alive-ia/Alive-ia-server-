@@ -3732,4 +3732,42 @@ function applyDRoute(route){
 
 })();
 </script>
+<style id="bc-chat-wallpaper-fix">
+/* BOPE SOCIAL — fond de conversation uni, identique pour tous les contacts */
+#bcMessagesPanel #bcConversationView,
+#bcMessagesPanel #bcChatMessages{
+  background-image:none!important;
+  background-color:#f3f4f6!important;
+}
+#bcMessagesPanel #bcChatMessages{
+  background:#f3f4f6!important;
+  background-image:none!important;
+}
+#bcMessagesPanel #bcChatMessages::before,
+#bcMessagesPanel #bcChatMessages::after{
+  content:none!important;
+  display:none!important;
+  background-image:none!important;
+}
+@media(prefers-color-scheme:light){
+  #bcMessagesPanel #bcConversationView{background:#f3f4f6!important;border-color:#e5e7eb!important}
+  #bcMessagesPanel #bcChatMessages{background:#f3f4f6!important;background-image:none!important}
+  #bcMessagesPanel #bcChatMessages .bc-message-line[style*="justify-content:flex-start"] .bc-message-bubble{
+    background:#e5e7eb!important;color:#1f2937!important;
+  }
+  #bcMessagesPanel #bcChatMessages .bc-message-line[style*="justify-content:flex-end"] .bc-message-bubble{
+    background:#c62828!important;color:#fff!important;
+  }
+}
+@media(prefers-color-scheme:dark){
+  #bcMessagesPanel #bcConversationView{background:#111827!important;border-color:#303744!important}
+  #bcMessagesPanel #bcChatMessages{background:#111827!important;background-image:none!important}
+  #bcMessagesPanel #bcChatMessages .bc-message-line[style*="justify-content:flex-start"] .bc-message-bubble{
+    background:#263238!important;color:#fff!important;
+  }
+  #bcMessagesPanel #bcChatMessages .bc-message-line[style*="justify-content:flex-end"] .bc-message-bubble{
+    background:#c62828!important;color:#fff!important;
+  }
+}
+</style>
 </body></html>
