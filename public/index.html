@@ -1696,41 +1696,8 @@ function applyDRoute(route){
 #bcMessagesPanel #bcChatForm button{border:0;background:transparent;color:#cbd1d3;font-weight:700}
 #bcMessagesPanel #bcChatForm button:disabled{opacity:.6}
 #bcMessagesPanel .bc-compose-icon{flex:0 0 34px;width:34px;height:46px;padding:0;border-radius:50%;font-size:22px;display:flex;align-items:center;justify-content:center}
-#bcMessagesPanel #bcVoiceButton{flex:0 0 58px;width:58px;min-width:58px;height:58px;padding:0;border:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#25D366;color:#fff;touch-action:none;user-select:none;-webkit-user-select:none}
-#bcMessagesPanel #bcVoiceButton svg{display:block;width:25px;height:25px;flex:0 0 25px}
-#bcMessagesPanel #bcVoiceButton:active{background:#1fbd5b}
 #bcMessagesPanel #bcSendButton{flex:0 0 58px;width:58px;min-width:58px;height:58px;padding:0;border-radius:50%;font-size:27px;background:#25D366;color:#071b12}
-#bcVoicePreview{display:none;align-items:center;gap:10px;padding:9px 12px;background:#111719;border-top:1px solid #283034}
-#bcVoicePreview audio{display:none}
-#bcVoicePreview button{border:0;border-radius:50%;width:42px;height:42px;flex:0 0 42px;font-weight:700;font-size:21px;display:grid;place-items:center}
-#bcVoicePreview .bc-preview-play{background:#263238;color:#f5f7f8}
-#bcVoicePreview .bc-preview-track{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
-#bcVoicePreview .bc-preview-wave{height:25px;display:flex;align-items:center;justify-content:space-between;gap:2px;overflow:hidden;cursor:pointer}
-#bcVoicePreview .bc-preview-wave i{display:block;width:3px;min-width:2px;border-radius:3px;background:#8b999e;height:var(--h);opacity:.9}
-#bcVoicePreview .bc-preview-wave i.played{background:#25D366}
-#bcVoicePreview .bc-preview-time{display:flex;justify-content:space-between;color:#aeb6b9;font-size:11px;font-variant-numeric:tabular-nums}
-#bcVoiceRecordHint{display:none;align-items:center;gap:18px;padding:17px 20px;background:#111719;color:#f5f7f8;font-size:17px;min-height:64px}
-      #bcVoiceActiveControls{display:none;align-items:center;gap:14px;padding:10px 14px;background:#111719;color:#f5f7f8;min-height:68px}
-      #bcVoiceActiveTimer{font-size:21px;min-width:48px;font-weight:500}
-      #bcVoiceActiveLabel{flex:1;text-align:center;color:#aeb6b9;font-size:15px}
-      #bcVoiceActiveControls button{width:52px;height:52px;flex:0 0 52px;border:0;border-radius:50%;font-size:27px;font-weight:700}
-      #bcVoiceActiveCancel{background:#4b1727;color:#ff4d70}
-      #bcVoiceActiveSend{background:#25D366;color:#071b12}
-#bcVoiceRecordHint strong,#bcVoiceLockedStatus strong{font-size:21px;font-weight:500;white-space:nowrap}
-#bcVoiceRecordHint span{color:#aeb6b9;flex:1;text-align:center}
-#bcVoiceLockedStatus{display:none;align-items:center;gap:18px;padding:20px 22px 14px;background:#111719;color:#f5f7f8;min-height:64px}
-#bcVoiceWave{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;height:28px;overflow:hidden}
-#bcVoiceWave i{display:block;width:6px;height:6px;border-radius:50%;background:#aeb6b9;animation:bcWave .55s ease-in-out infinite alternate}
-#bcVoiceWave i:nth-child(3n){animation-delay:.18s}#bcVoiceWave i:nth-child(3n+1){animation-delay:.35s}
 @keyframes bcWave{to{transform:translateY(-5px);opacity:.55}}
-#bcVoiceLockIcon{position:relative;font-size:27px;color:#f5f7f8;white-space:nowrap}
-#bcVoiceLockIcon b{position:absolute;right:-3px;top:-5px;font-size:10px;font-weight:700;color:#111719;background:#f5f7f8;border-radius:50%;width:13px;height:13px;display:grid;place-items:center}
-#bcVoiceLockedControls{display:none;align-items:center;justify-content:space-between;gap:14px;padding:14px 18px 18px;background:#111719}
-#bcVoiceLockedControls button{flex-shrink:0;height:68px;border:0;font-weight:600}
-#bcVoiceCancelLocked{width:68px;border-radius:50%;background:#4b1727;color:#ff4d70;font-size:29px}
-#bcVoicePause{flex:1;border-radius:38px;background:#292f32;color:#f5f7f8;font-size:27px;display:flex;align-items:center;justify-content:center;gap:17px}
-#bcVoicePause span{font-size:20px;font-weight:400}
-#bcVoiceStop{width:68px;border-radius:50%;background:#25D366;color:#071b12;font-size:36px}
 #bcMessagesPanel #bcChatForm.bc-recording{background:#111719}#bcMessagesPanel #bcChatForm.bc-recording{height:0!important;padding:0!important;border:0!important;overflow:visible}#bcMessagesPanel #bcChatForm.bc-recording>*{visibility:hidden}
      #bcMessagesPanel .bc-media-choice-menu{display:none;position:absolute;left:12px;bottom:76px;z-index:45;min-width:210px;max-width:calc(100% - 24px);padding:9px;background:#20282b;border:1px solid #3a454a;border-radius:15px;box-shadow:0 10px 28px #0008;color:#f5f7f8}
      #bcMessagesPanel .bc-media-choice-menu.show{display:block}
@@ -1741,26 +1708,15 @@ function applyDRoute(route){
      #bcEmojiPanel.show{display:grid}
      #bcEmojiPanel button{border:0;background:#fff;border-radius:8px;padding:7px 0;font-size:22px}
      #bcMessagesPanel #bcChatForm.bc-recording{background:#fff1f2}
-     .bc-audio-message{display:block;width:min(250px,65vw);height:38px;margin-top:4px}
       /* Lecteur vocal compact, inspiré de WhatsApp */
-      #bcMessagesPanel .bc-audio-bubble{width:min(60%,250px)!important;max-width:60%!important;padding:7px 9px!important;overflow:hidden}
-      #bcMessagesPanel .bc-audio-player-ui{display:flex;align-items:center;gap:8px;min-width:0;width:100%;white-space:normal}
-      #bcMessagesPanel .bc-audio-play{flex:0 0 30px;width:30px;height:30px;border:0;border-radius:50%;background:rgba(255,255,255,.22);color:inherit;font-size:14px;line-height:1;padding:0;display:grid;place-items:center}
-      #bcMessagesPanel .bc-audio-wave{height:22px;min-width:0;flex:1;display:flex;align-items:center;justify-content:space-between;gap:2px;overflow:hidden}
-      #bcMessagesPanel .bc-audio-wave i{display:block;flex:1;max-width:3px;min-width:2px;border-radius:3px;background:currentColor;opacity:.72}
-      #bcMessagesPanel .bc-audio-duration{display:block;flex:0 0 auto;font-size:10px;font-weight:500;line-height:1;opacity:.85;white-space:nowrap;align-self:flex-end;margin-bottom:1px}
-      #bcMessagesPanel .bc-audio-message{display:none}
       /* Bulles compactes et avatars alignés comme dans une messagerie mobile */
       #bcMessagesPanel #bcChatMessages .bc-message-bubble{
         display:block!important;width:fit-content!important;max-width:76%!important;
         min-width:0!important;padding:7px 10px!important;border-radius:15px!important;
       }
-      #bcMessagesPanel #bcChatMessages .bc-audio-bubble{
         width:min(70%,260px)!important;max-width:70%!important;min-width:0!important;
         padding:6px 8px!important;border-radius:14px!important;
       }
-      #bcMessagesPanel #bcChatMessages .bc-audio-player-ui{gap:6px!important}
-      #bcMessagesPanel #bcChatMessages .bc-audio-play{width:30px!important;height:30px!important;flex-basis:30px!important}
       #bcMessagesPanel .bc-message-avatar{
         width:28px;height:28px;flex:0 0 28px;object-fit:cover;border-radius:50%;
         align-self:flex-end;margin:0 5px 2px 0;background:#292929;
@@ -1768,9 +1724,7 @@ function applyDRoute(route){
       #bcMessagesPanel .bc-message-line{align-items:flex-end;gap:0}
       @media(max-width:420px){
         #bcMessagesPanel #bcChatMessages .bc-message-bubble{max-width:76%!important}
-        #bcMessagesPanel #bcChatMessages .bc-audio-bubble{width:70%!important;max-width:70%!important}
       }
-      @media(max-width:420px){#bcMessagesPanel .bc-audio-bubble{width:min(60%,220px)!important;max-width:60%!important}}
 
 
       /* === THEME BOPE NOIR + ROUGE : surfaces de BOPE Créateurs et Messages === */
@@ -1881,11 +1835,6 @@ function applyDRoute(route){
       #bcMessagesPanel #bcMessageSelectionBar button{background:#202020!important;color:#fff!important;border-color:#383838!important}
       #bcMessagesPanel #bcChatForm{background:#050505!important;border-color:#292929!important}
       #bcMessagesPanel #bcChatInput{background:#202020!important;color:#fff!important}
-      #bcMessagesPanel #bcVoicePreview,
-      #bcMessagesPanel #bcVoiceRecordHint,
-      #bcMessagesPanel #bcVoiceActiveControls,
-      #bcMessagesPanel #bcVoiceLockedStatus,
-      #bcMessagesPanel #bcVoiceLockedControls{background:#101010!important;color:#fff!important;border-color:#292929!important}
       #bopeCreatorsPage .bc-post-card .bc-post-text{color:#fff!important}
       #bopeCreatorsPage .bc-post-card .bc-post-bg-red,
       #bopeCreatorsPage .bc-post-card .bc-post-bg-blue,
@@ -2011,18 +1960,14 @@ function applyDRoute(route){
         flex:0 0 36px!important;width:36px!important;height:52px!important;
         min-width:36px!important;font-size:26px!important;line-height:1!important;
       }
-      #bcMessagesPanel #bcVoiceButton{
         flex:0 0 54px!important;width:54px!important;min-width:54px!important;
         height:54px!important;
       }
-      #bcMessagesPanel #bcVoiceButton svg{width:27px!important;height:27px!important;flex:0 0 27px!important}
       #bcMessagesPanel #bcSendButton{
         flex:0 0 54px!important;width:54px!important;min-width:54px!important;
         height:54px!important;font-size:27px!important;
       }
       /* Agrandir légèrement la zone tactile du bouton lecture sans élargir la bulle */
-      #bcMessagesPanel .bc-audio-player-ui{gap:6px!important}
-      #bcMessagesPanel .bc-audio-play{
         flex:0 0 36px!important;width:36px!important;height:36px!important;
         font-size:16px!important;min-width:36px!important;
       }
@@ -2062,11 +2007,6 @@ function applyDRoute(route){
         flex:0 0 auto!important;margin:0!important;border:0!important;border-radius:0!important;
         box-shadow:none!important;padding-bottom:calc(8px + env(safe-area-inset-bottom))!important;
       }
-      #bcMessagesPanel.bc-chat-fullscreen #bcVoicePreview,
-      #bcMessagesPanel.bc-chat-fullscreen #bcVoiceRecordHint,
-      #bcMessagesPanel.bc-chat-fullscreen #bcVoiceActiveControls,
-      #bcMessagesPanel.bc-chat-fullscreen #bcVoiceLockedStatus,
-      #bcMessagesPanel.bc-chat-fullscreen #bcVoiceLockedControls{
         flex:0 0 auto!important;margin:0!important;border-radius:0!important;
       }
       #bcAccountMessage{display:none!important}
@@ -2077,18 +2017,14 @@ function applyDRoute(route){
   background:#232D36!important;
   color:#fff!important;
 }
-#bcMessagesPanel #bcChatMessages .bc-message-line[style*="justify-content:flex-start"] .bc-message-bubble .bc-audio-player-ui{
   color:#fff!important;
 }
-#bcMessagesPanel #bcChatMessages .bc-message-line[style*="justify-content:flex-start"] .bc-message-bubble .bc-audio-play{
   color:#fff!important;
   background:rgba(255,255,255,.16)!important;
 }
-#bcMessagesPanel #bcChatMessages .bc-message-line[style*="justify-content:flex-start"] .bc-message-bubble .bc-audio-wave i{
   background:#fff!important;
   opacity:.82!important;
 }
-#bcMessagesPanel #bcChatMessages .bc-message-line[style*="justify-content:flex-start"] .bc-message-bubble .bc-audio-duration{
   color:#fff!important;
 }
 /* === Harmonisation visuelle des boutons BOPE STORIES === */
@@ -2130,17 +2066,13 @@ function applyDRoute(route){
      </div>
      <div id="bcMediaChoiceMenu" class="bc-media-choice-menu" aria-label="Options de pièces jointes"><div class="bc-media-choice-title" id="bcMediaChoiceTitle">Joindre un fichier</div><div id="bcMediaChoiceOptions"></div></div>
      <div id="bcEmojiPanel" aria-label="Émojis"><button type="button">😀</button><button type="button">😂</button><button type="button">🥰</button><button type="button">😍</button><button type="button">😭</button><button type="button">😡</button><button type="button">👍</button><button type="button">❤️</button><button type="button">🙏</button><button type="button">👏</button><button type="button">🤝</button><button type="button">🤔</button><button type="button">🎉</button><button type="button">🔥</button><button type="button">💔</button><button type="button">😘</button></div>
-     <div id="bcVoicePreview"><button type="button" id="bcDiscardVoice" aria-label="Supprimer le vocal" style="background:#4b1727;color:#ff4d70">🗑</button><button type="button" id="bcVoicePreviewPlay" class="bc-preview-play" aria-label="Écouter le vocal">▶</button><div class="bc-preview-track"><div id="bcVoicePreviewWave" class="bc-preview-wave" aria-label="Progression du vocal"><i style="--h:6px"></i><i style="--h:13px"></i><i style="--h:20px"></i><i style="--h:10px"></i><i style="--h:17px"></i><i style="--h:7px"></i><i style="--h:14px"></i><i style="--h:21px"></i><i style="--h:11px"></i><i style="--h:18px"></i><i style="--h:8px"></i><i style="--h:15px"></i><i style="--h:22px"></i><i style="--h:12px"></i><i style="--h:19px"></i><i style="--h:9px"></i><i style="--h:16px"></i><i style="--h:6px"></i><i style="--h:13px"></i><i style="--h:20px"></i><i style="--h:10px"></i><i style="--h:17px"></i><i style="--h:7px"></i><i style="--h:14px"></i><i style="--h:21px"></i><i style="--h:11px"></i><i style="--h:18px"></i><i style="--h:8px"></i><i style="--h:15px"></i><i style="--h:22px"></i></div><div class="bc-preview-time"><span id="bcVoicePreviewCurrent">0:00</span><span id="bcVoicePreviewDuration">0:00</span></div></div><button type="button" id="bcSendVoice" aria-label="Envoyer le vocal" style="background:#25D366;color:#071b12">➤</button><audio id="bcVoicePreviewAudio" preload="metadata"></audio></div>
      <div id="bcMediaPreview" style="display:none;align-items:center;gap:10px;padding:10px 12px;background:#172127;border-top:1px solid #303b42;color:#fff">
       <div id="bcMediaPreviewVisual" style="width:58px;height:58px;flex:0 0 58px;border-radius:9px;overflow:hidden;background:#303b42;display:grid;place-items:center;font-size:26px"></div>
       <div style="flex:1;min-width:0"><strong id="bcMediaPreviewName" style="display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></strong><small id="bcMediaPreviewInfo" style="display:block;color:#b8c4ca;font-size:11px;margin-top:4px">Prêt à envoyer</small></div>
       <button type="button" id="bcDiscardMedia" aria-label="Retirer le fichier" style="border:0;border-radius:50%;width:34px;height:34px;background:#3b252b;color:#ff7185;font-size:18px">✕</button>
       <button type="button" id="bcSendMedia" aria-label="Envoyer le fichier" style="border:0;border-radius:50%;width:42px;height:42px;background:#25D366;color:#071b12;font-size:22px;font-weight:800">➤</button>
      </div>
-     <div id="bcVoiceRecordHint"><strong id="bcVoiceTimer">0:00</strong><span>‹ Faire glisser pour annuler</span></div><div id="bcVoiceActiveControls"><button type="button" id="bcVoiceActiveCancel" aria-label="Supprimer le vocal">🗑</button><strong id="bcVoiceActiveTimer">0:00</strong><span id="bcVoiceActiveLabel">Enregistrement vocal…</span><button type="button" id="bcVoiceActiveSend" aria-label="Envoyer le vocal">➤</button></div>
-     <div id="bcVoiceLockedStatus"><strong id="bcVoiceLockedTimer">0:00</strong><span id="bcVoiceWave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span id="bcVoiceLockIcon" aria-label="Enregistrement verrouillé">🔒<b>1</b></span></div>
-     <div id="bcVoiceLockedControls"><button type="button" id="bcVoiceCancelLocked" aria-label="Supprimer le vocal">🗑</button><button type="button" id="bcVoicePause" aria-label="Mettre en pause">Ⅱ <span>Pause</span></button><button type="button" id="bcVoiceStop" aria-label="Envoyer le vocal">➤</button></div>
-     <form id="bcChatForm"><button type="button" id="bcEmojiButton" class="bc-compose-icon" aria-label="Émojis">😀</button><input id="bcChatInput" type="text" maxlength="5000" placeholder="Écris un message" autocomplete="off"><button type="button" id="bcAttachButton" class="bc-compose-icon" aria-label="Joindre un fichier">📎</button><button type="button" id="bcCameraButton" class="bc-compose-icon" aria-label="Ouvrir la caméra">📷</button><button id="bcSendButton" type="submit" style="display:none" aria-label="Envoyer">➤</button><button id="bcVoiceButton" type="button" aria-label="Maintenir pour enregistrer un message vocal"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 14.5a3.5 3.5 0 0 0 3.5-3.5V5a3.5 3.5 0 0 0-7 0v6a3.5 3.5 0 0 0 3.5 3.5Z" fill="currentColor"/><path d="M5.5 10.5a1 1 0 0 1 2 0 4.5 4.5 0 0 0 9 0 1 1 0 1 1 2 0 6.5 6.5 0 0 1-5.5 6.42V20h2a1 1 0 1 1 0 2H9a1 1 0 1 1 0-2h2v-3.08a6.5 6.5 0 0 1-5.5-6.42Z" fill="currentColor"/></svg></button></form>
+     <form id="bcChatForm"><button type="button" id="bcEmojiButton" class="bc-compose-icon" aria-label="Émojis">😀</button><input id="bcChatInput" type="text" maxlength="5000" placeholder="Écris un message" autocomplete="off"><button type="button" id="bcAttachButton" class="bc-compose-icon" aria-label="Joindre un fichier">📎</button><button type="button" id="bcCameraButton" class="bc-compose-icon" aria-label="Ouvrir la caméra">📷</button><button id="bcSendButton" type="submit" style="display:none" aria-label="Envoyer">➤</button></form>
      <input id="bcAttachFileInput" type="file" accept="image/*,video/*,.pdf,.doc,.docx" style="position:fixed;left:-10000px;top:0;width:1px;height:1px;opacity:0"><input id="bcCameraFileInput" type="file" accept="image/*" style="position:fixed;left:-10000px;top:0;width:1px;height:1px;opacity:0">
     </div>
    </section>
@@ -3136,7 +3068,7 @@ function applyDRoute(route){
   const box=byId('bcChatMessages');
   const wasNearBottom=forceBottom||box.scrollHeight-box.scrollTop-box.clientHeight<80;
   const filter='and(sender_id.eq.'+userId+',recipient_id.eq.'+chatId+'),and(sender_id.eq.'+chatId+',recipient_id.eq.'+userId+')';
-  const {data,error}=await clientSnapshot.from('bope_messages').select('id,sender_id,recipient_id,content,created_at,reply_to_message_id,edited_at,is_deleted_for_everyone,forwarded_from_message_id,media_path,media_type,media_duration,delivered_at,read_at').or(filter).order('created_at',{ascending:true}).limit(200);
+  const {data,error}=await clientSnapshot.from('bope_messages').select('id,sender_id,recipient_id,content,created_at,reply_to_message_id,edited_at,is_deleted_for_everyone,forwarded_from_message_id,media_path,media_type,delivered_at,read_at').or(filter).order('created_at',{ascending:true}).limit(200);
   if(error){box.textContent='Impossible de charger les messages : '+error.message;return;}
   if(bcActiveChat!==chatSnapshot||bcCurrentUser!==userSnapshot||bcClient!==clientSnapshot)return;
   const incomingMessages=(data||[]).some(item=>item.sender_id===chatId&&item.recipient_id===userId);
@@ -3152,37 +3084,7 @@ function applyDRoute(route){
   bcLoadedChatMessages=visibleMessages;
   box.replaceChildren();
   if(!visibleMessages.length){const empty=document.createElement('p');empty.textContent='Aucun message à afficher. Dis bonjour ! 👋';empty.style.cssText='text-align:center;color:#667085;font-size:13px;margin:30px 0';box.appendChild(empty);}
-  const messageMap=new Map(visibleMessages.map(item=>[item.id,item]));visibleMessages.forEach(msg=>{const line=document.createElement('div');line.className='bc-message-line';line.style.cssText='display:flex;margin:7px 0;'+(msg.sender_id===userId?'justify-content:flex-end':'justify-content:flex-start');if(msg.sender_id!==userId&&chatSnapshot.avatar_url){const avatar=document.createElement('img');avatar.className='bc-message-avatar';avatar.src=chatSnapshot.avatar_url;avatar.alt='Photo de profil';avatar.loading='lazy';line.appendChild(avatar);}const bubble=document.createElement('div');bubble.className='bc-message-bubble';if(msg.reply_to_message_id&&messageMap.has(msg.reply_to_message_id)){const original=messageMap.get(msg.reply_to_message_id);const quote=document.createElement('div');quote.textContent='↪ '+(original.content||'Message d’origine');quote.style.cssText='font-size:11px;opacity:.82;border-left:3px solid currentColor;padding-left:7px;margin-bottom:6px';bubble.appendChild(quote);}const body=document.createElement('div');if(msg.is_deleted_for_everyone){body.textContent='🚫 Ce message a été retiré.';}else if(msg.media_path&&msg.media_type&&String(msg.media_type).startsWith('audio/')){
-    bubble.classList.add('bc-audio-bubble');body.className='bc-audio-player-ui';
-    const audio=document.createElement('audio');audio.preload='none';audio.setAttribute('playsinline','');
-    const play=document.createElement('button');play.type='button';play.className='bc-audio-play';play.textContent='▶';play.setAttribute('aria-label','Écouter le message vocal');
-    const wave=document.createElement('div');wave.className='bc-audio-wave';for(let i=0;i<30;i++){const bar=document.createElement('i');bar.style.height=(5+((i*7)%12))+'px';wave.appendChild(bar);}
-    const duration=document.createElement('small');duration.className='bc-audio-duration';
-    const fmt=t=>{if(!Number.isFinite(t)||t<=0)return '';const total=Math.round(t),m=Math.floor(total/60),sec=total%60;return m+':'+String(sec).padStart(2,'0');};
-    const savedDuration=Number(msg.media_duration);let trueDuration=0;let durationProbeStarted=false;let durationProbeFinished=false;
-    duration.textContent=savedDuration>0?fmt(savedDuration):'…';
-    const setTrueDuration=value=>{if(Number.isFinite(value)&&value>0){trueDuration=value;duration.textContent=fmt(value);return true;}return false;};
-    const updateProgress=()=>{const total=trueDuration||((Number.isFinite(audio.duration)&&audio.duration>0)?audio.duration:0);if(!total)return;const progress=Math.max(0,Math.min(1,audio.currentTime/total));wave.querySelectorAll('i').forEach((bar,index,all)=>{bar.style.opacity=index<Math.floor(progress*all.length)?'1':'.38';});};
-    const tryResolveDuration=()=>{
-     if(setTrueDuration(audio.duration)){if(durationProbeStarted&&!durationProbeFinished){durationProbeFinished=true;try{audio.currentTime=0;}catch(_){}}return;}
-     if(audio.duration===Infinity&&!durationProbeStarted){
-      durationProbeStarted=true;
-      const finishProbe=()=>{if(durationProbeFinished)return;if(setTrueDuration(audio.duration)){durationProbeFinished=true;audio.removeEventListener('timeupdate',finishProbe);audio.removeEventListener('durationchange',finishProbe);try{audio.currentTime=0;}catch(_){}}};
-      audio.addEventListener('timeupdate',finishProbe);audio.addEventListener('durationchange',finishProbe);
-      try{audio.currentTime=1e7;}catch(err){console.warn('BOPE durée WebM: recherche impossible',err);}
-     }
-    };
-    play.addEventListener('click',e=>{e.stopPropagation();if(audio.paused){audio.play().catch(err=>{play.textContent='▶';play.setAttribute('aria-label','Lecture impossible');console.warn('BOPE audio playback:',err);});}else audio.pause();});
-    audio.addEventListener('play',()=>{play.textContent='Ⅱ';play.setAttribute('aria-label','Mettre en pause');});
-    audio.addEventListener('pause',()=>{play.textContent='▶';play.setAttribute('aria-label','Écouter le message vocal');});
-    ['loadedmetadata','durationchange','loadeddata','canplay'].forEach(evt=>audio.addEventListener(evt,tryResolveDuration));
-    audio.addEventListener('timeupdate',updateProgress);
-    audio.addEventListener('ended',()=>{play.textContent='▶';play.setAttribute('aria-label','Écouter le message vocal');updateProgress();});
-    audio.addEventListener('error',()=>{play.textContent='▶';play.setAttribute('aria-label','Audio indisponible');console.warn('BOPE erreur lecteur vocal',audio.error);});
-    body.append(play,wave,duration,audio);
-    audio.src=clientSnapshot.storage.from('bope-audios').getPublicUrl(msg.media_path).data.publicUrl;audio.load();
-   }else if(msg.media_path&&msg.media_type){
-    body.style.cssText='display:block;max-width:260px;white-space:normal';
+  const messageMap=new Map(visibleMessages.map(item=>[item.id,item]));visibleMessages.forEach(msg=>{const line=document.createElement('div');line.className='bc-message-line';line.style.cssText='display:flex;margin:7px 0;'+(msg.sender_id===userId?'justify-content:flex-end':'justify-content:flex-start');if(msg.sender_id!==userId&&chatSnapshot.avatar_url){const avatar=document.createElement('img');avatar.className='bc-message-avatar';avatar.src=chatSnapshot.avatar_url;avatar.alt='Photo de profil';avatar.loading='lazy';line.appendChild(avatar);}const bubble=document.createElement('div');bubble.className='bc-message-bubble';if(msg.reply_to_message_id&&messageMap.has(msg.reply_to_message_id)){const original=messageMap.get(msg.reply_to_message_id);const quote=document.createElement('div');quote.textContent='↪ '+(original.content||'Message d’origine');quote.style.cssText='font-size:11px;opacity:.82;border-left:3px solid currentColor;padding-left:7px;margin-bottom:6px';bubble.appendChild(quote);}const body=document.createElement('div');if(msg.is_deleted_for_everyone){body.textContent='🚫 Ce message a été retiré.';}else if(msg.media_path&&msg.media_type){body.style.cssText='display:block;max-width:260px;white-space:normal';
     const loading=document.createElement('small');loading.textContent='Chargement du média…';body.appendChild(loading);
     (async()=>{
      const {data:signedData,error:signedError}=await clientSnapshot.storage.from('bope-chat-media').createSignedUrl(msg.media_path,3600);
@@ -3199,7 +3101,7 @@ function applyDRoute(route){
    }else{body.textContent=msg.content;}bubble.appendChild(body);if(msg.forwarded_from_message_id&&!msg.is_deleted_for_everyone){const forwarded=document.createElement('small');forwarded.textContent='↗ Transféré';forwarded.style.cssText='display:block;margin-bottom:4px;font-size:10px;opacity:.75';bubble.insertBefore(forwarded,body);}if(msg.edited_at&&!msg.is_deleted_for_everyone){const edited=document.createElement('small');edited.textContent='(modifié)';edited.style.cssText='display:block;margin-top:4px;font-size:10px;opacity:.7;text-align:right';bubble.appendChild(edited);}if(msg.sender_id===userId){const receipt=document.createElement('small');receipt.className='bc-message-receipt';receipt.textContent=msg.read_at?'✓✓':(msg.delivered_at?'✓✓':'✓');receipt.title=msg.read_at?'Lu':(msg.delivered_at?'Distribué':'Envoyé');receipt.style.cssText='display:block;margin-top:3px;font-size:11px;line-height:1;text-align:right;letter-spacing:-1px;color:'+(msg.read_at?'#53bdeb':'rgba(255,255,255,.78)');bubble.appendChild(receipt);}bubble.style.cssText='max-width:82%;padding:10px 13px;border-radius:'+(msg.sender_id===userId?'16px 16px 4px 16px':'16px 16px 16px 4px')+';background:'+(msg.sender_id===userId?'#c62828':'#232D36')+';color:'+(msg.sender_id===userId?'#fff':'#fff')+';font-size:14px;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 1px 2px rgba(0,0,0,.06)';let pressTimer;const openMenu=()=>{if(!msg.is_deleted_for_everyone)window.bcShowMessageActions(msg);};bubble.addEventListener('click',()=>{if(bcSelectionMode)window.bcToggleMessageSelection(msg,bubble);});bubble.addEventListener('contextmenu',e=>{e.preventDefault();openMenu();});bubble.addEventListener('touchstart',()=>{pressTimer=setTimeout(openMenu,550);},{passive:true});['touchend','touchmove','touchcancel'].forEach(type=>bubble.addEventListener(type,()=>clearTimeout(pressTimer),{passive:true}));bubble.addEventListener('mousedown',()=>{pressTimer=setTimeout(openMenu,550);});['mouseup','mouseleave'].forEach(type=>bubble.addEventListener(type,()=>clearTimeout(pressTimer)));line.appendChild(bubble);box.appendChild(line);});
   if(wasNearBottom)box.scrollTop=box.scrollHeight;
  };
- const chatForm=byId('bcChatForm'),chatInput=byId('bcChatInput'),sendButton=byId('bcSendButton'),voiceButton=byId('bcVoiceButton');
+ const chatForm=byId('bcChatForm'),chatInput=byId('bcChatInput'),sendButton=byId('bcSendButton');
  const emojiPanel=byId('bcEmojiPanel');
  byId('bcEmojiButton').addEventListener('click',()=>emojiPanel.classList.toggle('show'));
  emojiPanel.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>{const start=chatInput.selectionStart??chatInput.value.length,end=chatInput.selectionEnd??chatInput.value.length;chatInput.value=chatInput.value.slice(0,start)+button.textContent+chatInput.value.slice(end);chatInput.focus();chatInput.setSelectionRange(start+button.textContent.length,start+button.textContent.length);emojiPanel.classList.remove('show');bcUpdateComposerMode();}));
@@ -3290,7 +3192,7 @@ function applyDRoute(route){
  byId('bcVideoCallButton').addEventListener('click',()=>alert('Les appels vidéo BOPE seront activés après la mise en place de la connexion en direct.'));
  byId('bcAudioCallButton').addEventListener('click',()=>alert('Les appels vocaux BOPE seront activés après la mise en place de la connexion en direct.'));
  byId('bcChatMoreButton').addEventListener('click',()=>alert('Options de conversation BOPE : les réglages avancés seront ajoutés ici.'));
- function bcUpdateComposerMode(){const hasText=!!chatInput.value.trim();sendButton.style.display=hasText?'':'none';voiceButton.style.display=hasText?'none':'flex';byId('bcAttachButton').style.display=hasText?'none':'flex';byId('bcCameraButton').style.display=hasText?'none':'flex';}
+ function bcUpdateComposerMode(){const hasText=!!chatInput.value.trim();sendButton.style.display=hasText?'':'none';byId('bcAttachButton').style.display=hasText?'none':'flex';byId('bcCameraButton').style.display=hasText?'none':'flex';}
  chatInput.addEventListener('input',bcUpdateComposerMode);bcUpdateComposerMode();
  chatForm.addEventListener('submit',async function(event){
   event.preventDefault();const content=chatInput.value.trim();if(!content||!bcActiveChat||!bcClient||!bcCurrentUser)return;
@@ -3300,112 +3202,6 @@ function applyDRoute(route){
   const {error}=await bcClient.from('bope_messages').insert(payload);
   sendButton.disabled=false;if(error){alert('Message non envoyé : '+error.message);return;}chatInput.value='';bcUpdateComposerMode();window.bcClearReplyTarget();await window.bcLoadChatMessages(true);
  });
- let bcRecorder=null,bcAudioStream=null,bcAudioChunks=[],bcVoiceBlob=null,bcVoiceObjectUrl=null,bcRecordStart=0,bcRecordLocked=false,bcRecordCancelled=false,bcSendAfterStop=false,bcPointerStart=null,bcVoiceDuration=0,bcPausedAt=0,bcPausedTotal=0,bcVoiceTimerInterval=null;
- const voiceHint=byId('bcVoiceRecordHint'),voiceTimer=byId('bcVoiceTimer'),lockedStatus=byId('bcVoiceLockedStatus'),lockedControls=byId('bcVoiceLockedControls'),lockedTimer=byId('bcVoiceLockedTimer'),voicePreview=byId('bcVoicePreview'),voicePreviewAudio=byId('bcVoicePreviewAudio'),pauseVoiceButton=byId('bcVoicePause');
- function bcFormatVoiceTime(seconds){const n=Math.max(0,Math.floor(seconds));return Math.floor(n/60)+':'+String(n%60).padStart(2,'0');}
- function bcElapsedVoiceSeconds(){const now=bcPausedAt||Date.now();return Math.max(0,(now-bcRecordStart-bcPausedTotal)/1000);}
- function bcUpdateVoiceTimer(){const value=bcFormatVoiceTime(bcElapsedVoiceSeconds());voiceTimer.textContent=value;lockedTimer.textContent=value;byId("bcVoiceActiveTimer").textContent=value;}
- function bcStartVoiceTimer(){clearInterval(bcVoiceTimerInterval);bcUpdateVoiceTimer();bcVoiceTimerInterval=setInterval(bcUpdateVoiceTimer,250);}
- function bcClearVoiceTimer(){clearInterval(bcVoiceTimerInterval);bcVoiceTimerInterval=null;}
- function bcClearVoicePreview(){if(bcVoiceObjectUrl)URL.revokeObjectURL(bcVoiceObjectUrl);bcVoiceObjectUrl=null;bcVoiceBlob=null;bcVoiceDuration=0;voicePreviewAudio.removeAttribute('src');voicePreviewAudio.load();voicePreview.style.display='none';bcUpdateComposerMode();}
- function bcStopAudioStream(){if(bcAudioStream){bcAudioStream.getTracks().forEach(track=>track.stop());bcAudioStream=null;}}
- function bcResetVoiceRecordingUI(){bcClearVoiceTimer();bcStopAudioStream();chatForm.classList.remove('bc-recording');chatForm.style.display='flex';voiceHint.style.display='none';byId('bcVoiceActiveControls').style.display='none';lockedStatus.style.display='none';lockedControls.style.display='none';bcUpdateComposerMode();}
- async function bcStartVoiceRecording(){
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder){alert('Ton navigateur ne permet pas encore les messages vocaux.');return;}
-  try{
-   bcAudioStream=await navigator.mediaDevices.getUserMedia({audio:true});
-   const preferred=['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus'];
-   const mimeType=preferred.find(type=>MediaRecorder.isTypeSupported(type));
-   bcRecorder=mimeType?new MediaRecorder(bcAudioStream,{mimeType}):new MediaRecorder(bcAudioStream);
-   bcAudioChunks=[];let bcVoiceDebugEvents=[];let bcVoiceDebugStartedAt=Date.now();bcRecordCancelled=false;bcRecordLocked=false;bcSendAfterStop=false;bcPausedAt=0;bcPausedTotal=0;bcVoiceDuration=0;bcRecordStart=Date.now();
-   bcVoiceDebugEvents.push('start:'+bcRecorder.mimeType);
-   bcRecorder.ondataavailable=e=>{bcVoiceDebugEvents.push('data:'+((e.data&&e.data.size)||0));if(e.data&&e.data.size)bcAudioChunks.push(e.data);};
-   bcRecorder.onerror=e=>{bcVoiceDebugEvents.push('error:'+(e.error&&e.error.name||'unknown'));console.error('BOPE_VOICE_DIAG',bcVoiceDebugEvents.slice());};
-   bcRecorder.onstop=()=>{
-    bcVoiceDebugEvents.push('stop');
-    bcVoiceDuration=Math.max(1,Math.round(bcElapsedVoiceSeconds()));bcResetVoiceRecordingUI();
-    if(!bcRecordCancelled&&bcAudioChunks.length){bcVoiceBlob=new Blob(bcAudioChunks,{type:bcRecorder.mimeType||'audio/webm'});bcVoiceObjectUrl=URL.createObjectURL(bcVoiceBlob);voicePreviewAudio.src=bcVoiceObjectUrl;voicePreviewAudio.load();voicePreview.style.display='flex';byId('bcVoicePreviewPlay').textContent='▶';byId('bcVoicePreviewCurrent').textContent='0:00';byId('bcVoicePreviewDuration').textContent=bcFormatVoiceTime(bcVoiceDuration);voiceButton.style.display='none';
-     const totalBytes=bcAudioChunks.reduce((sum,chunk)=>sum+chunk.size,0);
-     const diag={seconds:((Date.now()-bcVoiceDebugStartedAt)/1000).toFixed(1),chunks:bcAudioChunks.length,chunkBytes:bcAudioChunks.map(chunk=>chunk.size),totalBytes:totalBytes,blobBytes:bcVoiceBlob.size,mime:bcVoiceBlob.type,recorderMime:bcRecorder.mimeType,events:bcVoiceDebugEvents.slice()};
-     console.info('BOPE_VOICE_DIAG',diag);
-     alert('DIAGNOSTIC VOCAL BOPE\\nDurée chronomètre : '+diag.seconds+' s\\nMorceaux reçus : '+diag.chunks+'\\nTaille totale : '+diag.totalBytes+' octets\\nFormat : '+diag.mime+'\\nÉvénements : '+diag.events.join(' → '));
-     if(bcSendAfterStop){bcSendAfterStop=false;setTimeout(()=>byId('bcSendVoice').click(),0);}}
-    else{bcVoiceBlob=null;bcVoiceDuration=0;bcUpdateComposerMode();}
-   };
-   bcRecorder.start();chatForm.classList.add('bc-recording');chatForm.style.display='flex';voiceHint.style.display='none';byId('bcVoiceActiveControls').style.display='flex';lockedStatus.style.display='none';lockedControls.style.display='none';bcStartVoiceTimer();
-  }catch(err){bcStopAudioStream();alert('Microphone inaccessible. Autorise le micro dans les paramètres du navigateur.');}
- }
- function bcStopVoiceRecording(cancel){if(!bcRecorder||bcRecorder.state==='inactive')return;bcRecordCancelled=!!cancel;try{bcRecorder.stop();}catch(e){bcResetVoiceRecordingUI();}}
- voiceButton.addEventListener('pointerdown',async e=>{
-  if(chatInput.value.trim()||voicePreview.style.display==='flex'||(bcRecorder&&bcRecorder.state!=='inactive'))return;
-  e.preventDefault();bcPointerStart={x:e.clientX,y:e.clientY};try{voiceButton.setPointerCapture?.(e.pointerId);}catch(_){}
-  await bcStartVoiceRecording();
- });
- voiceButton.addEventListener('pointermove',e=>{
-  if(!bcRecorder||bcRecorder.state!=='recording'||!bcPointerStart||bcRecordLocked)return;
-  const dx=e.clientX-bcPointerStart.x,dy=e.clientY-bcPointerStart.y;
-  if(dx< -75){bcStopVoiceRecording(true);bcPointerStart=null;}
-  else if(dy< -70){bcRecordLocked=true;bcPointerStart=null;voiceHint.style.display='none';lockedStatus.style.display='flex';lockedControls.style.display='flex';}
- });
- voiceButton.addEventListener('pointerup',()=>{if(!bcPointerStart)return;bcPointerStart=null;});
- voiceButton.addEventListener('pointercancel',()=>{if(bcPointerStart&&!bcRecordLocked)bcStopVoiceRecording(true);bcPointerStart=null;});
- byId('bcVoicePause').addEventListener('click',()=>{
-  if(!bcRecorder)return;
-  if(bcRecorder.state==='recording'&&bcRecorder.pause){bcRecorder.pause();bcPausedAt=Date.now();pauseVoiceButton.textContent='▶';pauseVoiceButton.setAttribute('aria-label','Reprendre l’enregistrement');}
-  else if(bcRecorder.state==='paused'&&bcRecorder.resume){bcPausedTotal+=Date.now()-bcPausedAt;bcPausedAt=0;bcRecorder.resume();pauseVoiceButton.textContent='Ⅱ';pauseVoiceButton.setAttribute('aria-label','Mettre en pause');}
-  bcUpdateVoiceTimer();
- });
- byId('bcVoiceCancelLocked').addEventListener('click',()=>{if(bcRecorder&&bcRecorder.state!=='inactive')bcStopVoiceRecording(true);});
-  byId('bcVoiceActiveCancel').addEventListener('click',()=>{bcSendAfterStop=false;if(bcRecorder&&bcRecorder.state!=='inactive')bcStopVoiceRecording(true);});
-  byId('bcVoiceActiveSend').addEventListener('click',()=>{if(bcRecorder&&bcRecorder.state!=='inactive'){bcSendAfterStop=true;bcStopVoiceRecording(false);}});
- byId('bcVoiceStop').addEventListener('click',()=>{if(bcRecorder&&bcRecorder.state!=='inactive'){bcSendAfterStop=true;bcStopVoiceRecording(false);}});
- byId('bcDiscardVoice').addEventListener('click',bcClearVoicePreview);
- byId('bcVoicePreviewPlay').addEventListener('click',async()=>{
-  if(!voicePreviewAudio.src)return;
-  try{
-   if(voicePreviewAudio.paused){await voicePreviewAudio.play();byId('bcVoicePreviewPlay').textContent='Ⅱ';}
-   else{voicePreviewAudio.pause();byId('bcVoicePreviewPlay').textContent='▶';}
-  }catch(err){console.warn('BOPE aperçu vocal:',err);alert('Impossible de lire cet aperçu audio.');}
- });
- voicePreviewAudio.addEventListener('loadedmetadata',()=>{
-  console.info('BOPE_VOICE_PREVIEW_METADATA',{duration:voicePreviewAudio.duration,readyState:voicePreviewAudio.readyState,networkState:voicePreviewAudio.networkState});
-  if(Number.isFinite(voicePreviewAudio.duration)&&voicePreviewAudio.duration>0){
-   byId('bcVoicePreviewDuration').textContent=bcFormatVoiceTime(voicePreviewAudio.duration);
-   bcVoiceDuration=Math.max(1,Math.round(voicePreviewAudio.duration));
-  }
- });
- voicePreviewAudio.addEventListener('timeupdate',()=>{
-  byId('bcVoicePreviewCurrent').textContent=bcFormatVoiceTime(voicePreviewAudio.currentTime);
-  const duration=voicePreviewAudio.duration;
-  const progress=Number.isFinite(duration)&&duration>0?voicePreviewAudio.currentTime/duration:0;
-  byId('bcVoicePreviewWave').querySelectorAll('i').forEach((bar,index,all)=>bar.classList.toggle('played',index<Math.floor(progress*all.length)));
- });
- voicePreviewAudio.addEventListener('pause',()=>{byId('bcVoicePreviewPlay').textContent='▶';});
- voicePreviewAudio.addEventListener('ended',()=>{byId('bcVoicePreviewPlay').textContent='▶';byId('bcVoicePreviewCurrent').textContent=byId('bcVoicePreviewDuration').textContent;});
- byId('bcVoicePreviewWave').addEventListener('click',event=>{
-  const rect=event.currentTarget.getBoundingClientRect(),duration=voicePreviewAudio.duration;
-  if(Number.isFinite(duration)&&duration>0){voicePreviewAudio.currentTime=Math.max(0,Math.min(1,(event.clientX-rect.left)/rect.width))*duration;}
- });
- byId('bcSendVoice').addEventListener('click',async()=>{
-  if(!bcVoiceBlob||!bcActiveChat||!bcCurrentUser||!bcClient)return;
-  const sendVoice=byId('bcSendVoice');sendVoice.disabled=true;sendVoice.textContent='…';
-  try{
-   const ext=bcVoiceBlob.type.includes('mp4')?'m4a':bcVoiceBlob.type.includes('ogg')?'ogg':'webm';
-   const path=bcCurrentUser.id+'/'+(crypto.randomUUID?crypto.randomUUID():Date.now()+'_'+Math.random().toString(36).slice(2))+'.'+ext;
-   const {error:uploadError}=await bcClient.storage.from('bope-audios').upload(path,bcVoiceBlob,{contentType:bcVoiceBlob.type||'audio/webm',upsert:false});
-   if(uploadError)throw uploadError;
-   const payload={sender_id:bcCurrentUser.id,recipient_id:bcActiveChat.id,content:'🎤 Message vocal',media_path:path,media_type:bcVoiceBlob.type||'audio/webm',media_duration:bcVoiceDuration};
-   if(bcReplyTarget)payload.reply_to_message_id=bcReplyTarget.id;
-   const {error:insertError}=await bcClient.from('bope_messages').insert(payload);
-   if(insertError){await bcClient.storage.from('bope-audios').remove([path]);throw insertError;}
-   // Le vocal est déjà enregistré : une erreur de rafraîchissement ne doit pas annoncer un faux échec d'envoi.
-   bcClearVoicePreview();window.bcClearReplyTarget();
-   try{await window.bcLoadChatMessages(true);}
-   catch(refreshError){console.warn('BOPE SOCIAL : vocal envoyé, mais actualisation de la conversation impossible.',refreshError);alert('Ton message vocal a bien été envoyé. La conversation n’a pas pu s’actualiser immédiatement ; réessaie dans quelques secondes.');}
-  }catch(err){alert('Message vocal non envoyé : '+err.message);}
-  finally{sendVoice.disabled=false;sendVoice.textContent='Envoyer';}
- });
-
  let bcReelsSoundEnabled=false;
  window.bcLoadReels=async function(){
   const list=byId('bcReelsList');if(!list||!bcClient)return;
