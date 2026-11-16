@@ -3214,13 +3214,13 @@ function applyDRoute(route){
   }finally{bcSendMediaButton.disabled=false;bcSendMediaButton.textContent='➤';}
  }
  const bcVoiceButton=byId('bcVoiceButton'),bcVoiceComposer=byId('bcVoiceComposer'),bcVoiceStatus=byId('bcVoiceStatus'),bcVoiceTimer=byId('bcVoiceTimer'),bcVoicePreview=byId('bcVoicePreview');
- let bcVoiceRecorder=null,bcVoiceStream=null,bcVoiceChunks=[],bcVoiceBlob=null,bcVoiceUrl=null,bcVoiceStartedAt=0,bcVoiceElapsed=0,bcVoiceTimerId=null,bcVoiceLocked=false,bcVoiceCancelled=false,bcVoicePointer=null;
+ let bcVoiceRecorder=null,bcVoiceStream=null,bcVoiceChunks=[],bcVoiceBlob=null,bcVoiceUrl=null,bcVoiceStartedAt=0,bcVoiceElapsed=0,bcVoiceTimerId=null,bcVoiceLocked=false,bcVoiceCancelled=false,bcVoicePointer=null,bcVoiceReleased=false;
  function bcVoiceFormatTime(seconds){const n=Math.max(0,Math.floor(seconds));return Math.floor(n/60)+':'+String(n%60).padStart(2,'0');}
  function bcVoiceStopStream(){if(bcVoiceStream){bcVoiceStream.getTracks().forEach(track=>track.stop());bcVoiceStream=null;}}
  function bcVoiceReset(){
   if(bcVoiceTimerId){clearInterval(bcVoiceTimerId);bcVoiceTimerId=null;}
   if(bcVoiceUrl){URL.revokeObjectURL(bcVoiceUrl);bcVoiceUrl=null;}
-  bcVoiceStopStream();bcVoiceRecorder=null;bcVoiceChunks=[];bcVoiceBlob=null;bcVoiceElapsed=0;bcVoiceLocked=false;bcVoiceCancelled=false;bcVoicePointer=null;
+  bcVoiceStopStream();bcVoiceRecorder=null;bcVoiceChunks=[];bcVoiceBlob=null;bcVoiceElapsed=0;bcVoiceLocked=false;bcVoiceCancelled=false;bcVoicePointer=null;bcVoiceReleased=false;
   bcVoicePreview.pause();bcVoicePreview.removeAttribute('src');bcVoicePreview.load();bcVoicePreview.style.display='none';
   bcVoiceComposer.style.display='none';bcVoiceButton.style.display='';bcVoiceButton.disabled=false;bcVoiceStatus.textContent='Enregistrement vocal';bcVoiceTimer.textContent='0:00';bcVoiceButton.setAttribute('aria-label','Maintenir pour enregistrer un message vocal');bcUpdateComposerMode();
  }
@@ -3257,7 +3257,7 @@ function applyDRoute(route){
   try{bcVoiceRecorder.stop();}catch(e){bcVoiceReset();}
  }
  bcVoiceButton.addEventListener('pointerdown',async e=>{
-  if(bcVoiceBlob)return;e.preventDefault();bcVoiceCancelled=false;bcVoiceLocked=false;bcVoicePointer={id:e.pointerId,x:e.clientX,y:e.clientY};try{bcVoiceButton.setPointerCapture(e.pointerId);}catch(_){}
+  if(bcVoiceBlob)return;e.preventDefault();bcVoiceCancelled=false;bcVoiceLocked=false;bcVoiceReleased=false;bcVoicePointer={id:e.pointerId,x:e.clientX,y:e.clientY};try{bcVoiceButton.setPointerCapture(e.pointerId);}catch(_){}
   await bcVoiceStart();
  });
  bcVoiceButton.addEventListener('pointermove',e=>{
@@ -3267,7 +3267,7 @@ function applyDRoute(route){
   else if(dy<-65){bcVoiceLocked=true;bcVoicePointer=null;bcVoiceStatus.textContent='🔒 Enregistrement verrouillé';}
   else{bcVoiceCancelled=false;bcVoiceStatus.textContent='🔴 Enregistrement… glisse ↑ pour verrouiller';}
  });
- const bcVoicePointerEnd=e=>{if(!bcVoicePointer||e.pointerId!==bcVoicePointer.id)return;bcVoicePointer=null;if(bcVoiceRecorder&&bcVoiceRecorder.state!=='inactive')bcVoiceFinish(bcVoiceCancelled);};
+ const bcVoicePointerEnd=e=>{if(!bcVoicePointer||e.pointerId!==bcVoicePointer.id)return;bcVoicePointer=null;bcVoiceReleased=true;if(bcVoiceRecorder&&bcVoiceRecorder.state!=='inactive')bcVoiceFinish(bcVoiceCancelled);};
  ['pointerup','pointercancel','lostpointercapture'].forEach(type=>bcVoiceButton.addEventListener(type,bcVoicePointerEnd));
  byId('bcVoicePauseButton').addEventListener('click',()=>{
   if(!bcVoiceRecorder)return;
