@@ -2194,6 +2194,7 @@ function applyDRoute(route){
       <h4 style="margin:0 0 10px;color:#1e3260">⚙️ Paramètres d'adhésion</h4>
       <form id="bcGroupSettingsForm" onsubmit="bcSaveGroupSettings(event)">
        <label class="bc-field"><span>Conditions fixées par le créateur</span><textarea id="bcGroupJoinConditions" maxlength="2000" rows="5" placeholder="Écris librement les conditions pour rejoindre ce groupe…"></textarea></label>
+       <label class="bc-field"><span>Mode d'acceptation des membres</span><select id="bcGroupApprovalMode"><option value="automatic">Acceptation automatique</option><option value="manual">Validation par le créateur ou un administrateur</option><option value="bope_assisted">Assistance BOPE + validation administrative</option></select></label>
        <label style="display:flex;align-items:flex-start;gap:9px;margin:12px 0;color:#344054;font-size:13px;line-height:1.4">
         <input id="bcGroupBopeAssistance" type="checkbox" style="margin-top:2px">
         <span><strong>Assistance BOPE</strong><br><small style="color:#667085">Autoriser BOPE à assister la vérification des demandes, lorsque cette fonction sera activée.</small></span>
@@ -2202,7 +2203,18 @@ function applyDRoute(route){
        <p id="bcGroupSettingsMessage" role="status" aria-live="polite" style="margin:9px 2px 0;color:#667085;font-size:12px"></p>
       </form>
      </div>
-     <p id="bcGroupReadOnlyNote" style="display:none;margin:14px 0 0;padding:10px;border-radius:10px;background:#f2f4f7;color:#667085;font-size:12px">Seul le créateur peut modifier les conditions d'adhésion.</p>
+     <p id="bcGroupReadOnlyNote" style="display:none;margin:14px 0 0;padding:10px;border-radius:10px;background:#f2f4f7;color:#667085;font-size:12px">Seul le créateur ou un administrateur peut modifier les paramètres d'adhésion.</p>
+     <div id="bcGroupJoinArea" style="display:none;margin-top:14px;border-top:1px solid #e4e7ec;padding-top:14px">
+      <h4 style="margin:0 0 8px;color:#1e3260">Rejoindre ce groupe</h4>
+      <p id="bcGroupJoinConditionsView" style="margin:0 0 10px;color:#667085;font-size:13px;white-space:pre-wrap"></p>
+      <textarea id="bcGroupRequestMessage" maxlength="1000" rows="2" placeholder="Message au créateur (facultatif)" style="width:100%;padding:10px;border:1px solid #d0d5dd;border-radius:10px"></textarea>
+      <button id="bcGroupRequestButton" type="button" onclick="bcSubmitGroupRequest()" style="width:100%;margin-top:9px;border:0;border-radius:20px;padding:11px;background:#1877f2;color:#fff;font-weight:800">Demander à rejoindre</button>
+      <p id="bcGroupRequestMessageStatus" role="status" style="margin:8px 2px;color:#667085;font-size:12px"></p>
+     </div>
+     <div id="bcGroupAdminRequests" style="display:none;margin-top:16px;border-top:1px solid #e4e7ec;padding-top:14px">
+      <h4 style="margin:0 0 9px;color:#1e3260">📨 Demandes d'adhésion</h4>
+      <div id="bcGroupRequestsList" style="font-size:13px;color:#667085">Chargement…</div>
+     </div>
     </div>
    </section>
    <section id="bcPublicProfilePanel" class="bc-tab-panel" style="display:none;text-align:left">
@@ -2982,8 +2994,9 @@ function applyDRoute(route){
   byId('bcGroupDetailName').textContent='Chargement du groupe…';
   byId('bcGroupDetailDescription').textContent='';
   byId('bcGroupCreatorSettings').style.display='none';byId('bcGroupReadOnlyNote').style.display='none';
-  byId('bcGroupSettingsMessage').textContent='';
-  const {data:group,error}=await bcClient.from('bope_groups').select('id,name,description,created_by,join_conditions,bope_assistance_enabled').eq('id',groupId).maybeSingle();
+  byId('bcGroupJoinArea').style.display='none';byId('bcGroupAdminRequests').style.display='none';
+  byId('bcGroupRequestMessageStatus').textContent='';byId('bcGroupSettingsMessage').textContent='';
+  const {data:group,error}=await bcClient.from('bope_groups').select('id,name,description,created_by,join_conditions,bope_assistance_enabled,join_approval_mode').eq('id',groupId).maybeSingle();
   if(error||!group){byId('bcGroupDetailName').textContent='Groupe introuvable';byId('bcGroupDetailDescription').textContent=error?.message||'Ce groupe est indisponible.';return;}
   byId('bcGroupDetailName').textContent='👥 '+group.name;
   byId('bcGroupDetailDescription').textContent=group.description||'Aucune description.';
@@ -2992,10 +3005,66 @@ function applyDRoute(route){
    byId('bcGroupCreatorSettings').style.display='block';
    byId('bcGroupJoinConditions').value=group.join_conditions||'';
    byId('bcGroupBopeAssistance').checked=!!group.bope_assistance_enabled;
+   byId('bcGroupApprovalMode').value=group.join_approval_mode||'manual';
   }else{
    byId('bcGroupReadOnlyNote').style.display='block';
   }
   window.bcCurrentSettingsGroupId=group.id;
+  const {data:membership}=await bcClient.from('bope_group_members').select('role').eq('group_id',group.id).eq('user_id',bcCurrentUser.id).maybeSingle();
+  const isMember=!!membership;
+  const isAdmin=isCreator||membership?.role==='admin';
+  if(!isMember&&!isCreator){
+   byId('bcGroupJoinArea').style.display='block';
+   byId('bcGroupJoinConditionsView').textContent=group.join_conditions||'Aucune condition particulière indiquée.';
+   const {data:mine}=await bcClient.from('bope_group_requests').select('id,status').eq('group_id',group.id).eq('requester_id',bcCurrentUser.id).order('created_at',{ascending:false}).limit(1);
+   if(mine&&mine[0]){
+    byId('bcGroupRequestMessageStatus').textContent=mine[0].status==='pending'?'Ta demande est en attente de réponse.':mine[0].status==='approved'?'Ta demande a été acceptée.':'Dernière demande : '+(mine[0].status==='rejected'?'refusée':'annulée')+'.';
+    byId('bcGroupRequestButton').disabled=mine[0].status==='pending'||mine[0].status==='approved';
+    byId('bcGroupRequestButton').textContent=mine[0].status==='pending'?'Demande en attente':mine[0].status==='approved'?'Déjà accepté':'Demander à rejoindre';
+   }else{byId('bcGroupRequestButton').disabled=false;byId('bcGroupRequestButton').textContent='Demander à rejoindre';}
+  }
+  if(isAdmin){
+   byId('bcGroupAdminRequests').style.display='block';
+   await window.bcLoadGroupRequests(group.id);
+  }
+ };
+ window.bcSubmitGroupRequest=async function(){
+  const id=window.bcCurrentSettingsGroupId;if(!id||!bcClient||!bcCurrentUser)return;
+  const button=byId('bcGroupRequestButton'),status=byId('bcGroupRequestMessageStatus');
+  button.disabled=true;button.textContent='Envoi…';status.textContent='';
+  try{
+   const {data,error}=await bcClient.rpc('bope_submit_group_request',{p_group_id:id,p_message:byId('bcGroupRequestMessage').value.trim()});
+   if(error)throw error;
+   status.style.color='#15803d';
+   status.textContent=data?.status==='approved'?'✓ Tu as rejoint le groupe !':'✓ Ta demande a été envoyée. Elle attend une réponse.';
+   button.textContent=data?.status==='approved'?'Déjà membre':'Demande en attente';
+   if(data?.status==='approved')button.disabled=true;
+  }catch(err){status.style.color='#b42318';status.textContent=err.message||'Impossible d’envoyer la demande.';button.disabled=false;button.textContent='Demander à rejoindre';}
+ };
+ window.bcLoadGroupRequests=async function(groupId){
+  const box=byId('bcGroupRequestsList');if(!box)return;box.textContent='Chargement…';
+  const {data,error}=await bcClient.from('bope_group_requests').select('id,requester_id,status,message,created_at').eq('group_id',groupId).eq('status','pending').order('created_at',{ascending:true});
+  if(error){box.textContent='Impossible de charger les demandes : '+error.message;return;}
+  box.replaceChildren();
+  if(!data||!data.length){box.textContent='Aucune demande en attente.';return;}
+  data.forEach(request=>{
+   const card=document.createElement('div');card.style.cssText='padding:11px;margin:8px 0;border:1px solid #e4e7ec;border-radius:12px;background:#f8fafc';
+   const title=document.createElement('strong');title.textContent='Utilisateur : '+request.requester_id.slice(0,8)+'…';title.style.cssText='display:block;color:#344054;font-size:12px';
+   const msg=document.createElement('p');msg.textContent=request.message||'Aucun message joint.';msg.style.cssText='margin:6px 0;color:#667085;font-size:12px;white-space:pre-wrap';
+   const actions=document.createElement('div');actions.style.cssText='display:flex;gap:8px';
+   for(const decision of ['approved','rejected']){
+    const b=document.createElement('button');b.type='button';b.textContent=decision==='approved'?'Accepter':'Refuser';
+    b.style.cssText='flex:1;border:0;border-radius:18px;padding:8px;background:'+(decision==='approved'?'#1877f2':'#fee4e2')+';color:'+(decision==='approved'?'#fff':'#b42318')+';font-weight:700';
+    b.addEventListener('click',async()=>{
+     b.disabled=true;b.textContent='…';
+     const {error:reviewError}=await bcClient.rpc('bope_review_group_request',{p_request_id:request.id,p_decision:decision,p_note:''});
+     if(reviewError){b.disabled=false;b.textContent=decision==='approved'?'Accepter':'Refuser';window.alert('Action impossible : '+reviewError.message);return;}
+     await window.bcLoadGroupRequests(groupId);
+    });
+    actions.appendChild(b);
+   }
+   card.append(title,msg,actions);box.appendChild(card);
+  });
  };
  window.bcSaveGroupSettings=async function(event){
   event.preventDefault();
@@ -3005,7 +3074,8 @@ function applyDRoute(route){
   button.disabled=true;button.textContent='Enregistrement…';message.textContent='';
   const {error}=await bcClient.from('bope_groups').update({
    join_conditions:byId('bcGroupJoinConditions').value.trim(),
-   bope_assistance_enabled:byId('bcGroupBopeAssistance').checked
+   bope_assistance_enabled:byId('bcGroupBopeAssistance').checked,
+   join_approval_mode:byId('bcGroupApprovalMode').value
   }).eq('id',id).eq('created_by',bcCurrentUser.id);
   if(error){message.style.color='#b42318';message.textContent='Impossible d’enregistrer : '+error.message;}
   else{message.style.color='#15803d';message.textContent='✓ Les paramètres d’adhésion ont été enregistrés.';}
