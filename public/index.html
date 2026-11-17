@@ -2108,7 +2108,16 @@ function applyDRoute(route){
       <button type="button" id="bcDiscardMedia" aria-label="Retirer le fichier" style="border:0;border-radius:50%;width:34px;height:34px;background:#3b252b;color:#ff7185;font-size:18px">✕</button>
       <button type="button" id="bcSendMedia" aria-label="Envoyer le fichier" style="border:0;border-radius:50%;width:42px;height:42px;background:#25D366;color:#071b12;font-size:22px;font-weight:800">➤</button>
      </div>
-     <div id="bcVoiceComposer" style="display:none;align-items:center;gap:8px;padding:9px 10px;background:#172127;border-top:1px solid #303b42;color:#fff"><strong id="bcVoiceStatus" style="flex:1;min-width:0;font-size:12px">Enregistrement vocal</strong><span id="bcVoiceTimer" style="font-size:12px;font-variant-numeric:tabular-nums">0:00</span><button type="button" id="bcVoicePauseButton" style="border:0;border-radius:18px;padding:8px 10px;background:#344147;color:#fff">Ⅱ</button><button type="button" id="bcVoiceStopButton" style="border:0;border-radius:18px;padding:8px 10px;background:#7f1d1d;color:#fff">■</button><audio id="bcVoicePreview" controls playsinline style="display:none;width:100%;max-width:190px;height:36px"></audio><button type="button" id="bcVoiceDiscardButton" style="border:0;border-radius:50%;width:34px;height:34px;background:#3b252b;color:#ff7185">✕</button><button type="button" id="bcVoiceSendButton" style="border:0;border-radius:50%;width:42px;height:42px;background:#25D366;color:#071b12;font-size:21px;font-weight:800">➤</button></div><form id="bcChatForm"><button type="button" id="bcEmojiButton" class="bc-compose-icon" aria-label="Émojis">😀</button><input id="bcChatInput" type="text" maxlength="5000" placeholder="Écris un message" autocomplete="off"><button type="button" id="bcAttachButton" class="bc-compose-icon" aria-label="Joindre un fichier">📎</button><button type="button" id="bcCameraButton" class="bc-compose-icon" aria-label="Ouvrir la caméra">📷</button><button type="button" id="bcVoiceButton" class="bc-compose-icon" aria-label="Maintenir pour enregistrer un message vocal" title="Maintenir pour enregistrer">🎙️</button><button id="bcSendButton" type="submit" style="display:none" aria-label="Envoyer">➤</button></form>
+     <div id="bcVoiceComposer" style="display:none;align-items:center;gap:8px;padding:9px 10px;background:#172127;border-top:1px solid #303b42;color:#fff"><strong id="bcVoiceStatus" style="flex:1;min-width:0;font-size:12px">Enregistrement vocal</strong><span id="bcVoiceTimer" style="font-size:12px;font-variant-numeric:tabular-nums">0:00</span><button type="button" id="bcVoicePauseButton" style="border:0;border-radius:18px;padding:8px 10px;background:#344147;color:#fff">Ⅱ</button><button type="button" id="bcVoiceStopButton" style="border:0;border-radius:18px;padding:8px 10px;background:#7f1d1d;color:#fff">■</button><audio id="bcVoicePreview" controls playsinline style="display:none;width:100%;max-width:190px;height:36px"></audio><button type="button" id="bcVoiceDiscardButton" style="border:0;border-radius:50%;width:34px;height:34px;background:#3b252b;color:#ff7185">✕</button><button type="button" id="bcVoiceSendButton" style="border:0;border-radius:50%;width:42px;height:42px;background:#25D366;color:#071b12;font-size:21px;font-weight:800">➤</button></div><form id="bcChatForm">
+       <div class="bc-composer-pill">
+        <button type="button" id="bcEmojiButton" class="bc-compose-icon" aria-label="Émojis"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.2"/><path d="M8.7 14.2c.9 1.2 2 1.8 3.3 1.8s2.4-.6 3.3-1.8M9 9.8h.01M15 9.8h.01"/></svg></button>
+        <input id="bcChatInput" type="text" maxlength="5000" placeholder="Message" autocomplete="off">
+        <button type="button" id="bcAttachButton" class="bc-compose-icon" aria-label="Joindre un fichier"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8.5 12.5 6.7-6.7a3.2 3.2 0 0 1 4.5 4.5l-8.9 8.9a5 5 0 0 1-7.1-7.1l9-9"/></svg></button>
+        <button type="button" id="bcCameraButton" class="bc-compose-icon" aria-label="Ouvrir la caméra"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5h3l1.5-2h7l1.5 2h3A1.5 1.5 0 0 1 21.5 9v9a1.5 1.5 0 0 1-1.5 1.5H4A1.5 1.5 0 0 1 2.5 18V9A1.5 1.5 0 0 1 4 7.5Z"/><circle cx="12" cy="13.5" r="3.2"/></svg></button>
+       </div>
+       <button type="button" id="bcVoiceButton" class="bc-compose-icon" aria-label="Maintenir pour enregistrer un message vocal" title="Maintenir pour enregistrer"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3m-3 0h6"/></svg></button>
+       <button id="bcSendButton" type="submit" style="display:none" aria-label="Envoyer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12 20 4l-5 16-3-6-8-2Z"/><path d="m12 14 8-10"/></svg></button>
+      </form>
      <input id="bcAttachFileInput" type="file" accept="image/*,video/*,.pdf,.doc,.docx" style="position:fixed;left:-10000px;top:0;width:1px;height:1px;opacity:0"><input id="bcCameraFileInput" type="file" accept="image/*" style="position:fixed;left:-10000px;top:0;width:1px;height:1px;opacity:0">
     </div>
    </section>
@@ -3388,7 +3397,7 @@ function applyDRoute(route){
  byId('bcVideoCallButton').addEventListener('click',()=>alert('Les appels vidéo BOPE seront activés après la mise en place de la connexion en direct.'));
  byId('bcAudioCallButton').addEventListener('click',()=>alert('Les appels vocaux BOPE seront activés après la mise en place de la connexion en direct.'));
  byId('bcChatMoreButton').addEventListener('click',()=>alert('Options de conversation BOPE : les réglages avancés seront ajoutés ici.'));
- function bcUpdateComposerMode(){const hasText=!!chatInput.value.trim();sendButton.style.display=hasText?'':'none';byId('bcAttachButton').style.display=hasText?'none':'flex';byId('bcCameraButton').style.display=hasText?'none':'flex';if(byId('bcVoiceButton'))byId('bcVoiceButton').style.display=hasText?'none':'';}
+ function bcUpdateComposerMode(){const hasText=!!chatInput.value.trim();sendButton.style.display=hasText?'':'none';byId('bcAttachButton').style.display='flex';byId('bcCameraButton').style.display='flex';if(byId('bcVoiceButton'))byId('bcVoiceButton').style.display=hasText?'none':'flex';}
  chatInput.addEventListener('input',bcUpdateComposerMode);bcUpdateComposerMode();
  chatForm.addEventListener('submit',async function(event){
   event.preventDefault();const content=chatInput.value.trim();if(!content||!bcActiveChat||!bcClient||!bcCurrentUser)return;
@@ -3880,4 +3889,55 @@ function applyDRoute(route){
   }
 }
 </style>
+
+<style id="bope-whatsapp-composer">
+/* BOPE SOCIAL — barre de saisie inspirée de WhatsApp */
+#bcMessagesPanel #bcChatForm{
+ display:flex!important;align-items:center!important;gap:9px!important;
+ width:100%!important;max-width:100%!important;min-height:0!important;
+ padding:9px 12px!important;border:0!important;background:#080d0f!important;
+ box-sizing:border-box!important;
+}
+#bcMessagesPanel .bc-composer-pill{
+ flex:1 1 auto;min-width:0;min-height:54px;display:flex;align-items:center;gap:7px;
+ padding:0 10px;background:#20282b;border:0;border-radius:28px;box-sizing:border-box;
+}
+#bcMessagesPanel #bcChatInput{
+ flex:1 1 auto!important;min-width:0!important;width:100%!important;height:48px!important;
+ padding:10px 2px!important;border:0!important;border-radius:0!important;
+ background:transparent!important;color:#f5f7f8!important;font-size:16px!important;
+ outline:0!important;box-shadow:none!important;
+}
+#bcMessagesPanel #bcChatInput::placeholder{color:#aeb6b9!important;opacity:1}
+#bcMessagesPanel .bc-composer-pill .bc-compose-icon{
+ flex:0 0 28px!important;width:28px!important;min-width:28px!important;height:40px!important;
+ padding:0!important;margin:0!important;display:flex;align-items:center;justify-content:center;
+ border:0!important;border-radius:50%!important;background:transparent!important;color:#aeb6b9!important;
+}
+#bcMessagesPanel .bc-composer-pill svg{
+ width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;
+ stroke-linecap:round;stroke-linejoin:round;display:block;
+}
+#bcMessagesPanel #bcVoiceButton,
+#bcMessagesPanel #bcSendButton{
+ flex:0 0 54px!important;width:54px!important;min-width:54px!important;height:54px!important;
+ padding:0!important;margin:0!important;display:flex;align-items:center;justify-content:center;
+ border:0!important;border-radius:50%!important;background:#25D366!important;color:#071b12!important;
+ box-shadow:none!important;touch-action:none;user-select:none;-webkit-user-select:none;
+}
+#bcMessagesPanel #bcVoiceButton svg,
+#bcMessagesPanel #bcSendButton svg{
+ width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:2;
+ stroke-linecap:round;stroke-linejoin:round;display:block;
+}
+#bcMessagesPanel #bcVoiceButton:active{background:#16b957!important}
+#bcMessagesPanel #bcSendButton{font-size:0!important;cursor:pointer}
+@media(max-width:380px){
+ #bcMessagesPanel #bcChatForm{gap:7px!important;padding-left:8px!important;padding-right:8px!important}
+ #bcMessagesPanel #bcVoiceButton,#bcMessagesPanel #bcSendButton{flex-basis:50px!important;width:50px!important;min-width:50px!important;height:50px!important}
+ #bcMessagesPanel .bc-composer-pill{gap:5px;padding:0 8px}
+ #bcMessagesPanel .bc-composer-pill .bc-compose-icon{flex-basis:25px!important;width:25px!important;min-width:25px!important}
+}
+</style>
+
 </body></html>
