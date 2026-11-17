@@ -2156,6 +2156,19 @@ function applyDRoute(route){
     <div id="bcNotificationsList"><p style="color:#667085;font-size:13px">Chargement des notifications…</p></div>
    </section>
    <section id="bcFriendsPanel" class="bc-tab-panel" style="display:none;text-align:left">
+    <div style="padding:14px;border:1px solid #dbe6f5;border-radius:16px;background:#f7faff;margin-bottom:18px">
+     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <div><strong style="display:block;color:#1e3260;font-size:16px">👥 Groupes BOPE</strong><small style="color:#667085">Crée un espace et rassemble tes amis.</small></div>
+      <button type="button" onclick="bcToggleGroupForm(true)" style="border:0;border-radius:20px;padding:10px 13px;background:#1877f2;color:#fff;font-size:12px;font-weight:800;white-space:nowrap">＋ Créer</button>
+     </div>
+     <form id="bcCreateGroupForm" onsubmit="bcCreateGroup(event)" style="display:none;margin-top:14px;padding-top:12px;border-top:1px solid #dbe6f5">
+      <label class="bc-field"><span>Nom du groupe *</span><input id="bcGroupName" type="text" maxlength="80" minlength="2" required placeholder="Ex. : Étudiants en médecine"></label>
+      <label class="bc-field"><span>Description (facultatif)</span><textarea id="bcGroupDescription" maxlength="500" rows="3" placeholder="De quoi parle ton groupe ?"></textarea></label>
+      <div style="display:flex;gap:8px"><button id="bcCreateGroupButton" type="submit" style="flex:1;border:0;border-radius:20px;padding:11px;background:#1877f2;color:#fff;font-weight:800">Créer le groupe</button><button type="button" onclick="bcToggleGroupForm(false)" style="border:0;border-radius:20px;padding:11px 14px;background:#e4e6eb;color:#344054;font-weight:700">Annuler</button></div>
+      <p id="bcGroupFormMessage" role="status" aria-live="polite" style="margin:9px 2px 0;color:#667085;font-size:12px"></p>
+     </form>
+     <div style="margin-top:14px"><strong style="display:block;color:#344054;font-size:14px;margin-bottom:9px">Mes groupes</strong><div id="bcGroupsList" aria-live="polite"><p style="margin:0;color:#667085;font-size:13px">Chargement des groupes…</p></div></div>
+    </div>
     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px">
      <h3 style="margin:0;color:#1e3260">👥 Mes amis</h3>
      <span id="bcFriendsCount" style="border-radius:16px;padding:5px 10px;background:#e7f0ff;color:#1877f2;font-size:12px;font-weight:700">0 ami</span>
@@ -2918,6 +2931,43 @@ function applyDRoute(route){
   if(!term){byId('bcPeopleResults').textContent='Entre un nom ou un nom d’utilisateur.';return;}
   await window.bcSearchPeople(term);
  });
+ window.bcToggleGroupForm=function(show){
+  const form=byId('bcCreateGroupForm');if(!form)return;
+  form.style.display=show?'block':'none';
+  if(show)byId('bcGroupName').focus();else{form.reset();byId('bcGroupFormMessage').textContent='';}
+ };
+ window.bcLoadGroups=async function(){
+  const box=byId('bcGroupsList');if(!box)return;
+  if(!bcClient||!bcCurrentUser){box.textContent='Connecte-toi pour voir tes groupes.';return;}
+  box.textContent='Chargement…';
+  const {data:groups,error}=await bcClient.from('bope_groups').select('id,name,description,avatar_url,created_at').order('created_at',{ascending:false});
+  if(error){box.textContent='Impossible de charger les groupes : '+error.message;return;}
+  box.replaceChildren();
+  if(!groups||!groups.length){const empty=document.createElement('p');empty.style.cssText='margin:0;padding:12px;border-radius:12px;background:#fff;color:#667085;font-size:13px;text-align:center';empty.textContent='Tu ne fais encore partie d’aucun groupe. Crée le premier groupe BOPE !';box.appendChild(empty);return;}
+  groups.forEach(group=>{
+   const card=document.createElement('div');card.style.cssText='display:flex;align-items:center;gap:11px;padding:11px 2px;border-bottom:1px solid #e4e7ec';
+   const avatar=document.createElement('div');avatar.style.cssText='width:46px;height:46px;flex:0 0 46px;border-radius:14px;background:#e7f0ff;display:grid;place-items:center;font-size:23px';avatar.textContent='👥';
+   const info=document.createElement('div');info.style.cssText='flex:1;min-width:0';
+   const name=document.createElement('strong');name.style.cssText='display:block;color:#1d2939;font-size:14px';name.textContent=group.name;
+   const desc=document.createElement('small');desc.style.cssText='display:block;color:#667085;font-size:12px;overflow-wrap:anywhere';desc.textContent=group.description||'Groupe BOPE';
+   info.append(name,desc);card.append(avatar,info);box.appendChild(card);
+  });
+ };
+ window.bcCreateGroup=async function(event){
+  event.preventDefault();
+  const name=byId('bcGroupName').value.trim(),description=byId('bcGroupDescription').value.trim(),button=byId('bcCreateGroupButton'),message=byId('bcGroupFormMessage');
+  if(!bcClient||!bcCurrentUser){message.textContent='Connecte-toi avant de créer un groupe.';return;}
+  if(name.length<2){message.textContent='Le nom doit contenir au moins 2 caractères.';return;}
+  button.disabled=true;button.textContent='Création…';message.textContent='';
+  try{
+   const {error}=await bcClient.from('bope_groups').insert({name,description,created_by:bcCurrentUser.id});
+   if(error)throw error;
+   message.style.color='#15803d';message.textContent='🎉 Groupe créé ! Tu en es automatiquement l’administrateur.';
+   byId('bcCreateGroupForm').reset();await window.bcLoadGroups();
+   setTimeout(()=>window.bcToggleGroupForm(false),1400);
+  }catch(err){message.style.color='#b42318';message.textContent='Impossible de créer le groupe : '+(err.message||'Réessaie.');}
+  finally{button.disabled=false;button.textContent='Créer le groupe';}
+ };
  window.bcLoadFriends=async function(){
   const box=byId('bcFriendsList'),count=byId('bcFriendsCount');
   if(!bcClient||!bcCurrentUser){box.textContent='Connecte-toi pour voir tes amis.';return;}
@@ -3664,7 +3714,7 @@ window.bcNavigate=function(tab){
   if(tab==='videos'){const reelsNav=document.querySelector('#bopeCreatorsPage .bc-main-nav');const reelsPanel=byId('bcReelsPanel');if(reelsNav&&reelsPanel)reelsPanel.style.top=Math.max(0,reelsNav.getBoundingClientRect().bottom)+'px';window.bcLoadReels();}
   if(tab==='notifications')window.bcLoadNotifications();
   if(tab==='messages')window.bcLoadConversations();
-  if(tab==='friends'){window.bcLoadFriends();byId('bcPeopleSearchInput').focus();}
+  if(tab==='friends'){window.bcLoadFriends();window.bcLoadGroups();byId('bcPeopleSearchInput').focus();}
   byId('bcPanelIcon').textContent=item.icon;
   byId('bcPanelTitle').textContent=item.title;
   byId('bcPanelText').textContent=item.text;
