@@ -2185,6 +2185,26 @@ function applyDRoute(route){
     <h4 style="margin:0 0 10px;color:#344054">Groupes disponibles</h4>
     <div id="bcGroupsList" aria-live="polite"><p style="margin:0;color:#667085;font-size:13px">Chargement des groupes…</p></div>
    </section>
+   <section id="bcGroupDetailsPanel" class="bc-tab-panel" style="display:none;text-align:left">
+    <button type="button" onclick="bcNavigate('groups')" style="border:0;border-radius:18px;padding:8px 13px;background:#e7f0ff;color:#1877f2;font-weight:700;margin-bottom:14px">← Retour aux groupes</button>
+    <div style="padding:15px;border:1px solid #dbe6f5;border-radius:15px;background:#fff">
+     <h3 id="bcGroupDetailName" style="margin:0 0 6px;color:#1e3260">👥 Groupe BOPE</h3>
+     <p id="bcGroupDetailDescription" style="margin:0 0 15px;color:#667085;font-size:13px"></p>
+     <div id="bcGroupCreatorSettings" style="display:none;border-top:1px solid #e4e7ec;padding-top:14px">
+      <h4 style="margin:0 0 10px;color:#1e3260">⚙️ Paramètres d'adhésion</h4>
+      <form id="bcGroupSettingsForm" onsubmit="bcSaveGroupSettings(event)">
+       <label class="bc-field"><span>Conditions fixées par le créateur</span><textarea id="bcGroupJoinConditions" maxlength="2000" rows="5" placeholder="Écris librement les conditions pour rejoindre ce groupe…"></textarea></label>
+       <label style="display:flex;align-items:flex-start;gap:9px;margin:12px 0;color:#344054;font-size:13px;line-height:1.4">
+        <input id="bcGroupBopeAssistance" type="checkbox" style="margin-top:2px">
+        <span><strong>Assistance BOPE</strong><br><small style="color:#667085">Autoriser BOPE à assister la vérification des demandes, lorsque cette fonction sera activée.</small></span>
+       </label>
+       <button id="bcSaveGroupSettingsButton" type="submit" style="width:100%;border:0;border-radius:20px;padding:11px;background:#1877f2;color:#fff;font-weight:800">Enregistrer les paramètres</button>
+       <p id="bcGroupSettingsMessage" role="status" aria-live="polite" style="margin:9px 2px 0;color:#667085;font-size:12px"></p>
+      </form>
+     </div>
+     <p id="bcGroupReadOnlyNote" style="display:none;margin:14px 0 0;padding:10px;border-radius:10px;background:#f2f4f7;color:#667085;font-size:12px">Seul le créateur peut modifier les conditions d'adhésion.</p>
+    </div>
+   </section>
    <section id="bcPublicProfilePanel" class="bc-tab-panel" style="display:none;text-align:left">
     <button type="button" onclick="bcNavigate('friends')" style="border:0;border-radius:18px;padding:8px 13px;background:#e7f0ff;color:#1877f2;font-weight:700;margin-bottom:12px">← Retour aux amis</button>
     <div id="bcPublicProfileHeader" class="bc-profile" style="padding:12px;margin-bottom:14px">
@@ -2952,8 +2972,44 @@ function applyDRoute(route){
    const info=document.createElement('div');info.style.cssText='flex:1;min-width:0';
    const name=document.createElement('strong');name.style.cssText='display:block;color:#1d2939;font-size:14px';name.textContent=group.name;
    const desc=document.createElement('small');desc.style.cssText='display:block;color:#667085;font-size:12px;overflow-wrap:anywhere';desc.textContent=group.description||'Groupe BOPE';
-   info.append(name,desc);card.append(avatar,info);box.appendChild(card);
+   const open=document.createElement('button');open.type='button';open.textContent='Ouvrir';open.style.cssText='border:0;border-radius:18px;padding:8px 12px;background:#e7f0ff;color:#1877f2;font-size:12px;font-weight:800';open.addEventListener('click',()=>window.bcOpenGroup(group.id));
+   info.append(name,desc);card.append(avatar,info,open);box.appendChild(card);
   });
+ };
+ window.bcOpenGroup=async function(groupId){
+  if(!bcClient||!bcCurrentUser)return;
+  byId('bcGroupsPanel').style.display='none';byId('bcGroupDetailsPanel').style.display='block';
+  byId('bcGroupDetailName').textContent='Chargement du groupe…';
+  byId('bcGroupDetailDescription').textContent='';
+  byId('bcGroupCreatorSettings').style.display='none';byId('bcGroupReadOnlyNote').style.display='none';
+  byId('bcGroupSettingsMessage').textContent='';
+  const {data:group,error}=await bcClient.from('bope_groups').select('id,name,description,created_by,join_conditions,bope_assistance_enabled').eq('id',groupId).maybeSingle();
+  if(error||!group){byId('bcGroupDetailName').textContent='Groupe introuvable';byId('bcGroupDetailDescription').textContent=error?.message||'Ce groupe est indisponible.';return;}
+  byId('bcGroupDetailName').textContent='👥 '+group.name;
+  byId('bcGroupDetailDescription').textContent=group.description||'Aucune description.';
+  const isCreator=group.created_by===bcCurrentUser.id;
+  if(isCreator){
+   byId('bcGroupCreatorSettings').style.display='block';
+   byId('bcGroupJoinConditions').value=group.join_conditions||'';
+   byId('bcGroupBopeAssistance').checked=!!group.bope_assistance_enabled;
+  }else{
+   byId('bcGroupReadOnlyNote').style.display='block';
+  }
+  window.bcCurrentSettingsGroupId=group.id;
+ };
+ window.bcSaveGroupSettings=async function(event){
+  event.preventDefault();
+  const id=window.bcCurrentSettingsGroupId;
+  if(!id||!bcClient||!bcCurrentUser)return;
+  const button=byId('bcSaveGroupSettingsButton'),message=byId('bcGroupSettingsMessage');
+  button.disabled=true;button.textContent='Enregistrement…';message.textContent='';
+  const {error}=await bcClient.from('bope_groups').update({
+   join_conditions:byId('bcGroupJoinConditions').value.trim(),
+   bope_assistance_enabled:byId('bcGroupBopeAssistance').checked
+  }).eq('id',id).eq('created_by',bcCurrentUser.id);
+  if(error){message.style.color='#b42318';message.textContent='Impossible d’enregistrer : '+error.message;}
+  else{message.style.color='#15803d';message.textContent='✓ Les paramètres d’adhésion ont été enregistrés.';}
+  button.disabled=false;button.textContent='Enregistrer les paramètres';
  };
  window.bcCreateGroup=async function(event){
   event.preventDefault();
@@ -3714,6 +3770,7 @@ window.bcNavigate=function(tab){
   byId('bcMessagesPanel').style.display=tab==='messages'?'block':'none';
   byId('bcFriendsPanel').style.display=tab==='friends'?'block':'none';
   byId('bcGroupsPanel').style.display=tab==='groups'?'block':'none';
+  byId('bcGroupDetailsPanel').style.display='none';
   byId('bcPublicProfilePanel').style.display='none';
   byId('bcTabPanel').style.display=(tab==='menu'||tab==='home'||tab==='notifications'||tab==='friends'||tab==='groups'||tab==='messages'||tab==='videos')?'none':'block';
   byId('bcReelsPanel').style.display=tab==='videos'?'block':'none';
