@@ -2203,7 +2203,7 @@ function applyDRoute(route){
        <p id="bcGroupSettingsMessage" role="status" aria-live="polite" style="margin:9px 2px 0;color:#667085;font-size:12px"></p>
       </form>
      </div>
-     <p id="bcGroupReadOnlyNote" style="display:none;margin:14px 0 0;padding:10px;border-radius:10px;background:#f2f4f7;color:#667085;font-size:12px">Seul le créateur ou un administrateur peut modifier les paramètres d'adhésion.</p>
+     <p id="bcGroupReadOnlyNote" style="display:none;margin:14px 0 0;padding:10px;border-radius:10px;background:#f2f4f7;color:#667085;font-size:12px">Seul le créateur peut modifier les conditions et les paramètres. Les administrateurs peuvent traiter les demandes.</p>
      <div id="bcGroupJoinArea" style="display:none;margin-top:14px;border-top:1px solid #e4e7ec;padding-top:14px">
       <h4 style="margin:0 0 8px;color:#1e3260">Rejoindre ce groupe</h4>
       <p id="bcGroupJoinConditionsView" style="margin:0 0 10px;color:#667085;font-size:13px;white-space:pre-wrap"></p>
@@ -3074,7 +3074,7 @@ function applyDRoute(route){
   button.disabled=true;button.textContent='Enregistrement…';message.textContent='';
   const {error}=await bcClient.from('bope_groups').update({
    join_conditions:byId('bcGroupJoinConditions').value.trim(),
-   bope_assistance_enabled:byId('bcGroupBopeAssistance').checked,
+   bope_assistance_enabled:byId('bcGroupBopeAssistance').checked || byId('bcGroupApprovalMode').value==='bope_assisted',
    join_approval_mode:byId('bcGroupApprovalMode').value
   }).eq('id',id).eq('created_by',bcCurrentUser.id);
   if(error){message.style.color='#b42318';message.textContent='Impossible d’enregistrer : '+error.message;}
