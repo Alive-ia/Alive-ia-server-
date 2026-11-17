@@ -2156,19 +2156,6 @@ function applyDRoute(route){
     <div id="bcNotificationsList"><p style="color:#667085;font-size:13px">Chargement des notifications…</p></div>
    </section>
    <section id="bcFriendsPanel" class="bc-tab-panel" style="display:none;text-align:left">
-    <div style="padding:14px;border:1px solid #dbe6f5;border-radius:16px;background:#f7faff;margin-bottom:18px">
-     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-      <div><strong style="display:block;color:#1e3260;font-size:16px">👥 Groupes BOPE</strong><small style="color:#667085">Crée un espace et rassemble tes amis.</small></div>
-      <button type="button" onclick="bcToggleGroupForm(true)" style="border:0;border-radius:20px;padding:10px 13px;background:#1877f2;color:#fff;font-size:12px;font-weight:800;white-space:nowrap">＋ Créer</button>
-     </div>
-     <form id="bcCreateGroupForm" onsubmit="bcCreateGroup(event)" style="display:none;margin-top:14px;padding-top:12px;border-top:1px solid #dbe6f5">
-      <label class="bc-field"><span>Nom du groupe *</span><input id="bcGroupName" type="text" maxlength="80" minlength="2" required placeholder="Ex. : Étudiants en médecine"></label>
-      <label class="bc-field"><span>Description (facultatif)</span><textarea id="bcGroupDescription" maxlength="500" rows="3" placeholder="De quoi parle ton groupe ?"></textarea></label>
-      <div style="display:flex;gap:8px"><button id="bcCreateGroupButton" type="submit" style="flex:1;border:0;border-radius:20px;padding:11px;background:#1877f2;color:#fff;font-weight:800">Créer le groupe</button><button type="button" onclick="bcToggleGroupForm(false)" style="border:0;border-radius:20px;padding:11px 14px;background:#e4e6eb;color:#344054;font-weight:700">Annuler</button></div>
-      <p id="bcGroupFormMessage" role="status" aria-live="polite" style="margin:9px 2px 0;color:#667085;font-size:12px"></p>
-     </form>
-     <div style="margin-top:14px"><strong style="display:block;color:#344054;font-size:14px;margin-bottom:9px">Mes groupes</strong><div id="bcGroupsList" aria-live="polite"><p style="margin:0;color:#667085;font-size:13px">Chargement des groupes…</p></div></div>
-    </div>
     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px">
      <h3 style="margin:0;color:#1e3260">👥 Mes amis</h3>
      <span id="bcFriendsCount" style="border-radius:16px;padding:5px 10px;background:#e7f0ff;color:#1877f2;font-size:12px;font-weight:700">0 ami</span>
@@ -2183,6 +2170,20 @@ function applyDRoute(route){
      <button type="submit" style="border:0;border-radius:20px;padding:0 17px;background:#1877f2;color:#fff;font-weight:700">Rechercher</button>
     </form>
     <div id="bcPeopleResults" aria-live="polite"><p style="color:#667085;font-size:13px">Entre un nom pour découvrir des utilisateurs BOPE.</p></div>
+   </section>
+   <section id="bcGroupsPanel" class="bc-tab-panel" style="display:none;text-align:left">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px">
+     <div><h3 style="margin:0;color:#1e3260">👥 Groupes BOPE</h3><p style="margin:4px 0 0;color:#667085;font-size:13px">Découvre les groupes et rejoins leurs communautés.</p></div>
+     <button type="button" onclick="bcToggleGroupForm(true)" style="border:0;border-radius:20px;padding:10px 13px;background:#1877f2;color:#fff;font-size:12px;font-weight:800;white-space:nowrap">＋ Créer un groupe</button>
+    </div>
+    <form id="bcCreateGroupForm" onsubmit="bcCreateGroup(event)" style="display:none;margin-bottom:16px;padding:14px;border:1px solid #dbe6f5;border-radius:14px;background:#f7faff">
+     <label class="bc-field"><span>Nom du groupe *</span><input id="bcGroupName" type="text" maxlength="80" minlength="2" required placeholder="Ex. : Étudiants en médecine"></label>
+     <label class="bc-field"><span>Description (facultatif)</span><textarea id="bcGroupDescription" maxlength="500" rows="3" placeholder="De quoi parle ton groupe ?"></textarea></label>
+     <div style="display:flex;gap:8px"><button id="bcCreateGroupButton" type="submit" style="flex:1;border:0;border-radius:20px;padding:11px;background:#1877f2;color:#fff;font-weight:800">Créer le groupe</button><button type="button" onclick="bcToggleGroupForm(false)" style="border:0;border-radius:20px;padding:11px 14px;background:#e4e6eb;color:#344054;font-weight:700">Annuler</button></div>
+     <p id="bcGroupFormMessage" role="status" aria-live="polite" style="margin:9px 2px 0;color:#667085;font-size:12px"></p>
+    </form>
+    <h4 style="margin:0 0 10px;color:#344054">Groupes disponibles</h4>
+    <div id="bcGroupsList" aria-live="polite"><p style="margin:0;color:#667085;font-size:13px">Chargement des groupes…</p></div>
    </section>
    <section id="bcPublicProfilePanel" class="bc-tab-panel" style="display:none;text-align:left">
     <button type="button" onclick="bcNavigate('friends')" style="border:0;border-radius:18px;padding:8px 13px;background:#e7f0ff;color:#1877f2;font-weight:700;margin-bottom:12px">← Retour aux amis</button>
@@ -2204,6 +2205,7 @@ function applyDRoute(route){
     <div id="bcPublicPosts"><p style="color:#667085;font-size:13px">Chargement des publications…</p></div>
    </section>
    <div id="bcProfileSection" style="display:none">
+   <button type="button" onclick="bcNavigate('groups')" style="width:100%;display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:15px;border:1px solid #dbe6f5;border-radius:14px;background:#f7faff;color:#1e3260;text-align:left;font-size:15px;font-weight:800">👥 <span style="flex:1">Groupes BOPE</span><span style="color:#1877f2">›</span></button>
    <div class="bc-profile" style="padding:12px">
     <div class="bc-profile-cover" id="bcCoverPreview"></div>
     <div class="bc-profile-head">
@@ -3670,7 +3672,7 @@ function applyDRoute(route){
  };
 
    let bcGlobalSearchKind='all',bcGlobalSearchTerm='',bcGlobalSearchRun=0;
-  window.bcOpenGlobalSearch=function(){if(!bcCurrentUser){alert('Connecte-toi pour utiliser la recherche BOPE.');return;}document.querySelectorAll('#bopeCreatorsPage [data-bc-tab]').forEach(b=>{b.classList.remove('active');b.removeAttribute('aria-current');});byId('bcFeedSection').classList.remove('show');['bcNotificationsPanel','bcMessagesPanel','bcFriendsPanel','bcProfileSection','bcPublicProfilePanel','bcReelsPanel','bcTabPanel'].forEach(id=>{const el=byId(id);if(el)el.style.display='none';});byId('bcGlobalSearchPanel').style.display='block';byId('bcGlobalSearchInput').focus();};
+  window.bcOpenGlobalSearch=function(){if(!bcCurrentUser){alert('Connecte-toi pour utiliser la recherche BOPE.');return;}document.querySelectorAll('#bopeCreatorsPage [data-bc-tab]').forEach(b=>{b.classList.remove('active');b.removeAttribute('aria-current');});byId('bcFeedSection').classList.remove('show');['bcNotificationsPanel','bcMessagesPanel','bcFriendsPanel','bcGroupsPanel','bcProfileSection','bcPublicProfilePanel','bcReelsPanel','bcTabPanel'].forEach(id=>{const el=byId(id);if(el)el.style.display='none';});byId('bcGlobalSearchPanel').style.display='block';byId('bcGlobalSearchInput').focus();};
   window.bcCloseGlobalSearch=function(){byId('bcGlobalSearchPanel').style.display='none';window.bcNavigate('home');};
   window.bcSetGlobalSearchKind=function(kind){bcGlobalSearchKind=kind;byId('bcGlobalSearchTabs').querySelectorAll('button').forEach(b=>{const active=b.dataset.searchKind===kind;b.style.background=active?'#1877f2':'#eef2f6';b.style.color=active?'#fff':'#344054';});if(bcGlobalSearchTerm)window.bcRunGlobalSearch(bcGlobalSearchTerm);};
   byId('bcGlobalSearchForm').addEventListener('submit',e=>{e.preventDefault();window.bcRunGlobalSearch(byId('bcGlobalSearchInput').value);});
@@ -3695,7 +3697,8 @@ window.bcNavigate=function(tab){
    videos:{icon:'▶️',title:'BOPE REELS',text:'Découvre les vidéos de la communauté BOPE.'},
    notifications:{icon:'🔔',title:'Notifications',text:'Tu retrouveras ici les nouvelles réactions, commentaires, invitations et activités de ton compte.'},
    messages:{icon:'💬',title:'Messagerie BOPE',text:'Les conversations privées et de groupe seront réunies ici. Nous construirons la messagerie après la navigation.'},
-   menu:{icon:'☰',title:'Mon espace et paramètres',text:'Retrouve les informations de ton compte et la modification de ton profil.'}
+   menu:{icon:'☰',title:'Mon espace et paramètres',text:'Retrouve les informations de ton compte et la modification de ton profil.'},
+   groups:{icon:'👥',title:'Groupes BOPE',text:'Découvre les groupes de la communauté BOPE ou crée ton propre groupe.'}
   };
   const item=tabs[tab]||tabs.home;
   document.querySelectorAll('#bopeCreatorsPage [data-bc-tab]').forEach(button=>{
@@ -3708,13 +3711,15 @@ window.bcNavigate=function(tab){
   byId('bcNotificationsPanel').style.display=tab==='notifications'?'block':'none';
   byId('bcMessagesPanel').style.display=tab==='messages'?'block':'none';
   byId('bcFriendsPanel').style.display=tab==='friends'?'block':'none';
+  byId('bcGroupsPanel').style.display=tab==='groups'?'block':'none';
   byId('bcPublicProfilePanel').style.display='none';
-  byId('bcTabPanel').style.display=(tab==='menu'||tab==='home'||tab==='notifications'||tab==='friends'||tab==='messages'||tab==='videos')?'none':'block';
+  byId('bcTabPanel').style.display=(tab==='menu'||tab==='home'||tab==='notifications'||tab==='friends'||tab==='groups'||tab==='messages'||tab==='videos')?'none':'block';
   byId('bcReelsPanel').style.display=tab==='videos'?'block':'none';
   if(tab==='videos'){const reelsNav=document.querySelector('#bopeCreatorsPage .bc-main-nav');const reelsPanel=byId('bcReelsPanel');if(reelsNav&&reelsPanel)reelsPanel.style.top=Math.max(0,reelsNav.getBoundingClientRect().bottom)+'px';window.bcLoadReels();}
   if(tab==='notifications')window.bcLoadNotifications();
   if(tab==='messages')window.bcLoadConversations();
-  if(tab==='friends'){window.bcLoadFriends();window.bcLoadGroups();byId('bcPeopleSearchInput').focus();}
+  if(tab==='friends'){window.bcLoadFriends();byId('bcPeopleSearchInput').focus();}
+  if(tab==='groups')window.bcLoadGroups();
   byId('bcPanelIcon').textContent=item.icon;
   byId('bcPanelTitle').textContent=item.title;
   byId('bcPanelText').textContent=item.text;
