@@ -2211,6 +2211,10 @@ function applyDRoute(route){
       <button id="bcGroupRequestButton" type="button" onclick="bcSubmitGroupRequest()" style="width:100%;margin-top:9px;border:0;border-radius:20px;padding:11px;background:#1877f2;color:#fff;font-weight:800">Demander à rejoindre</button>
       <p id="bcGroupRequestMessageStatus" role="status" style="margin:8px 2px;color:#667085;font-size:12px"></p>
      </div>
+     <div id="bcGroupMembersPanel" style="display:none;margin-top:16px;border-top:1px solid #e4e7ec;padding-top:14px">
+      <h4 style="margin:0 0 9px;color:#1e3260">👥 Membres du groupe <span id="bcGroupMembersCount" style="color:#667085;font-size:12px;font-weight:500"></span></h4>
+      <div id="bcGroupMembersList" style="font-size:13px;color:#667085">Chargement des membres…</div>
+     </div>
      <div id="bcGroupAdminRequests" style="display:none;margin-top:16px;border-top:1px solid #e4e7ec;padding-top:14px">
       <h4 style="margin:0 0 9px;color:#1e3260">📨 Demandes d'adhésion</h4>
       <div id="bcGroupRequestsList" style="font-size:13px;color:#667085">Chargement…</div>
@@ -2994,7 +2998,7 @@ function applyDRoute(route){
   byId('bcGroupDetailName').textContent='Chargement du groupe…';
   byId('bcGroupDetailDescription').textContent='';
   byId('bcGroupCreatorSettings').style.display='none';byId('bcGroupReadOnlyNote').style.display='none';
-  byId('bcGroupJoinArea').style.display='none';byId('bcGroupAdminRequests').style.display='none';
+  byId('bcGroupJoinArea').style.display='none';byId('bcGroupAdminRequests').style.display='none';byId('bcGroupMembersPanel').style.display='none';
   byId('bcGroupRequestMessageStatus').textContent='';byId('bcGroupSettingsMessage').textContent='';
   const {data:group,error}=await bcClient.from('bope_groups').select('id,name,description,created_by,join_conditions,bope_assistance_enabled,join_approval_mode').eq('id',groupId).maybeSingle();
   if(error||!group){byId('bcGroupDetailName').textContent='Groupe introuvable';byId('bcGroupDetailDescription').textContent=error?.message||'Ce groupe est indisponible.';return;}
@@ -3013,6 +3017,7 @@ function applyDRoute(route){
   const {data:membership}=await bcClient.from('bope_group_members').select('role').eq('group_id',group.id).eq('user_id',bcCurrentUser.id).maybeSingle();
   const isMember=!!membership;
   const isAdmin=isCreator||membership?.role==='admin';
+  if(isMember||isCreator){await window.bcLoadGroupMembers(group.id);}
   if(!isMember&&!isCreator){
    byId('bcGroupJoinArea').style.display='block';
    byId('bcGroupJoinConditionsView').textContent=group.join_conditions||'Aucune condition particulière indiquée.';
@@ -3027,6 +3032,31 @@ function applyDRoute(route){
    byId('bcGroupAdminRequests').style.display='block';
    await window.bcLoadGroupRequests(group.id);
   }
+ };
+ window.bcLoadGroupMembers=async function(groupId){
+  const panel=byId('bcGroupMembersPanel'),box=byId('bcGroupMembersList'),count=byId('bcGroupMembersCount');
+  if(!panel||!box||!count)return;
+  panel.style.display='block';box.textContent='Chargement des membres…';count.textContent='';
+  const {data:members,error}=await bcClient.from('bope_group_members').select('user_id,role,joined_at').eq('group_id',groupId).order('joined_at',{ascending:true});
+  if(error){box.textContent='Impossible de charger les membres : '+error.message;return;}
+  count.textContent='('+((members||[]).length)+')';
+  box.replaceChildren();
+  if(!members||!members.length){box.textContent='Aucun membre à afficher.';return;}
+  const ids=members.map(m=>m.user_id);
+  const {data:profiles}=await bcClient.from('profiles').select('id,display_name,username,avatar_url').in('id',ids);
+  const profileMap=new Map((profiles||[]).map(p=>[p.id,p]));
+  members.forEach(member=>{
+   const profile=profileMap.get(member.user_id)||{};
+   const row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid #eef1f5';
+   if(profile.avatar_url){const avatar=document.createElement('img');avatar.src=profile.avatar_url;avatar.alt='';avatar.loading='lazy';avatar.style.cssText='width:38px;height:38px;flex:0 0 38px;border-radius:50%;object-fit:cover;background:#e7f0ff';row.appendChild(avatar);}
+   else{const avatar=document.createElement('div');avatar.textContent='👤';avatar.style.cssText='width:38px;height:38px;flex:0 0 38px;border-radius:50%;display:grid;place-items:center;background:#e7f0ff;font-size:19px';row.appendChild(avatar);}
+   const info=document.createElement('div');info.style.cssText='flex:1;min-width:0';
+   const name=document.createElement('strong');name.textContent=profile.display_name||profile.username||('Membre '+member.user_id.slice(0,8));name.style.cssText='display:block;color:#344054;font-size:13px;overflow-wrap:anywhere';
+   const username=document.createElement('small');username.textContent=profile.username?'@'+profile.username:'';username.style.cssText='display:block;color:#98a2b3;font-size:11px';
+   info.append(name,username);
+   const badge=document.createElement('small');badge.textContent=member.role==='admin'?'Administrateur':'Membre';badge.style.cssText='padding:5px 8px;border-radius:12px;background:'+(member.role==='admin'?'#e7f0ff':'#f2f4f7')+';color:'+(member.role==='admin'?'#175cd3':'#667085')+';font-size:10px;font-weight:700;white-space:nowrap';
+   row.append(info,badge);box.appendChild(row);
+  });
  };
  window.bcSubmitGroupRequest=async function(){
   const id=window.bcCurrentSettingsGroupId;if(!id||!bcClient||!bcCurrentUser)return;
