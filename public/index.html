@@ -500,7 +500,21 @@
 .bc-feed-placeholder p{margin:0;color:#65676b;font-size:12px;line-height:1.5}
 @media(max-width:360px){.bc-main-nav button span{font-size:21px}.bc-story-card{flex-basis:92px;height:136px}.bc-compose-actions button{font-size:10px}.bc-compose-actions button span{font-size:17px}}
 @media(min-width:600px){.bc-shell{padding-top:30px}}
-</style></head><body>
+</style><style id="bope-voice-wave-refresh">
+#bcMessagesPanel #bcChatMessages .bc-voice-waveform{height:30px!important;gap:2px!important;justify-content:space-between!important}
+#bcMessagesPanel #bcChatMessages .bc-voice-waveform i{flex:1 1 4px!important;min-width:3px!important;max-width:5px!important;border-radius:2px!important;opacity:1!important}
+#bcMessagesPanel .bc-voice-composer{display:none;align-items:center;gap:10px;padding:10px 12px;background:#172127;border-top:1px solid #303b42;color:#fff;min-height:58px}
+#bcMessagesPanel .bc-voice-live-wave{display:flex;align-items:center;justify-content:space-between;gap:2px;flex:1;min-width:0;height:34px;overflow:hidden}
+#bcMessagesPanel .bc-voice-live-wave i{display:block;flex:1 1 4px;min-width:3px;max-width:6px;height:7px;border-radius:3px;background:#d9e0e3;transition:height .07s linear}
+#bcMessagesPanel .bc-voice-live-time{font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap;color:#e6ecee}
+#bcMessagesPanel .bc-voice-action{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border:0;border-radius:50%;font-size:19px;font-weight:800;padding:0}
+#bcMessagesPanel .bc-voice-trash{background:#44232a;color:#ff596b}
+#bcMessagesPanel .bc-voice-pause{background:#344147;color:#fff}
+#bcMessagesPanel .bc-voice-send{background:#25D366;color:#071b12;font-size:21px}
+#bcMessagesPanel .bc-voice-action:disabled{opacity:.45}
+@media(max-width:380px){#bcMessagesPanel .bc-voice-composer{gap:7px;padding:9px 8px}#bcMessagesPanel .bc-voice-action{flex-basis:35px;width:35px;height:35px}}
+</style>
+</head><body>
 
   <div class="topbar">
     <div class="top-left"><button class="icon-btn" onclick="toggleMenu()" aria-label="Ouvrir le menu">☰</button><span class="brand-mini">🇨🇩 BOPE IA</span></div>
@@ -2108,7 +2122,16 @@ function applyDRoute(route){
       <button type="button" id="bcDiscardMedia" aria-label="Retirer le fichier" style="border:0;border-radius:50%;width:34px;height:34px;background:#3b252b;color:#ff7185;font-size:18px">✕</button>
       <button type="button" id="bcSendMedia" aria-label="Envoyer le fichier" style="border:0;border-radius:50%;width:42px;height:42px;background:#25D366;color:#071b12;font-size:22px;font-weight:800">➤</button>
      </div>
-     <div id="bcVoiceComposer" style="display:none;align-items:center;gap:8px;padding:9px 10px;background:#172127;border-top:1px solid #303b42;color:#fff"><strong id="bcVoiceStatus" style="flex:1;min-width:0;font-size:12px">Enregistrement vocal</strong><span id="bcVoiceTimer" style="font-size:12px;font-variant-numeric:tabular-nums">0:00</span><button type="button" id="bcVoicePauseButton" style="border:0;border-radius:18px;padding:8px 10px;background:#344147;color:#fff">Ⅱ</button><button type="button" id="bcVoiceStopButton" style="border:0;border-radius:18px;padding:8px 10px;background:#7f1d1d;color:#fff">■</button><audio id="bcVoicePreview" controls playsinline style="display:none;width:100%;max-width:190px;height:36px"></audio><button type="button" id="bcVoiceDiscardButton" style="border:0;border-radius:50%;width:34px;height:34px;background:#3b252b;color:#ff7185">✕</button><button type="button" id="bcVoiceSendButton" style="border:0;border-radius:50%;width:42px;height:42px;background:#25D366;color:#071b12;font-size:21px;font-weight:800">➤</button></div><form id="bcChatForm">
+     <div id="bcVoiceComposer" class="bc-voice-composer">
+      <button type="button" id="bcVoiceDiscardButton" aria-label="Supprimer l’enregistrement" class="bc-voice-action bc-voice-trash">▣</button>
+      <div id="bcVoiceLiveWaveform" class="bc-voice-live-wave" aria-label="Niveau sonore"></div>
+      <span id="bcVoiceTimer" class="bc-voice-live-time">0:00</span>
+      <button type="button" id="bcVoicePauseButton" aria-label="Pause" class="bc-voice-action bc-voice-pause">Ⅱ</button>
+      <button type="button" id="bcVoiceSendButton" aria-label="Envoyer le vocal" class="bc-voice-action bc-voice-send">➤</button>
+      <audio id="bcVoicePreview" playsinline style="display:none"></audio>
+      <strong id="bcVoiceStatus" style="display:none">Enregistrement vocal</strong>
+     </div>
+     <form id="bcChatForm">
        <div class="bc-composer-pill">
         <button type="button" id="bcEmojiButton" class="bc-compose-icon" aria-label="Émojis"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.2"/><path d="M8.7 14.2c.9 1.2 2 1.8 3.3 1.8s2.4-.6 3.3-1.8M9 9.8h.01M15 9.8h.01"/></svg></button>
         <input id="bcChatInput" type="text" maxlength="5000" placeholder="Message" autocomplete="off">
@@ -3179,7 +3202,7 @@ function applyDRoute(route){
       const fmt=t=>{t=Math.max(0,Math.floor(Number(t)||0));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0');};
       const renderWave=values=>{
        waveform.replaceChildren();
-       values.slice(0,36).forEach((height,index)=>{const bar=document.createElement('i');bar.style.height=Math.max(3,Math.round(height*19))+'px';bar.dataset.index=String(index);waveform.appendChild(bar);});
+       values.slice(0,36).forEach((height,index)=>{const bar=document.createElement('i');bar.style.height=Math.max(7,Math.round(height*28))+'px';bar.dataset.index=String(index);waveform.appendChild(bar);});
        waveform.setAttribute('aria-valuemax',String(realDuration||1));
        drawProgress();
       };
@@ -3312,19 +3335,19 @@ function applyDRoute(route){
   }finally{bcSendMediaButton.disabled=false;bcSendMediaButton.textContent='➤';}
  }
  const bcVoiceButton=byId('bcVoiceButton'),bcVoiceComposer=byId('bcVoiceComposer'),bcVoiceStatus=byId('bcVoiceStatus'),bcVoiceTimer=byId('bcVoiceTimer'),bcVoicePreview=byId('bcVoicePreview');
- let bcVoiceRecorder=null,bcVoiceStream=null,bcVoiceChunks=[],bcVoiceBlob=null,bcVoiceUrl=null,bcVoiceStartedAt=0,bcVoiceElapsed=0,bcVoiceTimerId=null,bcVoiceLocked=false,bcVoiceCancelled=false,bcVoicePointer=null,bcVoiceReleased=false;
+ let bcVoiceRecorder=null,bcVoiceStream=null,bcVoiceChunks=[],bcVoiceBlob=null,bcVoiceUrl=null,bcVoiceStartedAt=0,bcVoiceElapsed=0,bcVoiceTimerId=null,bcVoiceLocked=false,bcVoiceCancelled=false,bcVoicePointer=null,bcVoiceReleased=false,bcVoiceSendAfterStop=false,bcVoiceAnalyser=null,bcVoiceAudioContext=null,bcVoiceWaveFrame=0;
  function bcVoiceFormatTime(seconds){const n=Math.max(0,Math.floor(seconds));return Math.floor(n/60)+':'+String(n%60).padStart(2,'0');}
- function bcVoiceStopStream(){if(bcVoiceStream){bcVoiceStream.getTracks().forEach(track=>track.stop());bcVoiceStream=null;}}
+ function bcVoiceStopLiveWave(){if(bcVoiceWaveFrame)cancelAnimationFrame(bcVoiceWaveFrame);bcVoiceWaveFrame=0;bcVoiceAnalyser=null;if(bcVoiceAudioContext){try{bcVoiceAudioContext.close();}catch(e){}bcVoiceAudioContext=null;}}
+ function bcVoiceStartLiveWave(){const wave=byId('bcVoiceLiveWaveform');if(!wave)return;wave.replaceChildren();for(let i=0;i<28;i++){const bar=document.createElement('i');wave.appendChild(bar);}try{const AudioCtx=window.AudioContext||window.webkitAudioContext;if(!AudioCtx||!bcVoiceStream)return;bcVoiceAudioContext=new AudioCtx();bcVoiceAnalyser=bcVoiceAudioContext.createAnalyser();bcVoiceAnalyser.fftSize=256;bcVoiceAudioContext.createMediaStreamSource(bcVoiceStream).connect(bcVoiceAnalyser);const data=new Uint8Array(bcVoiceAnalyser.frequencyBinCount),bars=Array.from(wave.children);const draw=()=>{if(!bcVoiceAnalyser)return;bcVoiceAnalyser.getByteFrequencyData(data);bars.forEach((bar,i)=>{const bin=Math.min(data.length-1,Math.floor((i+1)*data.length/bars.length));bar.style.height=Math.round(6+(data[bin]/255)*27)+'px';});bcVoiceWaveFrame=requestAnimationFrame(draw);};if(bcVoiceAudioContext.state==='suspended')bcVoiceAudioContext.resume().catch(()=>{});draw();}catch(e){console.warn('Onde vocale BOPE indisponible',e);}}
+ function bcVoiceStopStream(){bcVoiceStopLiveWave();if(bcVoiceStream){bcVoiceStream.getTracks().forEach(track=>track.stop());bcVoiceStream=null;}}
  function bcVoiceReset(){
   if(bcVoiceTimerId){clearInterval(bcVoiceTimerId);bcVoiceTimerId=null;}
   if(bcVoiceUrl){URL.revokeObjectURL(bcVoiceUrl);bcVoiceUrl=null;}
-  bcVoiceStopStream();bcVoiceRecorder=null;bcVoiceChunks=[];bcVoiceBlob=null;bcVoiceElapsed=0;bcVoiceLocked=false;bcVoiceCancelled=false;bcVoicePointer=null;bcVoiceReleased=false;
+  bcVoiceStopStream();bcVoiceRecorder=null;bcVoiceChunks=[];bcVoiceBlob=null;bcVoiceElapsed=0;bcVoiceLocked=false;bcVoiceCancelled=false;bcVoicePointer=null;bcVoiceReleased=false;bcVoiceSendAfterStop=false;
   bcVoicePreview.pause();bcVoicePreview.removeAttribute('src');bcVoicePreview.load();bcVoicePreview.style.display='none';
-  bcVoiceComposer.style.display='none';bcVoiceButton.style.display='';bcVoiceButton.disabled=false;bcVoiceStatus.textContent='Enregistrement vocal';bcVoiceTimer.textContent='0:00';bcVoiceButton.setAttribute('aria-label','Maintenir pour enregistrer un message vocal');bcUpdateComposerMode();
+  bcVoiceComposer.style.display='none';bcVoiceButton.style.display='';bcVoiceButton.disabled=false;bcVoiceStatus.textContent='Enregistrement vocal';bcVoiceTimer.textContent='0:00';byId('bcVoicePauseButton').textContent='Ⅱ';byId('bcVoicePauseButton').disabled=false;byId('bcVoiceSendButton').disabled=false;bcVoiceButton.setAttribute('aria-label','Maintenir pour enregistrer un message vocal');bcUpdateComposerMode();
  }
- function bcVoiceShowPreview(blob){
-  bcVoiceBlob=blob;bcVoiceUrl=URL.createObjectURL(blob);bcVoicePreview.src=bcVoiceUrl;bcVoicePreview.style.display='block';bcVoiceStatus.textContent='Écoute ton message avant de l’envoyer';bcVoiceTimer.textContent=bcVoiceFormatTime(bcVoiceElapsed);byId('bcVoicePauseButton').style.display='none';byId('bcVoiceStopButton').style.display='none';bcVoiceComposer.style.display='flex';bcVoiceButton.style.display='none';
- }
+ function bcVoiceShowPreview(blob){bcVoiceBlob=blob;bcVoiceUrl=URL.createObjectURL(blob);bcVoicePreview.src=bcVoiceUrl;bcVoicePreview.style.display='none';bcVoiceStatus.textContent='Prêt à envoyer';bcVoiceTimer.textContent=bcVoiceFormatTime(bcVoiceElapsed);byId('bcVoicePauseButton').disabled=true;byId('bcVoicePauseButton').textContent='Ⅱ';bcVoiceComposer.style.display='flex';bcVoiceButton.style.display='none';}
  async function bcVoiceStart(){
   if(!bcActiveChat||!bcClient||!bcCurrentUser){alert('Ouvre une conversation avant d’enregistrer.');return;}
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||typeof MediaRecorder==='undefined'){alert('Ton navigateur ne prend pas en charge l’enregistrement vocal. Essaie avec Chrome à jour.');return;}
@@ -3342,9 +3365,10 @@ function applyDRoute(route){
     const blob=new Blob(bcVoiceChunks,{type});bcVoiceChunks=[];
     if(!blob.size||bcVoiceElapsed<1){bcVoiceReset();return;}
     bcVoiceShowPreview(blob);
+    if(bcVoiceSendAfterStop){bcVoiceSendAfterStop=false;setTimeout(()=>byId('bcVoiceSendButton').click(),0);}
    };
-   bcVoiceRecorder.start(250);bcVoiceStartedAt=Date.now();bcVoiceComposer.style.display='flex';bcVoiceStatus.textContent='🔴 Enregistrement… glisse ↑ pour verrouiller';bcVoiceButton.style.display='none';
-   byId('bcVoicePauseButton').style.display='inline-flex';byId('bcVoiceStopButton').style.display='inline-flex';
+   bcVoiceRecorder.start(250);bcVoiceStartedAt=Date.now();bcVoiceComposer.style.display='flex';bcVoiceStatus.textContent='🔴 Enregistrement… glisse ↑ pour verrouiller';bcVoiceButton.style.display='none';bcVoiceStartLiveWave();
+   byId('bcVoicePauseButton').disabled=false;byId('bcVoicePauseButton').textContent='Ⅱ';byId('bcVoiceSendButton').disabled=false;
    bcVoiceTimerId=setInterval(()=>{if(bcVoiceRecorder&&bcVoiceRecorder.state==='recording'){bcVoiceElapsed+=(Date.now()-bcVoiceStartedAt)/1000;bcVoiceStartedAt=Date.now();bcVoiceTimer.textContent=bcVoiceFormatTime(bcVoiceElapsed);}},500);if(bcVoiceReleased&&!bcVoiceLocked)bcVoiceFinish(bcVoiceCancelled);
   }catch(error){bcVoiceStopStream();bcVoiceReset();alert('Impossible d’accéder au microphone. Vérifie l’autorisation du navigateur.');}
  }
@@ -3372,9 +3396,9 @@ function applyDRoute(route){
   if(bcVoiceRecorder.state==='recording'){bcVoiceElapsed+=(Date.now()-bcVoiceStartedAt)/1000;bcVoiceRecorder.pause();byId('bcVoicePauseButton').textContent='▶';bcVoiceStatus.textContent='En pause';}
   else if(bcVoiceRecorder.state==='paused'){bcVoiceStartedAt=Date.now();bcVoiceRecorder.resume();byId('bcVoicePauseButton').textContent='Ⅱ';bcVoiceStatus.textContent='🔴 Enregistrement verrouillé';}
  });
- byId('bcVoiceStopButton').addEventListener('click',()=>bcVoiceFinish(false));
- byId('bcVoiceDiscardButton').addEventListener('click',()=>{if(bcVoiceRecorder&&bcVoiceRecorder.state!=='inactive'){bcVoiceFinish(true);}else bcVoiceReset();});
+ byId('bcVoiceDiscardButton').addEventListener('click',()=>{if(bcVoiceRecorder&&bcVoiceRecorder.state!=='inactive'){bcVoiceCancelled=true;bcVoiceFinish(true);}else bcVoiceReset();});
  byId('bcVoiceSendButton').addEventListener('click',async()=>{
+  if(bcVoiceRecorder&&bcVoiceRecorder.state!=='inactive'){bcVoiceSendAfterStop=true;bcVoiceFinish(false);return;}
   if(!bcVoiceBlob||!bcActiveChat||!bcCurrentUser||!bcClient)return;
   const button=byId('bcVoiceSendButton');button.disabled=true;button.textContent='…';
   const chatId=bcActiveChat.id,senderId=bcCurrentUser.id,blob=bcVoiceBlob;
