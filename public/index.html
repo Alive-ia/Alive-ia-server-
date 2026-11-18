@@ -2242,6 +2242,7 @@ function applyDRoute(route){
     <div id="bcPublicPosts"><p style="color:#667085;font-size:13px">Chargement des publications…</p></div>
    </section>
    <div id="bcProfileSection" style="display:none">
+   <button id="bcImpactMenuButton" type="button" onclick="bcNavigate('impact')" style="display:none;width:100%;align-items:center;gap:12px;margin:0 0 10px;padding:15px;border:1px solid #d7e8dc;border-radius:14px;background:#f3fbf5;color:#176b38;text-align:left;font-size:15px;font-weight:800">🌟 <span style="flex:1">BOPE IMPACT</span><span style="color:#16834a">›</span></button>
    <button type="button" onclick="bcNavigate('groups')" style="width:100%;display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:15px;border:1px solid #dbe6f5;border-radius:14px;background:#f7faff;color:#1e3260;text-align:left;font-size:15px;font-weight:800">👥 <span style="flex:1">Groupes BOPE</span><span style="color:#1877f2">›</span></button>
    <div class="bc-profile" style="padding:12px">
     <div class="bc-profile-cover" id="bcCoverPreview"></div>
@@ -2299,6 +2300,14 @@ function applyDRoute(route){
     <p style="margin:0 0 14px;color:#667085;font-size:13px">Les résultats de tes publications, accessibles à tous les créateurs.</p>
     <div id="bcPerformanceContent"><p style="padding:18px;text-align:center;color:#667085">Chargement de tes statistiques…</p></div>
    </section>
+   <section id="bcImpactPanel" style="display:none;padding:12px 2px;text-align:left">
+    <button type="button" onclick="bcNavigate('menu')" style="border:0;border-radius:20px;padding:9px 13px;background:#eef2f6;color:#344054;font-weight:700;margin-bottom:12px">‹ Retour au menu</button>
+    <h2 style="margin:0 0 5px;color:#176b38;font-size:21px">🌟 BOPE IMPACT</h2>
+    <p style="margin:0 0 14px;color:#667085;font-size:13px">Ton espace professionnel pour développer ton activité et mieux comprendre ton audience.</p>
+    <div style="padding:14px;border:1px solid #d7e8dc;border-radius:14px;background:#f3fbf5;margin-bottom:10px"><strong style="color:#176b38">📊 Statistiques professionnelles</strong><p style="margin:6px 0 0;color:#667085;font-size:13px">Nous allons enrichir les statistiques de BOPE PERFORMANCE avec l'analyse de ton audience et de tes contenus.</p></div>
+    <div style="padding:14px;border:1px solid #e5eaf2;border-radius:14px;background:#fff"><strong style="color:#1e3260">🤖 Intelligence BOPE</strong><p style="margin:6px 0 0;color:#667085;font-size:13px">Conseils personnalisés, amélioration des publications, idées de contenus et recommandations seront développés progressivement.</p></div>
+    <p style="margin:12px 2px 0;color:#98a2b3;font-size:11px">Les outils seront activés progressivement à partir des données réelles de ton compte.</p>
+   </section>
    <div id="bcAccountMessage" class="bc-message show">Bienvenue dans ton espace BS.</div>
   </div>
  </div>
@@ -2306,7 +2315,7 @@ function applyDRoute(route){
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function(){
- let bcClient=null,bcReady=false,bcCurrentUser=null;
+ let bcClient=null,bcReady=false,bcCurrentUser=null,bcAccountType='personal';
  let bcFeedNewestAt=null,bcFeedSeenIds=new Set(),bcFeedPollTimer=null,bcFeedPollBusy=false;
  const BC_SAVED_ACCOUNTS_KEY='bope_saved_account_sessions_v1';
  function bcReadSavedAccounts(){try{const v=JSON.parse(localStorage.getItem(BC_SAVED_ACCOUNTS_KEY)||'[]');return Array.isArray(v)?v:[];}catch(e){return[];}}
@@ -2399,7 +2408,9 @@ function applyDRoute(route){
     const saved=bcReadSavedAccounts();const cached=saved.find(x=>x.id===user.id);
     if(cached){cached.label=data.display_name||cached.label;cached.username=data.username||'';cached.avatar_url=data.avatar_url||'';bcWriteSavedAccounts(saved);if(byId('bcAccountSwitcher')?.style.display==='block')bcRenderSavedAccounts();}
     byId('bcAccountName').textContent=data.display_name||byId('bcAccountName').textContent;
-    byId('bcAccountType').textContent=data.account_type==='professional'?'Compte professionnel':'Compte personnel';
+    bcAccountType=data.account_type==='professional'?'professional':'personal';
+    byId('bcAccountType').textContent=bcAccountType==='professional'?'Compte professionnel':'Compte personnel';
+    const impactButton=byId('bcImpactMenuButton');if(impactButton)impactButton.style.display=bcAccountType==='professional'?'flex':'none';
     const professionalUpgrade=byId('bcProfessionalUpgrade');
     if(professionalUpgrade)professionalUpgrade.style.display=data.account_type==='professional'?'none':'block';
     byId('bcAccountUsername').textContent='@'+(data.username||'utilisateur');
@@ -3910,6 +3921,7 @@ async function bcLoadPerformance(){
   }catch(error){console.warn('BOPE PERFORMANCE',error);box.innerHTML='<div style="padding:14px;border:1px solid #fecaca;background:#fff7f7;border-radius:12px;color:#991b1b;font-size:13px">Impossible de charger les statistiques pour le moment. Réessaie plus tard.</div>';}
 }
 window.bcNavigate=function(tab){
+  if(tab==='impact'&&bcAccountType!=='professional'){window.bcNavigate('menu');return;}
   const tabs={
    home:{icon:'🏠',title:'Accueil BOPE',text:'Ton fil d’actualité prendra place ici : publications, photos, vidéos et recommandations intelligentes.'},
    friends:{icon:'👥',title:'Amis et communautés',text:'Recherche des utilisateurs BOPE et envoie-leur une demande d’amitié.'},
@@ -3918,7 +3930,8 @@ window.bcNavigate=function(tab){
    messages:{icon:'💬',title:'Messagerie BOPE',text:'Les conversations privées et de groupe seront réunies ici. Nous construirons la messagerie après la navigation.'},
    menu:{icon:'☰',title:'Mon espace et paramètres',text:'Retrouve les informations de ton compte et la modification de ton profil.'},
    groups:{icon:'👥',title:'Groupes BOPE',text:'Découvre les groupes de la communauté BOPE ou crée ton propre groupe.'},
-   performance:{icon:'📊',title:'BOPE PERFORMANCE',text:'Consulte les statistiques de tes publications.'}
+   performance:{icon:'📊',title:'BOPE PERFORMANCE',text:'Consulte les statistiques de tes publications.'},
+   impact:{icon:'🌟',title:'BOPE IMPACT',text:'Développe ton activité grâce aux analyses et conseils professionnels de BOPE.'}
   };
   const item=tabs[tab]||tabs.home;
   document.querySelectorAll('#bopeCreatorsPage [data-bc-tab]').forEach(button=>{
@@ -3928,6 +3941,7 @@ window.bcNavigate=function(tab){
   });
   byId('bcProfileSection').style.display=tab==='menu'?'block':'none';
   byId('bcPerformancePanel').style.display=tab==='performance'?'block':'none';
+  byId('bcImpactPanel').style.display=tab==='impact'?'block':'none';
   byId('bcFeedSection').classList.toggle('show',tab==='home');
   byId('bcNotificationsPanel').style.display=tab==='notifications'?'block':'none';
   byId('bcMessagesPanel').style.display=tab==='messages'?'block':'none';
