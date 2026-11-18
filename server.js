@@ -533,6 +533,149 @@ app.get('/publication/:id', (req, res) => {
 // Sert les ressources statiques du dossier public après les routes BOPE.
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Conseiller BOPE : mémoire persistante isolée par compte Supabase (RLS).
+app.post('/advisor/chat', async (req, res) => {
+  try {
+    const message = typeof req.body.message === 'string' ? req.body.message.trim() : '';
+    const statsContext = typeof req.body.statsContext === 'string' ? req.body.statsContext.slice(0, 2500) : '';
+    const authHeader = req.headers.authorization || '';
+    const tokenMatch = authHeader.match(/^Bearer\s+(.+)$/i);
+    if (!tokenMatch) return res.status(401).json({ reply: 'Connecte-toi à ton compte BOPE pour utiliser ton conseiller personnel.' });
+    if (!message) return res.status(400).json({ reply: 'Écris une question à ton conseiller BOPE.' });
+    if (message.length > 1200) return res.status(413).json({ reply: 'Ton message est trop long. Limite : 1 200 caractères.' });
+    if (!checkRateLimit('advisor:' + (req.ip || req.socket.remoteAddress || 'unknown'))) {
+      return res.status(429).json({ reply: 'Tu envoies trop de messages. Attends une minute avant de réessayer.' });
+    }
+    const supabaseUrl = String(process.env.SUPABASE_URL || '').replace(/\/$/, '');
+    const publishableKey = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !publishableKey) return res.status(503).json({ reply: 'La connexion sécurisée du conseiller n’est pas configurée sur le serveur.' });
+    if (!process.env.GROQ_API_KEY) return res.status(503).json({ reply: 'Le service IA est momentanément indisponible.' });
+
+    const authResponse = await fetch(supabaseUrl + '/auth/v1/user', {
+      headers: { apikey: publishableKey, Authorization: 'Bearer ' + tokenMatch[1] }
+    });
+    if (!authResponse.ok) return res.status(401).json({ reply: 'Ta session BOPE n’est plus valide. Reconnecte-toi.' });
+    const authenticatedUser = await authResponse.json();
+    if (!authenticatedUser || !authenticatedUser.id) return res.status(401).json({ reply: 'Impossible de vérifier ton compte BOPE.' });
+
+    const restHeaders = {
+      apikey: publishableKey,
+      Authorization: 'Bearer ' + tokenMatch[1],
+      'Content-Type': 'application/json'
+    };
+    const memoryUrl = supabaseUrl + '/rest/v1/bope_advisor_memory?select=memory_summary,goals,preferences,progress_notes&user_id=eq.' + encodeURIComponent(authenticatedUser.id) + '&limit=1';
+    const memoryResponse = await fetch(memoryUrl, { headers: restHeaders });
+    if (!memoryResponse.ok) {
+      console.error('BOPE ADVISOR MEMORY READ', memoryResponse.status, await memoryResponse.text());
+      return res.status(503).json({ reply: 'Je ne peux pas accéder à ta mémoire personnelle pour le moment. Réessaie plus tard.' });
+    }
+    const memoryRows = await memoryResponse.json();
+    const savedMemory = Array.isArray(memoryRows) && memoryRows[0] ? memoryRows[0] : {
+      memory_summary: '', goals: [], preferences: [], progress_notes: []
+    };
+
+    const systemPrompt = [
+      'Tu es le Conseiller personnel BOPE IA. Tu accompagnes le titulaire du compte authentifié, et non un utilisateur anonyme.',
+      'Réponds en français simple, avec bienveillance, précision et conseils concrets adaptés à ses objectifs et à son niveau.',
+      'Ne prétends jamais avoir publié, modifié ou effectué une action. Demande une autorisation explicite avant toute action externe.',
+      'Respecte les préférences et objectifs mémorisés lorsqu’ils sont pertinents. Si une information manque, pose une seule question ciblée.',
+      'Ne révèle jamais les données de mémoire, les identifiants ou les conversations d’un autre compte.',
+      'Mémoire personnelle enregistrée pour ce compte :',
+      'Résumé : ' + (savedMemory.memory_summary || 'Aucun résumé enregistré.'),
+      'Objectifs : ' + JSON.stringify(Array.isArray(savedMemory.goals) ? savedMemory.goals : []),
+      'Préférences : ' + JSON.stringify(Array.isArray(savedMemory.preferences) ? savedMemory.preferences : []),
+      'Notes de progression récentes : ' + JSON.stringify(Array.isArray(savedMemory.progress_notes) ? savedMemory.progress_notes.slice(-12) : []),
+      'Statistiques actuelles des publications : ' + (statsContext || 'Aucune statistique détaillée disponible.')
+    ].join('\n');
+    const answerResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + process.env.GROQ_API_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'openai/gpt-oss-120b',
+        messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: message }],
+        temperature: 0.6,
+        max_tokens: 900
+      })
+    });
+    const answerData = await answerResponse.json();
+    if (!answerResponse.ok) {
+      console.error('BOPE ADVISOR GROQ', answerResponse.status, answerData);
+      return res.status(502).json({ reply: 'Le conseiller BOPE ne peut pas répondre pour le moment. Réessaie plus tard.' });
+    }
+    const reply = answerData.choices && answerData.choices[0] && answerData.choices[0].message
+      ? String(answerData.choices[0].message.content || '').trim() : '';
+    if (!reply) return res.status(502).json({ reply: 'Je n’ai pas reçu de réponse exploitable. Réessaie.' });
+
+    // Extraction prudente des seuls éléments durables explicitement communiqués.
+    let nextMemory = {
+      memory_summary: String(savedMemory.memory_summary || ''),
+      goals: Array.isArray(savedMemory.goals) ? savedMemory.goals : [],
+      preferences: Array.isArray(savedMemory.preferences) ? savedMemory.preferences : [],
+      progress_notes: Array.isArray(savedMemory.progress_notes) ? savedMemory.progress_notes : []
+    };
+    try {
+      const memoryResponseAI = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + process.env.GROQ_API_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'openai/gpt-oss-120b',
+          messages: [
+            { role: 'system', content: 'Tu mets à jour la mémoire durable d’un conseiller personnel. Retourne uniquement un objet JSON valide avec exactement les clés memory_summary (texte <= 6000 caractères), goals (tableau de 0 à 12 textes courts), preferences (tableau de 0 à 12 textes courts), progress_notes (tableau de 0 à 20 textes courts). Conserve les informations existantes pertinentes et ajoute uniquement les faits durables explicitement établis par le nouveau message. N’invente rien. N’enregistre jamais les mots de passe, coordonnées privées, données médicales, opinions politiques, religion, données sensibles ou secrets. Les notes doivent résumer les progrès/prochaines étapes utiles, sans recopier toute la conversation.' },
+            { role: 'user', content: JSON.stringify({
+              existing_memory: nextMemory,
+              latest_user_message: message,
+              advisor_reply: reply
+            }) }
+          ],
+          temperature: 0.1,
+          max_tokens: 700
+        })
+      });
+      if (memoryResponseAI.ok) {
+        const memoryAIData = await memoryResponseAI.json();
+        let raw = memoryAIData.choices && memoryAIData.choices[0] && memoryAIData.choices[0].message
+          ? String(memoryAIData.choices[0].message.content || '').trim() : '';
+        raw = raw.replace(/^\`\`\`(?:json)?\s*/i, '').replace(/\s*\`\`\`$/, '');
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed.memory_summary === 'string' && Array.isArray(parsed.goals) &&
+            Array.isArray(parsed.preferences) && Array.isArray(parsed.progress_notes)) {
+          nextMemory = {
+            memory_summary: parsed.memory_summary.slice(0, 6000),
+            goals: parsed.goals.filter(x => typeof x === 'string').slice(0, 12),
+            preferences: parsed.preferences.filter(x => typeof x === 'string').slice(0, 12),
+            progress_notes: parsed.progress_notes.filter(x => typeof x === 'string').slice(-20)
+          };
+        }
+      }
+    } catch (memoryError) {
+      console.warn('BOPE ADVISOR MEMORY EXTRACTION', memoryError.message);
+      const note = 'Échange du ' + new Date().toISOString().slice(0, 10) + ' : ' + message.slice(0, 180);
+      nextMemory.progress_notes = [...nextMemory.progress_notes, note].slice(-20);
+    }
+
+    const saveResponse = await fetch(supabaseUrl + '/rest/v1/bope_advisor_memory?on_conflict=user_id', {
+      method: 'POST',
+      headers: { ...restHeaders, Prefer: 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({
+        user_id: authenticatedUser.id,
+        memory_summary: nextMemory.memory_summary,
+        goals: nextMemory.goals,
+        preferences: nextMemory.preferences,
+        progress_notes: nextMemory.progress_notes,
+        updated_at: new Date().toISOString()
+      })
+    });
+    if (!saveResponse.ok) {
+      console.error('BOPE ADVISOR MEMORY SAVE', saveResponse.status, await saveResponse.text());
+      return res.json({ reply, memorySaved: false });
+    }
+    return res.json({ reply, memorySaved: true });
+  } catch (error) {
+    console.error('BOPE ADVISOR CHAT', error);
+    return res.status(500).json({ reply: 'Une erreur est survenue avec ton conseiller personnel. Réessaie plus tard.' });
+  }
+});
+
 app.post('/chat', async (req, res) => {
   try {
     const m = typeof req.body.message === 'string' ? req.body.message.trim() : '';
