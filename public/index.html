@@ -2304,7 +2304,7 @@ function applyDRoute(route){
     <button type="button" onclick="bcNavigate('menu')" style="border:0;border-radius:20px;padding:9px 13px;background:#eef2f6;color:#344054;font-weight:700;margin-bottom:12px">‹ Retour au menu</button>
     <h2 style="margin:0 0 5px;color:#176b38;font-size:21px">🌟 BOPE IMPACT</h2>
     <p style="margin:0 0 14px;color:#667085;font-size:13px">Ton espace professionnel pour développer ton activité et mieux comprendre ton audience.</p>
-    <div style="padding:14px;border:1px solid #d7e8dc;border-radius:14px;background:#f3fbf5;margin-bottom:10px"><strong style="color:#176b38">📊 Statistiques professionnelles</strong><p style="margin:6px 0 0;color:#667085;font-size:13px">Nous allons enrichir les statistiques de BOPE PERFORMANCE avec l'analyse de ton audience et de tes contenus.</p></div>
+    <div id="bcImpactStatsContent"><p style="padding:18px;text-align:center;color:#667085">Chargement de tes statistiques professionnelles…</p></div>
     <div style="padding:14px;border:1px solid #e5eaf2;border-radius:14px;background:#fff"><strong style="color:#1e3260">🤖 Intelligence BOPE</strong><p style="margin:6px 0 0;color:#667085;font-size:13px">Conseils personnalisés, amélioration des publications, idées de contenus et recommandations seront développés progressivement.</p></div>
     <p style="margin:12px 2px 0;color:#98a2b3;font-size:11px">Les outils seront activés progressivement à partir des données réelles de ton compte.</p>
    </section>
@@ -3891,6 +3891,46 @@ function applyDRoute(route){
     }else{const info=document.createElement('div');info.style.cssText='flex:1;min-width:0';const meta=document.createElement('small');meta.textContent=(row.profiles?.display_name||'Utilisateur BOPE')+' • '+bcSafeDate(row.created_at);meta.style.cssText='display:block;color:#667085;margin-bottom:5px';info.appendChild(meta);if(row.content||row.caption){const body=document.createElement('p');body.textContent=row.content||row.caption;body.style.cssText='margin:0 0 7px;font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere';info.appendChild(body);}if(row.media_url){const media=row.media_type==='video'?document.createElement('video'):document.createElement('img');media.src=row.media_url;media.style.cssText='display:block;max-width:100%;max-height:230px;border-radius:10px;object-fit:contain;background:#111';if(media.tagName==='VIDEO'){media.controls=true;media.playsInline=true;media.preload='metadata';}else media.alt='Média BOPE';info.appendChild(media);}card.appendChild(info);}box.appendChild(card);});});
    if(!total){const p=document.createElement('p');p.style.cssText='padding:18px 8px;text-align:center;color:#667085;font-size:13px';p.textContent='Aucun résultat trouvé pour « '+q+' ».';box.appendChild(p);}
   };
+async function bcLoadImpact(){
+  const box=byId('bcImpactStatsContent');
+  if(!box||!bcClient||!bcCurrentUser||bcAccountType!=='professional')return;
+  box.innerHTML='<p style="padding:18px;text-align:center;color:#667085">Chargement de tes statistiques professionnelles…</p>';
+  try{
+   const {data:posts,error:postsError}=await bcClient.from('bope_posts').select('id,content,media_type,created_at').eq('author_id',bcCurrentUser.id).order('created_at',{ascending:false}).limit(1000);
+   if(postsError)throw postsError;
+   const allPosts=posts||[],ids=allPosts.map(p=>p.id);
+   if(!ids.length){
+    box.innerHTML='<div style="padding:20px;text-align:center;background:#f3fbf5;border:1px solid #d7e8dc;border-radius:14px"><strong>Aucune publication pour le moment</strong><p style="font-size:13px;color:#667085">Publie ton premier contenu professionnel pour commencer à mesurer tes résultats.</p></div>';
+    return;
+   }
+   const results=await Promise.all([
+    bcClient.from('bope_post_views').select('post_id,viewer_id,viewed_at').in('post_id',ids),
+    bcClient.from('bope_post_reactions').select('post_id,created_at').in('post_id',ids),
+    bcClient.from('bope_post_comments').select('post_id,created_at').in('post_id',ids),
+    bcClient.from('bope_post_shares').select('post_id,created_at').in('post_id',ids)
+   ]);
+   for(const result of results)if(result.error)throw result.error;
+   const views=results[0].data||[],reactions=results[1].data||[],comments=results[2].data||[],shares=results[3].data||[];
+   const now=Date.now(),days7=7*86400000,days30=30*86400000;
+   const recent=(list,days)=>list.filter(x=>now-new Date(x.viewed_at||x.created_at).getTime()<=days*86400000);
+   const views7=recent(views,7).length,views30=recent(views,30).length;
+   const interactions=reactions.length+comments.length+shares.length;
+   const countFor=(list,id)=>list.filter(row=>row.post_id===id).length;
+   const touched=allPosts.reduce((sum,p)=>sum+new Set(views.filter(v=>v.post_id===p.id).map(v=>v.viewer_id)).size,0);
+   const cards=[
+    ['Publications',allPosts.length,'📝'],
+    ['Vues totales',views.length,'👁️'],
+    ['Personnes touchées*',touched,'👥'],
+    ['Réactions',reactions.length,'👍'],
+    ['Commentaires',comments.length,'💬'],
+    ['Partages',shares.length,'↗️']
+   ];
+   const cardHtml=cards.map(c=>'<div style="background:#fff;border:1px solid #dce9df;border-radius:13px;padding:13px;min-width:0"><div style="font-size:19px">'+c[2]+'</div><strong style="display:block;font-size:22px;color:#176b38;margin:5px 0">'+c[1]+'</strong><span style="font-size:11px;color:#667085">'+c[0]+'</span></div>').join('');
+   const ranked=allPosts.map(p=>({post:p,views:countFor(views,p.id),people:new Set(views.filter(v=>v.post_id===p.id).map(v=>v.viewer_id)).size,likes:countFor(reactions,p.id),comments:countFor(comments,p.id),shares:countFor(shares,p.id)})).sort((a,b)=>b.views-a.views||b.likes+b.comments+b.shares-(a.likes+a.comments+a.shares)).slice(0,5);
+   const rows=ranked.map((x,index)=>'<div style="padding:12px 0;border-bottom:1px solid #edf0f4"><div style="display:flex;gap:9px;align-items:flex-start"><strong style="color:#176b38">'+(index+1)+'.</strong><div style="flex:1;min-width:0"><div style="font-size:13px;color:#344054;overflow-wrap:anywhere">'+(x.post.content?escapeHTML(x.post.content.slice(0,100)):'Publication '+escapeHTML(x.post.media_type||''))+'</div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:7px;font-size:11px;color:#667085"><span>👁️ '+x.views+' vues</span><span>👥 '+x.people+' personnes</span><span>👍 '+x.likes+'</span><span>💬 '+x.comments+'</span><span>↗ '+x.shares+'</span></div></div></div></div>').join('');
+   box.innerHTML='<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-bottom:14px">'+cardHtml+'</div><div style="background:#f3fbf5;border:1px solid #d7e8dc;border-radius:13px;padding:14px;margin-bottom:14px"><strong style="color:#176b38">📈 Activité récente</strong><div style="display:flex;justify-content:space-between;gap:10px;margin-top:10px;font-size:13px;color:#344054"><span>Vues sur 7 jours</span><strong>'+views7+'</strong></div><div style="height:7px;background:#e5eee7;border-radius:8px;margin:6px 0 12px;overflow:hidden"><div style="height:100%;width:'+Math.min(100,views7?Math.max(8,views7/(views30||views7)*100):0)+'%;background:#239653;border-radius:8px"></div></div><div style="display:flex;justify-content:space-between;gap:10px;font-size:13px;color:#344054"><span>Vues sur 30 jours</span><strong>'+views30+'</strong></div></div><div style="background:#fff;border:1px solid #e5eaf2;border-radius:13px;padding:13px"><strong style="color:#176b38">🏆 Tes 5 publications les plus performantes</strong>'+rows+'</div><p style="font-size:11px;color:#98a2b3;margin:10px 2px">* Personnes touchées = somme des personnes uniques pour chaque publication ; une même personne peut être comptée sur plusieurs publications. Les chiffres reflètent les données enregistrées dans BOPE.</p>';
+  }catch(error){console.warn('BOPE IMPACT',error);box.innerHTML='<div style="padding:14px;border:1px solid #fecaca;background:#fff7f7;border-radius:12px;color:#991b1b;font-size:13px">Impossible de charger les statistiques professionnelles. Réessaie plus tard.</div>';}
+}
 async function bcLoadPerformance(){
   const box=byId('bcPerformanceContent');
   if(!box||!bcClient||!bcCurrentUser)return;
@@ -3957,6 +3997,7 @@ window.bcNavigate=function(tab){
   if(tab==='friends'){window.bcLoadFriends();byId('bcPeopleSearchInput').focus();}
   if(tab==='groups')window.bcLoadGroups();
   if(tab==='performance')bcLoadPerformance();
+  if(tab==='impact')bcLoadImpact();
   byId('bcPanelIcon').textContent=item.icon;
   byId('bcPanelTitle').textContent=item.title;
   byId('bcPanelText').textContent=item.text;
