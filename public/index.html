@@ -2186,7 +2186,8 @@ function applyDRoute(route){
     <div id="bcGroupsList" aria-live="polite"><p style="margin:0;color:#667085;font-size:13px">Chargement des groupes…</p></div>
    </section>
    <section id="bcGroupDetailsPanel" class="bc-tab-panel" style="display:none;text-align:left">
-    <button type="button" onclick="bcNavigate('groups')" style="border:0;border-radius:18px;padding:8px 13px;background:#e7f0ff;color:#1877f2;font-weight:700;margin-bottom:14px">← Retour aux groupes</button>
+    <button type="button" onclick="bcNavigate('performance')" style="width:100%;display:flex;align-items:center;gap:12px;margin:0 0 10px;padding:15px;border:1px solid #dbe6f5;border-radius:14px;background:#f7faff;color:#1e3260;text-align:left;font-size:15px;font-weight:800">📊 <span style="flex:1">BOPE PERFORMANCE</span><span style="color:#1877f2">›</span></button>
+   <button type="button" onclick="bcNavigate('groups')" style="border:0;border-radius:18px;padding:8px 13px;background:#e7f0ff;color:#1877f2;font-weight:700;margin-bottom:14px">← Retour aux groupes</button>
     <div style="padding:15px;border:1px solid #dbe6f5;border-radius:15px;background:#fff">
      <h3 id="bcGroupDetailName" style="margin:0 0 6px;color:#1e3260">👥 Groupe BOPE</h3>
      <p id="bcGroupDetailDescription" style="margin:0 0 15px;color:#667085;font-size:13px"></p>
@@ -2292,6 +2293,12 @@ function applyDRoute(route){
     <button class="bc-secondary" type="button" onclick="bcSignOut()">Se déconnecter</button>
    </div>
    </div>
+   <section id="bcPerformancePanel" style="display:none;padding:12px 2px;text-align:left">
+    <button type="button" onclick="bcNavigate('menu')" style="border:0;border-radius:20px;padding:9px 13px;background:#eef2f6;color:#344054;font-weight:700;margin-bottom:12px">‹ Retour au menu</button>
+    <h2 style="margin:0 0 5px;color:#1e3260;font-size:21px">📊 BOPE PERFORMANCE</h2>
+    <p style="margin:0 0 14px;color:#667085;font-size:13px">Les résultats de tes publications, accessibles à tous les créateurs.</p>
+    <div id="bcPerformanceContent"><p style="padding:18px;text-align:center;color:#667085">Chargement de tes statistiques…</p></div>
+   </section>
    <div id="bcAccountMessage" class="bc-message show">Bienvenue dans ton espace BS.</div>
   </div>
  </div>
@@ -3873,6 +3880,35 @@ function applyDRoute(route){
     }else{const info=document.createElement('div');info.style.cssText='flex:1;min-width:0';const meta=document.createElement('small');meta.textContent=(row.profiles?.display_name||'Utilisateur BOPE')+' • '+bcSafeDate(row.created_at);meta.style.cssText='display:block;color:#667085;margin-bottom:5px';info.appendChild(meta);if(row.content||row.caption){const body=document.createElement('p');body.textContent=row.content||row.caption;body.style.cssText='margin:0 0 7px;font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere';info.appendChild(body);}if(row.media_url){const media=row.media_type==='video'?document.createElement('video'):document.createElement('img');media.src=row.media_url;media.style.cssText='display:block;max-width:100%;max-height:230px;border-radius:10px;object-fit:contain;background:#111';if(media.tagName==='VIDEO'){media.controls=true;media.playsInline=true;media.preload='metadata';}else media.alt='Média BOPE';info.appendChild(media);}card.appendChild(info);}box.appendChild(card);});});
    if(!total){const p=document.createElement('p');p.style.cssText='padding:18px 8px;text-align:center;color:#667085;font-size:13px';p.textContent='Aucun résultat trouvé pour « '+q+' ».';box.appendChild(p);}
   };
+async function bcLoadPerformance(){
+  const box=byId('bcPerformanceContent');
+  if(!box||!bcClient||!bcCurrentUser)return;
+  box.innerHTML='<p style="padding:18px;text-align:center;color:#667085">Chargement de tes statistiques…</p>';
+  try{
+   const {data:posts,error:postsError}=await bcClient.from('bope_posts').select('id,content,media_type,created_at').eq('author_id',bcCurrentUser.id).order('created_at',{ascending:false}).limit(100);
+   if(postsError)throw postsError;
+   if(!posts||!posts.length){box.innerHTML='<div style="padding:22px 14px;text-align:center;background:#f7faff;border:1px solid #e5eaf2;border-radius:14px"><strong>Aucune publication pour le moment</strong><p style="color:#667085;font-size:13px">Publie ton premier contenu pour commencer à suivre ses performances.</p></div>';return;}
+   const ids=posts.map(p=>p.id);
+   const results=await Promise.all([
+    bcClient.from('bope_post_views').select('post_id,viewer_id,viewed_at').in('post_id',ids),
+    bcClient.from('bope_post_reactions').select('post_id').in('post_id',ids),
+    bcClient.from('bope_post_comments').select('post_id').in('post_id',ids),
+    bcClient.from('bope_post_shares').select('post_id').in('post_id',ids)
+   ]);
+   for(const result of results)if(result.error)throw result.error;
+   const views=results[0].data||[],reactions=results[1].data||[],comments=results[2].data||[],shares=results[3].data||[];
+   const uniquePeople=new Set(views.map(v=>v.viewer_id)).size;
+   const last7=views.filter(v=>Date.now()-new Date(v.viewed_at).getTime()<=604800000).length;
+   const previous7=views.filter(v=>{const age=Date.now()-new Date(v.viewed_at).getTime();return age>604800000&&age<=1209600000;}).length;
+   const progression=previous7===0?(last7>0?'Nouveau':'—'):Math.round((last7-previous7)/previous7*100)+'%';
+   const countFor=(list,id)=>list.filter(row=>row.post_id===id).length;
+   const cards=[['Vues totales',views.length,'👁️'],['Personnes touchées',uniquePeople,'👥'],['Interactions',reactions.length+comments.length+shares.length,'💬'],['Vues sur 7 jours',last7,'📈']];
+   const cardHtml=cards.map(c=>'<div style="background:#fff;border:1px solid #e5eaf2;border-radius:13px;padding:13px;min-width:0"><div style="font-size:20px">'+c[2]+'</div><strong style="display:block;font-size:22px;color:#1e3260;margin:5px 0">'+c[1]+'</strong><span style="font-size:11px;color:#667085">'+c[0]+'</span></div>').join('');
+   const ranked=posts.map(p=>({post:p,views:countFor(views,p.id),people:new Set(views.filter(v=>v.post_id===p.id).map(v=>v.viewer_id)).size,likes:countFor(reactions,p.id),comments:countFor(comments,p.id),shares:countFor(shares,p.id)})).sort((a,b)=>b.views-a.views).slice(0,10);
+   const rows=ranked.map((x,index)=>'<div style="padding:12px 0;border-bottom:1px solid #edf0f4"><div style="display:flex;gap:9px;align-items:flex-start"><strong style="color:#1877f2">'+(index+1)+'.</strong><div style="flex:1;min-width:0"><div style="font-size:13px;color:#344054;overflow-wrap:anywhere">'+(x.post.content?escapeHTML(x.post.content.slice(0,110)):'Publication '+escapeHTML(x.post.media_type||''))+'</div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:7px;font-size:11px;color:#667085"><span>👁️ '+x.views+' vues</span><span>👥 '+x.people+' personnes</span><span>👍 '+x.likes+'</span><span>💬 '+x.comments+'</span><span>↗ '+x.shares+'</span></div></div></div></div>').join('');
+   box.innerHTML='<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-bottom:14px">'+cardHtml+'</div><div style="background:#f7faff;border:1px solid #e5eaf2;border-radius:13px;padding:13px;margin-bottom:14px"><strong style="color:#1e3260">Progression des vues</strong><p style="margin:6px 0 0;font-size:13px;color:#667085">Cette semaine : '+last7+' vues · Semaine précédente : '+previous7+' · Évolution : '+progression+'</p></div><div style="background:#fff;border:1px solid #e5eaf2;border-radius:13px;padding:13px"><strong style="color:#1e3260">🏆 Publications les plus performantes</strong>'+rows+'</div><p style="font-size:11px;color:#98a2b3;margin:10px 2px">Statistiques calculées à partir des données disponibles. Les données affichées concernent tes 100 publications les plus récentes.</p>';
+  }catch(error){console.warn('BOPE PERFORMANCE',error);box.innerHTML='<div style="padding:14px;border:1px solid #fecaca;background:#fff7f7;border-radius:12px;color:#991b1b;font-size:13px">Impossible de charger les statistiques pour le moment. Réessaie plus tard.</div>';}
+}
 window.bcNavigate=function(tab){
   const tabs={
    home:{icon:'🏠',title:'Accueil BOPE',text:'Ton fil d’actualité prendra place ici : publications, photos, vidéos et recommandations intelligentes.'},
@@ -3881,7 +3917,8 @@ window.bcNavigate=function(tab){
    notifications:{icon:'🔔',title:'Notifications',text:'Tu retrouveras ici les nouvelles réactions, commentaires, invitations et activités de ton compte.'},
    messages:{icon:'💬',title:'Messagerie BOPE',text:'Les conversations privées et de groupe seront réunies ici. Nous construirons la messagerie après la navigation.'},
    menu:{icon:'☰',title:'Mon espace et paramètres',text:'Retrouve les informations de ton compte et la modification de ton profil.'},
-   groups:{icon:'👥',title:'Groupes BOPE',text:'Découvre les groupes de la communauté BOPE ou crée ton propre groupe.'}
+   groups:{icon:'👥',title:'Groupes BOPE',text:'Découvre les groupes de la communauté BOPE ou crée ton propre groupe.'},
+   performance:{icon:'📊',title:'BOPE PERFORMANCE',text:'Consulte les statistiques de tes publications.'}
   };
   const item=tabs[tab]||tabs.home;
   document.querySelectorAll('#bopeCreatorsPage [data-bc-tab]').forEach(button=>{
@@ -3890,6 +3927,7 @@ window.bcNavigate=function(tab){
    if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');
   });
   byId('bcProfileSection').style.display=tab==='menu'?'block':'none';
+  byId('bcPerformancePanel').style.display=tab==='performance'?'block':'none';
   byId('bcFeedSection').classList.toggle('show',tab==='home');
   byId('bcNotificationsPanel').style.display=tab==='notifications'?'block':'none';
   byId('bcMessagesPanel').style.display=tab==='messages'?'block':'none';
@@ -3904,6 +3942,7 @@ window.bcNavigate=function(tab){
   if(tab==='messages')window.bcLoadConversations();
   if(tab==='friends'){window.bcLoadFriends();byId('bcPeopleSearchInput').focus();}
   if(tab==='groups')window.bcLoadGroups();
+  if(tab==='performance')bcLoadPerformance();
   byId('bcPanelIcon').textContent=item.icon;
   byId('bcPanelTitle').textContent=item.title;
   byId('bcPanelText').textContent=item.text;
