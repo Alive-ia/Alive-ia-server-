@@ -3986,12 +3986,16 @@ async function bcLoadAdvisor(){
   addMessage(question,'user');input.value='';input.disabled=true;button.disabled=true;button.textContent='…';
   const waiting=addMessage('Je réfléchis à ta question…','advisor');
   try{
+   const {data:sessionData,error:sessionError}=await bcClient.auth.getSession();
+   if(sessionError)throw sessionError;
+   const accessToken=sessionData&&sessionData.session&&sessionData.session.access_token;
+   if(!accessToken)throw new Error('Ta session BOPE a expiré. Reconnecte-toi pour retrouver ton conseiller personnel.');
    const context=window.bcAdvisorContext||'Aucune statistique détaillée disponible pour le moment.';
-   const prompt='Tu es le Conseiller BOPE, assistant bienveillant pour les créateurs de BOPE IA. Réponds en français simple, avec des conseils pratiques, honnêtes et adaptés. Ne prétends jamais avoir effectué une action. Voici les statistiques disponibles du créateur : '+context+'. Réponds à sa question : '+question;
-   const response=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:prompt,mode:'detail'})});
+   const response=await fetch('/advisor/chat',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+accessToken},body:JSON.stringify({message:question,statsContext:context})});
    const data=await response.json();
    if(!response.ok)throw new Error(data.reply||'Service momentanément indisponible.');
    waiting.textContent=data.reply||'Je n’ai pas reçu de réponse. Réessaie.';
+   if(data.memorySaved===false)addMessage('⚠️ Ta réponse est disponible, mais la mémoire personnelle n’a pas pu être actualisée.','advisor');
   }catch(error){
    waiting.textContent=error.message||'Impossible de contacter le conseiller pour le moment. Réessaie plus tard.';
   }finally{
