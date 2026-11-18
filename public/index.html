@@ -2722,13 +2722,38 @@ function applyDRoute(route){
     actions.appendChild(downloadWrap);
    }
    card.appendChild(actions);card.append(commentsPanel,sharePanel);list.appendChild(card);
+   // Enregistre une vue lorsqu'une publication reste réellement visible à l'écran.
+   if('IntersectionObserver' in window&&bcClient&&bcCurrentUser&&post.author_id!==bcCurrentUser.id){
+    window.bcRecordedPostViews=window.bcRecordedPostViews||new Set();
+    if(!window.bcRecordedPostViews.has(post.id)){
+     let viewTimer=null,viewSent=false;
+     const viewObserver=new IntersectionObserver(entries=>{
+      entries.forEach(entry=>{
+       if(entry.target!==card||viewSent)return;
+       if(entry.isIntersecting&&entry.intersectionRatio>=0.6){
+        if(!viewTimer)viewTimer=setTimeout(async()=>{
+         viewTimer=null;
+         if(viewSent||window.bcRecordedPostViews.has(post.id))return;
+         viewSent=true;window.bcRecordedPostViews.add(post.id);
+         try{
+          const {error:viewError}=await bcClient.rpc('bope_record_post_view',{p_post_id:post.id});
+          if(viewError){window.bcRecordedPostViews.delete(post.id);console.warn('Comptage de vue BOPE impossible :',viewError.message);}
+         }catch(viewError){window.bcRecordedPostViews.delete(post.id);console.warn('Comptage de vue BOPE impossible :',viewError);}
+         viewObserver.disconnect();
+        },1200);
+       }else if(viewTimer){clearTimeout(viewTimer);viewTimer=null;}
+      });
+     },{threshold:[0,0.6,1]});
+     viewObserver.observe(card);
+    }
+   }
   });
  }
  window.bcLoadPosts=async function(markSeen=false){
   if(!bcClient)return;
   const sharedParts=window.location.pathname.split('/').filter(Boolean);
   const sharedPostId=sharedParts.length===2&&sharedParts[0]==='publication'&&/^[0-9a-f-]{36}$/i.test(sharedParts[1])?sharedParts[1]:null;
-  let postsQuery=bcClient.from('bope_posts').select('id,content,media_url,media_type,background_style,created_at,profiles(display_name,username,avatar_url)').order('created_at',{ascending:false});
+  let postsQuery=bcClient.from('bope_posts').select('id,author_id,content,media_url,media_type,background_style,created_at,profiles(display_name,username,avatar_url)').order('created_at',{ascending:false});
   if(sharedPostId)postsQuery=postsQuery.eq('id',sharedPostId);else postsQuery=postsQuery.limit(50);
   const {data,error}=await postsQuery;
   if(error){byId('bcPostStatus').textContent='Impossible de charger les publications : '+error.message;return;}
