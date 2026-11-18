@@ -2242,6 +2242,8 @@ function applyDRoute(route){
     <div id="bcPublicPosts"><p style="color:#667085;font-size:13px">Chargement des publications…</p></div>
    </section>
    <div id="bcProfileSection" style="display:none">
+   <button type="button" onclick="bcNavigate('performance')" style="display:flex;width:100%;align-items:center;gap:12px;margin:0 0 10px;padding:15px;border:1px solid #dbe6f5;border-radius:14px;background:#f7faff;color:#1e3260;text-align:left;font-size:15px;font-weight:800">📊 <span style="flex:1">BOPE PERFORMANCE</span><span style="color:#1877f2">›</span></button>
+   <button type="button" onclick="bcNavigate('advisor')" style="display:flex;width:100%;align-items:center;gap:12px;margin:0 0 10px;padding:15px;border:1px solid #eadcf8;border-radius:14px;background:#faf6ff;color:#663399;text-align:left;font-size:15px;font-weight:800">🧠 <span style="flex:1">MON CONSEILLER BOPE</span><span style="color:#8754b5">›</span></button>
    <button id="bcImpactMenuButton" type="button" onclick="bcNavigate('impact')" style="display:none;width:100%;align-items:center;gap:12px;margin:0 0 10px;padding:15px;border:1px solid #d7e8dc;border-radius:14px;background:#f3fbf5;color:#176b38;text-align:left;font-size:15px;font-weight:800">🌟 <span style="flex:1">BOPE IMPACT</span><span style="color:#16834a">›</span></button>
    <button type="button" onclick="bcNavigate('groups')" style="width:100%;display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:15px;border:1px solid #dbe6f5;border-radius:14px;background:#f7faff;color:#1e3260;text-align:left;font-size:15px;font-weight:800">👥 <span style="flex:1">Groupes BOPE</span><span style="color:#1877f2">›</span></button>
    <div class="bc-profile" style="padding:12px">
@@ -2299,6 +2301,13 @@ function applyDRoute(route){
     <h2 style="margin:0 0 5px;color:#1e3260;font-size:21px">📊 BOPE PERFORMANCE</h2>
     <p style="margin:0 0 14px;color:#667085;font-size:13px">Les résultats de tes publications, accessibles à tous les créateurs.</p>
     <div id="bcPerformanceContent"><p style="padding:18px;text-align:center;color:#667085">Chargement de tes statistiques…</p></div>
+   </section>
+   <section id="bcAdvisorPanel" style="display:none;padding:12px 2px;text-align:left">
+    <button type="button" onclick="bcNavigate('menu')" style="border:0;border-radius:20px;padding:9px 13px;background:#eef2f6;color:#344054;font-weight:700;margin-bottom:12px">‹ Retour au menu</button>
+    <h2 style="margin:0 0 5px;color:#663399;font-size:21px">🧠 MON CONSEILLER BOPE</h2>
+    <p style="margin:0 0 14px;color:#667085;font-size:13px">Des conseils fondés sur les statistiques réelles de tes publications pour t'aider à progresser.</p>
+    <div id="bcAdvisorContent"><p style="padding:18px;text-align:center;color:#667085">Analyse de tes publications…</p></div>
+    <p style="margin:12px 2px 0;color:#98a2b3;font-size:11px">Les conseils sont indicatifs et s'appuient uniquement sur les données disponibles dans ton compte BOPE.</p>
    </section>
    <section id="bcImpactPanel" style="display:none;padding:12px 2px;text-align:left">
     <button type="button" onclick="bcNavigate('menu')" style="border:0;border-radius:20px;padding:9px 13px;background:#eef2f6;color:#344054;font-weight:700;margin-bottom:12px">‹ Retour au menu</button>
@@ -3891,6 +3900,62 @@ function applyDRoute(route){
     }else{const info=document.createElement('div');info.style.cssText='flex:1;min-width:0';const meta=document.createElement('small');meta.textContent=(row.profiles?.display_name||'Utilisateur BOPE')+' • '+bcSafeDate(row.created_at);meta.style.cssText='display:block;color:#667085;margin-bottom:5px';info.appendChild(meta);if(row.content||row.caption){const body=document.createElement('p');body.textContent=row.content||row.caption;body.style.cssText='margin:0 0 7px;font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere';info.appendChild(body);}if(row.media_url){const media=row.media_type==='video'?document.createElement('video'):document.createElement('img');media.src=row.media_url;media.style.cssText='display:block;max-width:100%;max-height:230px;border-radius:10px;object-fit:contain;background:#111';if(media.tagName==='VIDEO'){media.controls=true;media.playsInline=true;media.preload='metadata';}else media.alt='Média BOPE';info.appendChild(media);}card.appendChild(info);}box.appendChild(card);});});
    if(!total){const p=document.createElement('p');p.style.cssText='padding:18px 8px;text-align:center;color:#667085;font-size:13px';p.textContent='Aucun résultat trouvé pour « '+q+' ».';box.appendChild(p);}
   };
+
+async function bcLoadAdvisor(){
+  const box=byId('bcAdvisorContent');
+  if(!box||!bcClient||!bcCurrentUser)return;
+  box.innerHTML='<p style="padding:18px;text-align:center;color:#667085">Analyse de tes publications…</p>';
+  try{
+    const {data:posts,error:postsError}=await bcClient.from('bope_posts').select('id,content,media_type,created_at').eq('author_id',bcCurrentUser.id).order('created_at',{ascending:false}).limit(100);
+    if(postsError)throw postsError;
+    if(!posts||!posts.length){
+      box.innerHTML='<div style="padding:18px;border:1px solid #eadcf8;background:#faf6ff;border-radius:14px"><strong>Commençons par ta première publication !</strong><p style="margin:7px 0 0;color:#667085;font-size:13px">Publie un contenu original. Dès que BOPE disposera de résultats, il pourra analyser tes vues et tes interactions pour te donner des conseils plus précis.</p></div>';
+      return;
+    }
+    const ids=posts.map(p=>p.id);
+    const results=await Promise.all([
+      bcClient.from('bope_post_views').select('post_id,viewer_id,viewed_at').in('post_id',ids),
+      bcClient.from('bope_post_reactions').select('post_id,created_at').in('post_id',ids),
+      bcClient.from('bope_post_comments').select('post_id,created_at').in('post_id',ids),
+      bcClient.from('bope_post_shares').select('post_id,created_at').in('post_id',ids)
+    ]);
+    for(const result of results)if(result.error)throw result.error;
+    const views=results[0].data||[],reactions=results[1].data||[],comments=results[2].data||[],shares=results[3].data||[];
+    const interactions=reactions.length+comments.length+shares.length;
+    const last7=Date.now()-7*86400000;
+    const recentViews=views.filter(v=>new Date(v.viewed_at).getTime()>=last7).length;
+    const count=(list,id)=>list.filter(row=>row.post_id===id).length;
+    const ranked=posts.map(post=>({post,views:count(views,post.id),reactions:count(reactions,post.id),comments:count(comments,post.id),shares:count(shares,post.id)}))
+      .map(x=>({...x,interactions:x.reactions+x.comments+x.shares}))
+      .sort((a,b)=>b.interactions-a.interactions||b.views-a.views);
+    const best=ranked[0];
+    const advice=[];
+    if(views.length===0){
+      advice.push(['👁️','Tes vues ne sont pas encore enregistrées','Continue à publier et partage tes contenus avec ton audience. BOPE pourra affiner ses conseils lorsque les premières consultations seront mesurées.']);
+    }else{
+      advice.push(['📈','Garde un rythme régulier',recentViews>0?'Tes publications ont enregistré '+recentViews+' vue(s) au cours des 7 derniers jours. Continue à publier régulièrement.':'Aucune vue n’a été enregistrée au cours des 7 derniers jours. Essaie de partager une nouvelle publication et de la faire découvrir à ton audience.']);
+      if(interactions===0){
+        advice.push(['💬','Encourage les échanges','Tes publications ont des vues, mais aucune réaction, aucun commentaire ni partage enregistré. Termine certains posts par une question simple pour inviter les lecteurs à participer.']);
+      }else{
+        advice.push(['🤝','Développe les interactions','Tu as '+interactions+' interaction(s) enregistrée(s). Réponds aux commentaires et propose des sujets qui donnent envie à ton audience de réagir.']);
+      }
+    }
+    if(best&&best.interactions>0){
+      const label=best.post.media_type==='video'?'vidéo':best.post.media_type==='image'?'photo':'publication';
+      advice.push(['🏆','Inspire-toi de ton contenu le plus engageant','Parmi tes '+posts.length+' publications analysées, ta '+label+' la plus interactive a obtenu '+best.interactions+' interaction(s) et '+best.views+' vue(s). Essaie d’identifier ce qui a intéressé ton audience, puis crée un contenu original sur un sujet proche.']);
+    }else if(posts.length>=3){
+      advice.push(['💡','Teste plusieurs formats et sujets','Tu as déjà '+posts.length+' publications analysées. Varie les sujets et les formats, puis compare leurs résultats dans BOPE PERFORMANCE pour repérer ce qui intéresse ton audience.']);
+    }
+    const kpis=[['Publications',posts.length],['Vues enregistrées',views.length],['Interactions',interactions],['Vues sur 7 jours',recentViews]];
+    const cards=kpis.map(k=>'<div style="background:#fff;border:1px solid #eadcf8;border-radius:12px;padding:12px"><strong style="display:block;font-size:21px;color:#663399">'+k[1]+'</strong><span style="font-size:11px;color:#667085">'+k[0]+'</span></div>').join('');
+    const adviceHtml=advice.map(a=>'<div style="display:flex;gap:10px;padding:13px;border:1px solid #eadcf8;border-radius:13px;background:#fff;margin-top:9px"><span style="font-size:22px">'+a[0]+'</span><div><strong style="color:#45246a;font-size:14px">'+a[1]+'</strong><p style="margin:5px 0 0;color:#667085;font-size:13px;line-height:1.45">'+a[2]+'</p></div></div>').join('');
+    box.innerHTML='<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">'+cards+'</div><h3 style="margin:18px 0 8px;color:#45246a;font-size:16px">Tes recommandations</h3>'+adviceHtml+'<button type="button" onclick="bcNavigate(\'performance\')" style="margin-top:14px;width:100%;border:0;border-radius:12px;padding:12px;background:#663399;color:#fff;font-weight:700">📊 Voir mes statistiques détaillées</button>';
+  }catch(error){
+    console.warn('BOPE CONSEILLER',error);
+    box.innerHTML='<div style="padding:14px;border:1px solid #fecaca;background:#fff7f7;border-radius:12px;color:#991b1b;font-size:13px">Impossible d’analyser tes publications pour le moment. Réessaie plus tard.</div>';
+  }
+}
+
 async function bcLoadImpact(){
   const box=byId('bcImpactStatsContent');
   if(!box||!bcClient||!bcCurrentUser||bcAccountType!=='professional')return;
@@ -3971,6 +4036,7 @@ window.bcNavigate=function(tab){
    menu:{icon:'☰',title:'Mon espace et paramètres',text:'Retrouve les informations de ton compte et la modification de ton profil.'},
    groups:{icon:'👥',title:'Groupes BOPE',text:'Découvre les groupes de la communauté BOPE ou crée ton propre groupe.'},
    performance:{icon:'📊',title:'BOPE PERFORMANCE',text:'Consulte les statistiques de tes publications.'},
+   advisor:{icon:'🧠',title:'MON CONSEILLER BOPE',text:'Reçois des recommandations personnalisées à partir des résultats réels de tes publications.'},
    impact:{icon:'🌟',title:'BOPE IMPACT',text:'Développe ton activité grâce aux analyses et conseils professionnels de BOPE.'}
   };
   const item=tabs[tab]||tabs.home;
@@ -3981,6 +4047,7 @@ window.bcNavigate=function(tab){
   });
   byId('bcProfileSection').style.display=tab==='menu'?'block':'none';
   byId('bcPerformancePanel').style.display=tab==='performance'?'block':'none';
+  byId('bcAdvisorPanel').style.display=tab==='advisor'?'block':'none';
   byId('bcImpactPanel').style.display=tab==='impact'?'block':'none';
   byId('bcFeedSection').classList.toggle('show',tab==='home');
   byId('bcNotificationsPanel').style.display=tab==='notifications'?'block':'none';
@@ -3997,6 +4064,7 @@ window.bcNavigate=function(tab){
   if(tab==='friends'){window.bcLoadFriends();byId('bcPeopleSearchInput').focus();}
   if(tab==='groups')window.bcLoadGroups();
   if(tab==='performance')bcLoadPerformance();
+  if(tab==='advisor')bcLoadAdvisor();
   if(tab==='impact')bcLoadImpact();
   byId('bcPanelIcon').textContent=item.icon;
   byId('bcPanelTitle').textContent=item.title;
