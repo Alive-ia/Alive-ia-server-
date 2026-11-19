@@ -1661,6 +1661,10 @@ function applyDRoute(route){
      </div>
      <p class="bc-post-status" id="bcPostStatus">Texte, photo ou vidéo • 50 Mo maximum pour un média.</p>
     </div>
+    <div id="bcFeedModeBar" style="display:flex;gap:8px;padding:10px 0;position:sticky;top:0;background:inherit;z-index:3">
+     <button type="button" id="bcFeedForYou" onclick="bcSetFeedMode('personalized')" style="flex:1;border:1px solid #3a5fd0;border-radius:18px;padding:9px;background:#3a5fd0;color:#fff;font-weight:700">✨ Pour toi</button>
+     <button type="button" id="bcFeedNewest" onclick="bcSetFeedMode('recent')" style="flex:1;border:1px solid #444;border-radius:18px;padding:9px;background:#202020;color:#ddd;font-weight:700">🕒 Plus récents</button>
+    </div>
     <div id="bcPostsList"></div>
     <div class="bc-feed-placeholder" id="bcPostsEmpty">
      <div class="bc-empty-icon">🇨🇩</div>
@@ -2614,7 +2618,9 @@ function applyDRoute(route){
    else{const avatar=document.createElement('div');avatar.className='bc-post-avatar';avatar.textContent='👤';head.appendChild(avatar);}
    const meta=document.createElement('div');const name=document.createElement('strong');name.textContent=(post.profiles&&post.profiles.display_name)||'Utilisateur BOPE';
    const date=document.createElement('small');date.textContent=bcSafeDate(post.created_at)+(post.profiles&&post.profiles.username?' • @'+post.profiles.username:'');
-   meta.append(name,date);head.appendChild(meta);card.appendChild(head);
+   meta.append(name,date);
+   if(post._bopeFeed){const badge=document.createElement('small');badge.textContent=post._bopeFeed.type==='discovery'?' ✨ Découverte':' • Pour toi';badge.style.color=post._bopeFeed.type==='discovery'?'#d6b45a':'#8eb0ff';meta.appendChild(badge);}
+   head.appendChild(meta);card.appendChild(head);
    if(post.content){const body=document.createElement('p');const style=bcPostStyleNames.includes(post.background_style)?post.background_style:'default';body.className='bc-post-text'+(style==='default'?'':' bc-post-bg-'+style);body.textContent=post.content;card.appendChild(body);}
    let media=null;
    if(post.media_url){
@@ -2787,39 +2793,76 @@ function applyDRoute(route){
    }
   });
  }
+ window.bcSetFeedMode=function(mode){
+  const next=mode==='recent'?'recent':'personalized';
+  try{localStorage.setItem('bope_feed_mode',next);}catch(e){}
+  const forYou=byId('bcFeedForYou'),newest=byId('bcFeedNewest');
+  if(forYou){forYou.style.background=next==='personalized'?'#3a5fd0':'#202020';forYou.style.color=next==='personalized'?'#fff':'#ddd';forYou.style.borderColor=next==='personalized'?'#3a5fd0':'#444';}
+  if(newest){newest.style.background=next==='recent'?'#3a5fd0':'#202020';newest.style.color=next==='recent'?'#fff':'#ddd';newest.style.borderColor=next==='recent'?'#3a5fd0':'#444';}
+  window.bcLoadPosts(true);
+ };
  window.bcLoadPosts=async function(markSeen=false){
   if(!bcClient)return;
   const sharedParts=window.location.pathname.split('/').filter(Boolean);
   const sharedPostId=sharedParts.length===2&&sharedParts[0]==='publication'&&/^[0-9a-f-]{36}$/i.test(sharedParts[1])?sharedParts[1]:null;
+  let mode='recent';try{mode=localStorage.getItem('bope_feed_mode')||'personalized';}catch(e){mode='personalized';}
+  if(!sharedPostId&&mode!=='recent')mode='personalized';
+  const forYouButton=byId('bcFeedForYou'),newestButton=byId('bcFeedNewest');
+  if(forYouButton){forYouButton.style.background=mode==='personalized'?'#3a5fd0':'#202020';forYouButton.style.color=mode==='personalized'?'#fff':'#ddd';forYouButton.style.borderColor=mode==='personalized'?'#3a5fd0':'#444';}
+  if(newestButton){newestButton.style.background=mode==='recent'?'#3a5fd0':'#202020';newestButton.style.color=mode==='recent'?'#fff':'#ddd';newestButton.style.borderColor=mode==='recent'?'#3a5fd0':'#444';}
+  let engine=window.BOPEFeedEngine;
+  if(!engine&&!sharedPostId&&mode==='personalized'){
+   try{await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='/bope-feed-engine.js';script.onload=resolve;script.onerror=()=>reject(new Error('Moteur du fil indisponible'));document.head.appendChild(script);});engine=window.BOPEFeedEngine;}
+   catch(loadError){console.warn('BOPE Feed Engine:',loadError);mode='recent';}
+  }
   let postsQuery=bcClient.from('bope_posts').select('id,author_id,content,media_url,media_type,background_style,created_at,profiles(display_name,username,avatar_url)').order('created_at',{ascending:false});
-  if(sharedPostId)postsQuery=postsQuery.eq('id',sharedPostId);else postsQuery=postsQuery.limit(50);
+  if(sharedPostId)postsQuery=postsQuery.eq('id',sharedPostId);
+  else postsQuery=postsQuery.limit(mode==='personalized'?100:50);
   const {data,error}=await postsQuery;
   if(error){byId('bcPostStatus').textContent='Impossible de charger les publications : '+error.message;return;}
-  const posts=data||[],ids=posts.map(p=>p.id);let reactions=[],comments=[],commentProfiles={},postShares=[],shareProfiles={},shareCounts={};
+  let posts=data||[],ids=posts.map(p=>p.id);
+  let reactions=[],comments=[],commentProfiles={},postShares=[],shareProfiles={},shareCounts={};
   if(ids.length){
    const {data:reactionData,error:reactionError}=await bcClient.from('bope_post_reactions').select('post_id,user_id,reaction_type').in('post_id',ids);
-   if(reactionError){byId('bcPostStatus').textContent='Réactions indisponibles : '+reactionError.message;}
-   else reactions=reactionData||[];
+   if(reactionError){byId('bcPostStatus').textContent='Réactions indisponibles : '+reactionError.message;}else reactions=reactionData||[];
    const {data:commentData,error:commentError}=await bcClient.from('bope_post_comments').select('id,post_id,author_id,content,created_at,updated_at').in('post_id',ids).order('created_at',{ascending:true});
    if(commentError){byId('bcPostStatus').textContent='Commentaires indisponibles : '+commentError.message;}
-   else{
-    comments=commentData||[];
-    const authorIds=[...new Set(comments.map(c=>c.author_id))];
-    if(authorIds.length){
-     const {data:profiles,error:profilesError}=await bcClient.from('profiles').select('id,display_name,avatar_url').in('id',authorIds);
-     if(profilesError){byId('bcPostStatus').textContent='Profils des commentateurs indisponibles : '+profilesError.message;}
-     else (profiles||[]).forEach(p=>{commentProfiles[p.id]=p;});
-    }
-   }
-  }
-  if(ids.length){
+   else{comments=commentData||[];const authorIds=[...new Set(comments.map(c=>c.author_id))];if(authorIds.length){const {data:profiles,error:profilesError}=await bcClient.from('profiles').select('id,display_name,avatar_url').in('id',authorIds);if(profilesError){byId('bcPostStatus').textContent='Profils des commentateurs indisponibles : '+profilesError.message;}else(profiles||[]).forEach(p=>{commentProfiles[p.id]=p;});}}
    const {data:shareRows,error:shareError}=await bcClient.from('bope_post_shares').select('id,post_id,user_id,comment,created_at').in('post_id',ids).order('created_at',{ascending:false});
    if(shareError)byId('bcPostStatus').textContent='Repartages momentanément indisponibles : '+shareError.message;
-   else{postShares=shareRows||[];postShares.forEach(row=>{shareCounts[row.post_id]=(shareCounts[row.post_id]||0)+1;});
-    const sharerIds=[...new Set(postShares.map(row=>row.user_id))];if(sharerIds.length){const {data:profiles,error:pe}=await bcClient.from('profiles').select('id,display_name,username,avatar_url').in('id',sharerIds);if(!pe)(profiles||[]).forEach(p=>{shareProfiles[p.id]=p;});}
-   }
+   else{postShares=shareRows||[];postShares.forEach(row=>{shareCounts[row.post_id]=(shareCounts[row.post_id]||0)+1;});const sharerIds=[...new Set(postShares.map(row=>row.user_id))];if(sharerIds.length){const {data:profiles,error:pe}=await bcClient.from('profiles').select('id,display_name,username,avatar_url').in('id',sharerIds);if(!pe)(profiles||[]).forEach(p=>{shareProfiles[p.id]=p;});}}
+  }
+  if(!sharedPostId&&mode==='personalized'&&engine&&bcCurrentUser){
+   const since=new Date(Date.now()-24*60*60*1000).toISOString();
+   const [interestResult,feedbackResult,historyResult,friendResult]=await Promise.all([
+    bcClient.from('bope_user_interests').select('topic,interest_score').eq('user_id',bcCurrentUser.id),
+    bcClient.from('bope_post_feedback').select('post_id,author_id,feedback_type').eq('user_id',bcCurrentUser.id),
+    bcClient.from('bope_feed_history').select('post_id').eq('user_id',bcCurrentUser.id).gte('shown_at',since).limit(300),
+    bcClient.from('bope_friendships').select('user_one,user_two').or('user_one.eq.'+bcCurrentUser.id+',user_two.eq.'+bcCurrentUser.id)
+   ]);
+   const failed=[interestResult,feedbackResult,historyResult,friendResult].find(x=>x.error);
+   if(failed)console.warn('Contexte de personnalisation BOPE partiellement indisponible:',failed.error.message);
+   const interests={};(interestResult.data||[]).forEach(row=>{interests[row.topic]=Number(row.interest_score)||0;});
+   const excludedPostIds=(feedbackResult.data||[]).filter(row=>row.feedback_type==='not_interested').map(row=>row.post_id).filter(Boolean);
+   const hiddenAuthorIds=(feedbackResult.data||[]).filter(row=>row.feedback_type==='less_from_author').map(row=>row.author_id).filter(Boolean);
+   const shownPostIds=(historyResult.data||[]).map(row=>row.post_id).filter(Boolean);
+   const friendIds=(friendResult.data||[]).map(row=>row.user_one===bcCurrentUser.id?row.user_two:row.user_one);
+   const engagementByPost={};
+   ids.forEach(id=>engagementByPost[id]={reactions:0,comments:0,shares:shareCounts[id]||0});
+   reactions.forEach(row=>{if(engagementByPost[row.post_id])engagementByPost[row.post_id].reactions++;});
+   comments.forEach(row=>{if(engagementByPost[row.post_id])engagementByPost[row.post_id].comments++;});
+   const authorStats={};
+   posts.forEach(post=>{const key=post.author_id||'';if(!authorStats[key])authorStats[key]={posts:0,engagement:0};authorStats[key].posts++;authorStats[key].engagement+=(engagementByPost[post.id]?.reactions||0)+(engagementByPost[post.id]?.comments||0)+(engagementByPost[post.id]?.shares||0);});
+   const underexposedAuthorIds=Object.entries(authorStats).filter(([,v])=>v.posts<=3&&v.engagement<=2).map(([id])=>id);
+   posts=engine.rankFeed(posts,{limit:30,discoveryRatio:0.2,interests,friendIds,underexposedAuthorIds,shownPostIds,excludedPostIds,hiddenAuthorIds,engagementByPost});
   }
   bcRenderPosts(posts,reactions,comments,commentProfiles,shareCounts);bcRenderSharedPostCards(postShares,posts,shareProfiles);
+  if(!sharedPostId&&bcCurrentUser&&posts.length){
+   const feedType=mode==='personalized'?'personalized':'discovery';
+   const rows=posts.map(post=>({user_id:bcCurrentUser.id,post_id:post.id,feed_type:post._bopeFeed?.type||feedType}));
+   const {error:historyInsertError}=await bcClient.from('bope_feed_history').insert(rows);
+   if(historyInsertError)console.warn('Historique du fil BOPE non enregistré:',historyInsertError.message);
+  }
   if(markSeen){
    posts.forEach(post=>bcFeedSeenIds.add(post.id));
    const newest=posts.reduce((max,post)=>{const time=Date.parse(post.created_at||'');return Number.isFinite(time)&&time>max?time:max;},0);
@@ -2831,12 +2874,12 @@ function applyDRoute(route){
    if(newest)bcFeedNewestAt=new Date(newest).toISOString();
   }
   if(sharedPostId){
-   if(posts.length){
-    byId('bcPostStatus').textContent='Publication partagée — tu consultes son emplacement original sur BS.';
-    setTimeout(()=>{const target=document.querySelector('[data-post-id="'+sharedPostId+'"]');if(target)target.scrollIntoView({behavior:'smooth',block:'start'});},120);
-   }else{
-    byId('bcPostStatus').textContent='Cette publication est introuvable ou n’est plus accessible.';
-   }
+   if(posts.length){byId('bcPostStatus').textContent='Publication partagée — tu consultes son emplacement original sur BS.';setTimeout(()=>{const target=document.querySelector('[data-post-id="'+sharedPostId+'"]');if(target)target.scrollIntoView({behavior:'smooth',block:'start'});},120);}
+   else byId('bcPostStatus').textContent='Cette publication est introuvable ou n’est plus accessible.';
+  }else if(mode==='personalized'){
+   byId('bcPostStatus').textContent='✨ Fil intelligent : recommandations personnalisées et découvertes de la communauté.';
+  }else{
+   byId('bcPostStatus').textContent='🕒 Fil chronologique : les publications les plus récentes en premier.';
   }
  };
  window.bcPublishPost=async function(){
