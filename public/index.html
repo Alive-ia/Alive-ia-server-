@@ -2850,6 +2850,34 @@ function applyDRoute(route){
    const failed=[interestResult,feedbackResult,historyResult,friendResult].find(x=>x.error);
    if(failed)console.warn('Contexte de personnalisation BOPE partiellement indisponible:',failed.error.message);
    const interests={};(interestResult.data||[]).forEach(row=>{interests[row.topic]=Number(row.interest_score)||0;});
+   // Apprentissage léger à partir des publications avec lesquelles le membre a interagi.
+   try{
+    const ninetyDaysAgo=new Date(Date.now()-90*24*60*60*1000).toISOString();
+    const [myReactions,myComments,myShares]=await Promise.all([
+     bcClient.from('bope_post_reactions').select('post_id').eq('user_id',bcCurrentUser.id).gte('created_at',ninetyDaysAgo).limit(300),
+     bcClient.from('bope_post_comments').select('post_id').eq('author_id',bcCurrentUser.id).gte('created_at',ninetyDaysAgo).limit(300),
+     bcClient.from('bope_post_shares').select('post_id').eq('user_id',bcCurrentUser.id).gte('created_at',ninetyDaysAgo).limit(300)
+    ]);
+    const weights={};
+    const addTopicWeight=(postId,weight)=>{if(!postId)return;(weights[postId]||=0);weights[postId]+=weight;};
+    (myReactions.data||[]).forEach(row=>addTopicWeight(row.post_id,2));
+    (myComments.data||[]).forEach(row=>addTopicWeight(row.post_id,4));
+    (myShares.data||[]).forEach(row=>addTopicWeight(row.post_id,5));
+    const interactedIds=Object.keys(weights);
+    if(interactedIds.length){
+     const {data:interactedPosts,error:interactedError}=await bcClient.from('bope_posts').select('id,content').in('id',interactedIds);
+     if(!interactedError){
+      const topicWeights={};
+      (interactedPosts||[]).forEach(post=>{engine.topicMatches(post.content||'').forEach(topic=>{topicWeights[topic]=(topicWeights[topic]||0)+weights[post.id];});});
+      const learnedRows=Object.entries(topicWeights).map(([topic,weight])=>({user_id:bcCurrentUser.id,topic,interest_score:Math.min(100,weight*5)}));
+      if(learnedRows.length){
+       const {error:saveInterestError}=await bcClient.from('bope_user_interests').upsert(learnedRows,{onConflict:'user_id,topic'});
+       if(saveInterestError)console.warn('Apprentissage des centres d’intérêt BOPE non enregistré:',saveInterestError.message);
+       else learnedRows.forEach(row=>{interests[row.topic]=row.interest_score;});
+      }
+     }else console.warn('Contenus des publications interactives indisponibles:',interactedError.message);
+    }
+   }catch(learningError){console.warn('Apprentissage du fil BOPE:',learningError.message);}
    const excludedPostIds=(feedbackResult.data||[]).filter(row=>row.feedback_type==='not_interested').map(row=>row.post_id).filter(Boolean);
    const hiddenAuthorIds=(feedbackResult.data||[]).filter(row=>row.feedback_type==='less_from_author').map(row=>row.author_id).filter(Boolean);
    const shownPostIds=(historyResult.data||[]).map(row=>row.post_id).filter(Boolean);shownPostIds.forEach(id=>alreadyShownPostIds.add(id));
