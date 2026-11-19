@@ -2827,7 +2827,7 @@ function applyDRoute(route){
   else postsQuery=postsQuery.limit(mode==='personalized'?100:50);
   const {data,error}=await postsQuery;
   if(error){byId('bcPostStatus').textContent='Impossible de charger les publications : '+error.message;return;}
-  let posts=data||[],ids=posts.map(p=>p.id);
+  let posts=data||[],ids=posts.map(p=>p.id),alreadyShownPostIds=new Set();
   let reactions=[],comments=[],commentProfiles={},postShares=[],shareProfiles={},shareCounts={};
   if(ids.length){
    const {data:reactionData,error:reactionError}=await bcClient.from('bope_post_reactions').select('post_id,user_id,reaction_type').in('post_id',ids);
@@ -2852,7 +2852,7 @@ function applyDRoute(route){
    const interests={};(interestResult.data||[]).forEach(row=>{interests[row.topic]=Number(row.interest_score)||0;});
    const excludedPostIds=(feedbackResult.data||[]).filter(row=>row.feedback_type==='not_interested').map(row=>row.post_id).filter(Boolean);
    const hiddenAuthorIds=(feedbackResult.data||[]).filter(row=>row.feedback_type==='less_from_author').map(row=>row.author_id).filter(Boolean);
-   const shownPostIds=(historyResult.data||[]).map(row=>row.post_id).filter(Boolean);
+   const shownPostIds=(historyResult.data||[]).map(row=>row.post_id).filter(Boolean);shownPostIds.forEach(id=>alreadyShownPostIds.add(id));
    const friendIds=(friendResult.data||[]).map(row=>row.user_one===bcCurrentUser.id?row.user_two:row.user_one);
    const engagementByPost={};
    ids.forEach(id=>engagementByPost[id]={reactions:0,comments:0,shares:shareCounts[id]||0});
@@ -2866,9 +2866,8 @@ function applyDRoute(route){
   bcRenderPosts(posts,reactions,comments,commentProfiles,shareCounts);bcRenderSharedPostCards(postShares,posts,shareProfiles);
   if(!sharedPostId&&mode==='personalized'&&bcCurrentUser&&posts.length){
    const feedType='personalized';
-   const rows=posts.map(post=>({user_id:bcCurrentUser.id,post_id:post.id,feed_type:post._bopeFeed?.type||feedType}));
-   const {error:historyInsertError}=await bcClient.from('bope_feed_history').insert(rows);
-   if(historyInsertError)console.warn('Historique du fil BOPE non enregistré:',historyInsertError.message);
+   const rows=posts.filter(post=>!alreadyShownPostIds.has(post.id)).map(post=>({user_id:bcCurrentUser.id,post_id:post.id,feed_type:post._bopeFeed?.type||feedType}));
+   if(rows.length){const {error:historyInsertError}=await bcClient.from('bope_feed_history').insert(rows);if(historyInsertError)console.warn('Historique du fil BOPE non enregistré:',historyInsertError.message);}
   }
   if(markSeen){
    posts.forEach(post=>bcFeedSeenIds.add(post.id));
