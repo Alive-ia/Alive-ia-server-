@@ -127,7 +127,7 @@
     const sevenDays = 7 * 24 * 3600000;
     const discovery = ranked
       .filter(item => item.ageMs <= sevenDays && !context.shownPostIds.has(item.post.id))
-      .sort((a, b) => b.ageMs - a.ageMs || a.score - b.score);
+      .sort((a, b) => a.ageMs - b.ageMs || a.score - b.score);
 
     const personalized = ranked
       .filter(item => !context.shownPostIds.has(item.post.id))
@@ -144,37 +144,35 @@
     const output = [];
     let mainIndex = 0;
     let discoveryIndex = 0;
-    for (let slot = 0; slot < limit; slot++) {
-      const isDiscoverySlot = discoveryCount > 0 && ((slot + 1) % Math.round(1 / discoveryRatio) === 0);
-      const item = isDiscoverySlot && discoveryIndex < discoveryPicks.length
-        ? discoveryPicks[discoveryIndex++]
-        : main[mainIndex++];
-      if (item) output.push({
-        ...item.post,
-        _bopeFeed: {
-          type: discoveryPicks.includes(item) ? 'discovery' : 'personalized',
-          score: Math.round(item.score * 100) / 100,
-          topics: item.topics,
-          reasons: item.reasons
-        }
-      });
-    }
-
-    // Si un compartiment n'a pas assez de publications, complète avec l'autre sans doublons.
-    const leftovers = [...main.slice(mainIndex), ...discoveryPicks.slice(discoveryIndex)];
-    for (const item of leftovers) {
-      if (output.length >= limit) break;
-      if (!selectedIds.has(item.post.id)) continue;
-      if (output.some(post => post.id === item.post.id)) continue;
+    const discoveryEvery = discoveryRatio > 0 ? Math.max(1, Math.round(1 / discoveryRatio)) : Infinity;
+    const discoverySet = new Set(discoveryPicks.map(item => item.post.id));
+    const append = item => {
+      if (!item || output.some(post => post.id === item.post.id)) return;
       output.push({
         ...item.post,
         _bopeFeed: {
-          type: discoveryPicks.includes(item) ? 'discovery' : 'personalized',
+          type: discoverySet.has(item.post.id) ? 'discovery' : 'personalized',
           score: Math.round(item.score * 100) / 100,
           topics: item.topics,
           reasons: item.reasons
         }
       });
+    };
+
+    for (let slot = 0; slot < limit; slot++) {
+      const isDiscoverySlot = discoveryCount > 0 && (slot + 1) % discoveryEvery === 0;
+      let item = isDiscoverySlot ? discoveryPicks[discoveryIndex++] : main[mainIndex++];
+      if (!item && isDiscoverySlot) item = main[mainIndex++];
+      if (!item) item = discoveryPicks[discoveryIndex++];
+      append(item);
+    }
+
+    // Remplit les places restantes si l'un des deux compartiments est trop petit.
+    const leftovers = [...personalized, ...discovery];
+    for (const item of leftovers) {
+      if (output.length >= limit) break;
+      if (output.some(post => post.id === item.post.id)) continue;
+      append(item);
     }
     return output;
   }
