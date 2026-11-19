@@ -2857,8 +2857,8 @@ function applyDRoute(route){
    posts=engine.rankFeed(posts,{limit:30,discoveryRatio:0.2,interests,friendIds,underexposedAuthorIds,shownPostIds,excludedPostIds,hiddenAuthorIds,engagementByPost});
   }
   bcRenderPosts(posts,reactions,comments,commentProfiles,shareCounts);bcRenderSharedPostCards(postShares,posts,shareProfiles);
-  if(!sharedPostId&&bcCurrentUser&&posts.length){
-   const feedType=mode==='personalized'?'personalized':'discovery';
+  if(!sharedPostId&&mode==='personalized'&&bcCurrentUser&&posts.length){
+   const feedType='personalized';
    const rows=posts.map(post=>({user_id:bcCurrentUser.id,post_id:post.id,feed_type:post._bopeFeed?.type||feedType}));
    const {error:historyInsertError}=await bcClient.from('bope_feed_history').insert(rows);
    if(historyInsertError)console.warn('Historique du fil BOPE non enregistré:',historyInsertError.message);
