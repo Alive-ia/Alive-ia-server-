@@ -129,10 +129,12 @@
       .filter(item => item.ageMs <= sevenDays && !context.shownPostIds.has(item.post.id))
       .sort((a, b) => a.ageMs - b.ageMs || a.score - b.score);
 
-    // Les publications déjà proposées restent disponibles en dernier recours,
-    // avec la pénalité de score appliquée plus haut. Cela évite un fil vide.
     const personalized = ranked
-      .slice()
+      .filter(item => !context.shownPostIds.has(item.post.id))
+      .sort((a, b) => b.score - a.score || new Date(b.post.created_at) - new Date(a.post.created_at));
+    // Les publications déjà proposées ne servent qu'à compléter un fil presque épuisé.
+    const previouslyShown = ranked
+      .filter(item => context.shownPostIds.has(item.post.id))
       .sort((a, b) => b.score - a.score || new Date(b.post.created_at) - new Date(a.post.created_at));
 
     const discoveryCount = Math.min(limit, Math.floor(limit * discoveryRatio));
@@ -170,7 +172,7 @@
     }
 
     // Remplit les places restantes si l'un des deux compartiments est trop petit.
-    const leftovers = [...personalized, ...discovery];
+    const leftovers = [...personalized, ...discovery, ...previouslyShown];
     for (const item of leftovers) {
       if (output.length >= limit) break;
       if (output.some(post => post.id === item.post.id)) continue;
