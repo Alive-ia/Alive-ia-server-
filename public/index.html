@@ -2773,9 +2773,47 @@ function applyDRoute(route){
     card.appendChild(feedbackBar);
    }
    card.append(commentsPanel,sharePanel);list.appendChild(card);
-   // Enregistre une vue lorsqu'une publication reste réellement visible à l'écran.
+   // Mesure le temps de lecture réel lorsque la carte reste visible (60% minimum).
    if('IntersectionObserver' in window&&bcClient&&bcCurrentUser&&post.author_id!==bcCurrentUser.id){
     window.bcRecordedPostViews=window.bcRecordedPostViews||new Set();
+    window.BOPEReadTrackers=window.BOPEReadTrackers||new Set();
+    if(!window.BOPEReadVisibilityHandler){
+     window.BOPEReadVisibilityHandler=true;
+     document.addEventListener('visibilitychange',()=>{
+      if(document.hidden)(window.BOPEReadTrackers||new Set()).forEach(tracker=>tracker.stop());
+     });
+    }
+    const tracker={
+     startedAt:0,timer:null,active:false,
+     async flush(){
+      if(!this.startedAt)return;
+      const seconds=Math.floor((Date.now()-this.startedAt)/1000);
+      this.startedAt=Date.now();
+      if(seconds>0){
+       const {error}=await bcClient.from('bope_post_read_time').insert({user_id:bcCurrentUser.id,post_id:post.id,read_seconds:Math.min(seconds,3600)});
+       if(error)console.warn('Temps de lecture BOPE non enregistré:',error.message);
+      }
+     },
+     start(){
+      if(this.active||document.hidden)return;
+      this.active=true;this.startedAt=Date.now();
+      this.timer=setInterval(()=>this.flush(),5000);
+     },
+     async stop(){
+      if(!this.active)return;
+      this.active=false;if(this.timer)clearInterval(this.timer);this.timer=null;
+      await this.flush();this.startedAt=0;
+     }
+    };
+    window.BOPEReadTrackers.add(tracker);
+    const readObserver=new IntersectionObserver(entries=>{
+     entries.forEach(entry=>{
+      if(entry.target!==card)return;
+      if(entry.isIntersecting&&entry.intersectionRatio>=0.6&&!document.hidden)tracker.start();
+      else tracker.stop();
+     });
+    },{threshold:[0,0.6,1]});
+    readObserver.observe(card);
     if(!window.bcRecordedPostViews.has(post.id)){
      let viewTimer=null,viewSent=false;
      const viewObserver=new IntersectionObserver(entries=>{
@@ -2853,16 +2891,20 @@ function applyDRoute(route){
    // Apprentissage léger à partir des publications avec lesquelles le membre a interagi.
    try{
     const ninetyDaysAgo=new Date(Date.now()-90*24*60*60*1000).toISOString();
-    const [myReactions,myComments,myShares]=await Promise.all([
+    const [myReactions,myComments,myShares,myReading]=await Promise.all([
      bcClient.from('bope_post_reactions').select('post_id').eq('user_id',bcCurrentUser.id).gte('created_at',ninetyDaysAgo).limit(300),
      bcClient.from('bope_post_comments').select('post_id').eq('author_id',bcCurrentUser.id).gte('created_at',ninetyDaysAgo).limit(300),
-     bcClient.from('bope_post_shares').select('post_id').eq('user_id',bcCurrentUser.id).gte('created_at',ninetyDaysAgo).limit(300)
+     bcClient.from('bope_post_shares').select('post_id').eq('user_id',bcCurrentUser.id).gte('created_at',ninetyDaysAgo).limit(300),
+     bcClient.from('bope_post_read_time').select('post_id,read_seconds').eq('user_id',bcCurrentUser.id).gte('created_at',ninetyDaysAgo).limit(3000)
     ]);
     const weights={};
     const addTopicWeight=(postId,weight)=>{if(!postId)return;(weights[postId]||=0);weights[postId]+=weight;};
     (myReactions.data||[]).forEach(row=>addTopicWeight(row.post_id,2));
     (myComments.data||[]).forEach(row=>addTopicWeight(row.post_id,4));
     (myShares.data||[]).forEach(row=>addTopicWeight(row.post_id,5));
+    const secondsByPost={};
+    (myReading.data||[]).forEach(row=>{secondsByPost[row.post_id]=(secondsByPost[row.post_id]||0)+(Number(row.read_seconds)||0);});
+    Object.entries(secondsByPost).forEach(([postId,seconds])=>addTopicWeight(postId,Math.min(10,Math.floor(seconds/10))));
     const interactedIds=Object.keys(weights);
     if(interactedIds.length){
      const {data:interactedPosts,error:interactedError}=await bcClient.from('bope_posts').select('id,content').in('id',interactedIds);
