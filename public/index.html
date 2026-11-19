@@ -2809,10 +2809,12 @@ function applyDRoute(route){
     const readObserver=new IntersectionObserver(entries=>{
      entries.forEach(entry=>{
       if(entry.target!==card)return;
-      if(entry.isIntersecting&&entry.intersectionRatio>=0.6&&!document.hidden)tracker.start();
+      const visibleHeight=entry.intersectionRect?entry.intersectionRect.height:0;
+      const requiredHeight=Math.min(120,Math.max(60,entry.boundingClientRect.height*0.15));
+      if(entry.isIntersecting&&visibleHeight>=requiredHeight&&!document.hidden)tracker.start();
       else tracker.stop();
      });
-    },{threshold:[0,0.6,1]});
+    },{threshold:[0,0.05,0.1,0.2]});
     readObserver.observe(card);
     if(!window.bcRecordedPostViews.has(post.id)){
      let viewTimer=null,viewSent=false;
