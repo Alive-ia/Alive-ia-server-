@@ -129,8 +129,10 @@
       .filter(item => item.ageMs <= sevenDays && !context.shownPostIds.has(item.post.id))
       .sort((a, b) => a.ageMs - b.ageMs || a.score - b.score);
 
+    // Les publications déjà proposées restent disponibles en dernier recours,
+    // avec la pénalité de score appliquée plus haut. Cela évite un fil vide.
     const personalized = ranked
-      .filter(item => !context.shownPostIds.has(item.post.id))
+      .slice()
       .sort((a, b) => b.score - a.score || new Date(b.post.created_at) - new Date(a.post.created_at));
 
     const discoveryCount = Math.min(limit, Math.floor(limit * discoveryRatio));
