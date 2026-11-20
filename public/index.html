@@ -1568,13 +1568,9 @@ function applyDRoute(route){
 <!-- BOPE CRÉATEURS : inscription et connexion -->
 <section id="bopeCreatorsPage" aria-label="BOPE SOCIAL">
  <div class="bc-shell">
-  <div class="bc-top bc-premium-header">
-   <button class="bc-header-back" type="button" onclick="closeBopeCreators()" aria-label="Retour">‹</button>
-   <div class="bc-brand" aria-label="BOPE Premium"><strong class="bc-brand-mark"><span aria-hidden="true">♛</span> BOPE</strong></div>
-   <div class="bc-header-actions">
-    <button type="button" onclick="bcNavigate('menu')" aria-label="Paramètres" title="Paramètres">⚙</button>
-    <button type="button" onclick="bcNavigate('notifications')" aria-label="Notifications" title="Notifications">♧</button>
-   </div>
+  <div class="bc-top">
+   <button class="bc-back" type="button" onclick="closeBopeCreators()">← Retour</button>
+   <div class="bc-brand" aria-label="B.S bope sociale"><strong class="bc-brand-mark">B.S</strong><small>bope sociale</small></div>
   </div>
   <div class="bc-card" id="bcAuthCard">
    <h2>Bienvenue sur BS</h2>
@@ -1614,13 +1610,16 @@ function applyDRoute(route){
     <div id="bcSavedAccountsList"></div>
     <button type="button" onclick="bcAddAnotherAccount()" style="width:100%;margin-top:10px;border:0;border-radius:12px;padding:11px;background:#c62828;color:white;font-weight:700">＋ Ajouter un compte</button>
    </div>
-   <div class="bc-legacy-account-actions" aria-hidden="true" style="display:none"></div>
+   <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 4px 12px">
+    <strong style="font-size:20px;color:#1877f2;letter-spacing:-.5px">BOPE</strong>
+    <div style="display:flex;gap:8px;align-items:center"><button type="button" onclick="bcOpenAccountSwitcher()" style="border:0;border-radius:18px;background:#fff0e8;color:#c62828;padding:8px 10px;font-size:12px;font-weight:700">⇄ Changer de compte</button><button type="button" aria-label="Rechercher" onclick="bcOpenGlobalSearch()" style="width:36px;height:36px;border:0;border-radius:50%;background:#e4e6eb;color:#1c1e21;font-size:18px">⌕</button><button type="button" aria-label="Messages" onclick="bcNavigate('messages')" style="width:36px;height:36px;border:0;border-radius:50%;background:#e4e6eb;color:#1c1e21;font-size:18px">▱</button></div>
+   </div>
    <nav class="bc-main-nav" aria-label="Navigation BS">
     <button type="button" class="active " data-bc-tab="home" onclick="bcNavigate('home')" aria-label="Accueil" title="Accueil" aria-current="page"><span class="bc-nav-icon"><svg class="icon-outline" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/></svg><svg class="icon-solid" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5M5 9v12h14V9M9 21v-6h6v6"/></svg><b id="bcFeedNavBadge" class="bc-nav-badge" style="display:none"></b></span><small>Accueil</small></button>
     <button type="button" class="" data-bc-tab="friends" onclick="bcNavigate('friends')" aria-label="Amis" title="Amis"><span class="bc-nav-icon"><svg class="icon-outline" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M20 8v6M23 11h-6"/></svg><svg class="icon-solid" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M4 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2zM20 8v6M23 11h-6"/></svg><b id="bcFriendsBadge" class="bc-nav-badge" style="display:none"></b></span><small>Amis</small></button>
     <button type="button" class="" data-bc-tab="messages" onclick="bcNavigate('messages')" aria-label="Messages" title="Messages"><span class="bc-nav-icon"><svg class="icon-outline" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 9 9 0 0 1-4-.9L3 21l1.9-5.5a9 9 0 1 1 16.1-4z"/></svg><svg class="icon-solid" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 9 9 0 0 1-4-.9L3 21l1.9-5.5a9 9 0 1 1 16.1-4z"/></svg></span><small>Messages</small></button>
-    <button type="button" class="reel" data-bc-tab="videos" onclick="bcNavigate('videos')" aria-label="Reels" title="Reels"><span class="bc-nav-icon"><svg class="icon-outline" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h11a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2M17 10l5-3v10l-5-3z"/></svg><svg class="icon-solid" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h11a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2M17 10l5-3v10l-5-3z"/></svg></span><small>Vidéo</small></button>
-    <button type="button" class="" data-bc-tab="notifications" onclick="bcNavigate('notifications')" aria-label="Notifications" title="Notifications"><span class="bc-nav-icon"><svg class="icon-outline" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><svg class="icon-solid" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><b id="bcNotificationBadge" class="bc-nav-badge" style="display:none"></b></span><small>Cloche</small></button>
+    <button type="button" class="reel" data-bc-tab="videos" onclick="bcNavigate('videos')" aria-label="Reels" title="Reels"><span class="bc-nav-icon"><svg class="icon-outline" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h11a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2M17 10l5-3v10l-5-3z"/></svg><svg class="icon-solid" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h11a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2M17 10l5-3v10l-5-3z"/></svg></span><small>Reels</small></button>
+    <button type="button" class="" data-bc-tab="notifications" onclick="bcNavigate('notifications')" aria-label="Notifications" title="Notifications"><span class="bc-nav-icon"><svg class="icon-outline" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><svg class="icon-solid" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><b id="bcNotificationBadge" class="bc-nav-badge" style="display:none"></b></span><small>Notifications</small></button>
     <button type="button" class="" data-bc-tab="menu" onclick="bcNavigate('menu')" aria-label="Menu" title="Menu"><span class="bc-nav-icon"><svg class="icon-outline" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><svg class="icon-solid" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v2H4zM4 11h16v2H4zM4 16h16v2H4z"/></svg></span><small>Menu</small></button>
    </nav>
    <section id="bcGlobalSearchPanel" class="bc-tab-panel" style="display:none;text-align:left;padding:12px 4px">
@@ -2248,11 +2247,14 @@ function applyDRoute(route){
     <div id="bcPublicPosts"><p style="color:#667085;font-size:13px">Chargement des publications…</p></div>
    </section>
    <div id="bcProfileSection" style="display:none">
-
+   <button type="button" onclick="bcNavigate('performance')" style="display:flex;width:100%;align-items:center;gap:12px;margin:0 0 10px;padding:15px;border:1px solid #dbe6f5;border-radius:14px;background:#f7faff;color:#1e3260;text-align:left;font-size:15px;font-weight:800">📊 <span style="flex:1">BOPE PERFORMANCE</span><span style="color:#1877f2">›</span></button>
+   <button type="button" onclick="bcNavigate('advisor')" style="display:flex;width:100%;align-items:center;gap:12px;margin:0 0 10px;padding:15px;border:1px solid #eadcf8;border-radius:14px;background:#faf6ff;color:#663399;text-align:left;font-size:15px;font-weight:800">🧠 <span style="flex:1">MON CONSEILLER BOPE</span><span style="color:#8754b5">›</span></button>
+   <button id="bcImpactMenuButton" type="button" onclick="bcNavigate('impact')" style="display:none;width:100%;align-items:center;gap:12px;margin:0 0 10px;padding:15px;border:1px solid #d7e8dc;border-radius:14px;background:#f3fbf5;color:#176b38;text-align:left;font-size:15px;font-weight:800">🌟 <span style="flex:1">BOPE IMPACT</span><span style="color:#16834a">›</span></button>
+   <button type="button" onclick="bcNavigate('groups')" style="width:100%;display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:15px;border:1px solid #dbe6f5;border-radius:14px;background:#f7faff;color:#1e3260;text-align:left;font-size:15px;font-weight:800">👥 <span style="flex:1">Groupes BOPE</span><span style="color:#1877f2">›</span></button>
    <div class="bc-profile" style="padding:12px">
     <div class="bc-profile-cover" id="bcCoverPreview"></div>
     <div class="bc-profile-head">
-     <div class="bc-profile-info"><img class="bc-profile-avatar" id="bcAvatarPreview" src="" alt="Photo de profil"><strong id="bcAccountName">Utilisateur BOPE</strong><span class="bc-handle" id="bcAccountUsername">@utilisateur</span><span class="bc-profile-tagline">Créateur de contenu • La réalité du terrain</span></div>
+     <div class="bc-profile-info"><img class="bc-profile-avatar" id="bcAvatarPreview" src="" alt="Photo de profil"><strong id="bcAccountName">Utilisateur BOPE</strong><span class="bc-handle" id="bcAccountUsername">@utilisateur</span></div>
      <span class="bc-small" id="bcAccountType">Compte personnel</span>
     </div>
     <p id="bcAccountBio" class="bc-muted" style="margin:10px 0 0">Ajoute une petite présentation à ton profil.</p>
@@ -2263,11 +2265,7 @@ function applyDRoute(route){
     </div>
     <p id="bcAccountEmail" class="bc-small" style="margin:8px 0 0"></p>
    </div>
-    <button type="button" onclick="bcNavigate('performance')" style="display:flex;width:100%;align-items:center;gap:12px;margin:0 0 10px;padding:15px;border:1px solid #dbe6f5;border-radius:14px;background:#f7faff;color:#1e3260;text-align:left;font-size:15px;font-weight:800">📊 <span style="flex:1">BOPE PERFORMANCE</span><span style="color:#1877f2">›</span></button>
-   <button type="button" onclick="bcNavigate('advisor')" style="display:flex;width:100%;align-items:center;gap:12px;margin:0 0 10px;padding:15px;border:1px solid #eadcf8;border-radius:14px;background:#faf6ff;color:#663399;text-align:left;font-size:15px;font-weight:800">🧠 <span style="flex:1">MON CONSEILLER BOPE</span><span style="color:#8754b5">›</span></button>
-   <button id="bcImpactMenuButton" type="button" onclick="bcNavigate('impact')" style="display:none;width:100%;align-items:center;gap:12px;margin:0 0 10px;padding:15px;border:1px solid #d7e8dc;border-radius:14px;background:#f3fbf5;color:#176b38;text-align:left;font-size:15px;font-weight:800">🌟 <span style="flex:1">BOPE IMPACT</span><span style="color:#16834a">›</span></button>
-   <button type="button" onclick="bcNavigate('groups')" style="width:100%;display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:15px;border:1px solid #dbe6f5;border-radius:14px;background:#f7faff;color:#1e3260;text-align:left;font-size:15px;font-weight:800">👥 <span style="flex:1">Groupes BOPE</span><span style="color:#1877f2">›</span></button>
-    <div class="bc-edit-card">
+   <div class="bc-edit-card">
     <h3>✏️ Modifier mon profil</h3>
     <label class="bc-field"><span>Nom affiché</span><input id="bcEditName" maxlength="70" placeholder="Ton nom complet"></label>
     <label class="bc-field"><span>Nom d'utilisateur</span><input id="bcEditUsername" maxlength="24" placeholder="ex. alive_bope"></label>
@@ -2302,7 +2300,6 @@ function applyDRoute(route){
    <div class="bc-profile-actions">
     <button class="bc-secondary" type="button" onclick="bcSignOut()">Se déconnecter</button>
    </div>
-   <p class="bc-premium-footer">Bienvenue dans ton espace BOPE • Premium</p>
    </div>
    <section id="bcPerformancePanel" style="display:none;padding:12px 2px;text-align:left">
     <button type="button" onclick="bcNavigate('menu')" style="border:0;border-radius:20px;padding:9px 13px;background:#eef2f6;color:#344054;font-weight:700;margin-bottom:12px">‹ Retour au menu</button>
@@ -4560,43 +4557,6 @@ window.bcNavigate=function(tab){
  #bcMessagesPanel .bc-composer-pill{gap:5px;padding:0 8px}
  #bcMessagesPanel .bc-composer-pill .bc-compose-icon{flex-basis:25px!important;width:25px!important;min-width:25px!important}
 }
-
-      /* === BOPE CRÉATEUR : DESIGN PREMIUM NUIT (menu et profil uniquement) === */
-      #bopeCreatorsPage .bc-premium-header{display:grid!important;grid-template-columns:42px 1fr 84px;align-items:center;gap:8px;margin:0 -8px 14px!important;padding:calc(8px + env(safe-area-inset-top)) 12px 12px!important;min-height:58px;background:#1A0F2E!important;border-bottom:1px solid #D4AF37!important}
-      #bopeCreatorsPage .bc-premium-header .bc-header-back,#bopeCreatorsPage .bc-premium-header .bc-header-actions button{width:38px;height:38px;border:1px solid #D4AF37!important;border-radius:50%;background:rgba(212,175,55,.08)!important;color:#D4AF37!important;display:grid;place-items:center;font-size:23px;font-weight:700;padding:0}
-      #bopeCreatorsPage .bc-premium-header .bc-brand{justify-self:center;color:#D4AF37!important}
-      #bopeCreatorsPage .bc-premium-header .bc-brand-mark{font-size:23px!important;color:#D4AF37!important;letter-spacing:1.4px}
-      #bopeCreatorsPage .bc-premium-header .bc-brand-mark span{font-size:16px!important;color:#D4AF37!important;vertical-align:3px}
-      #bopeCreatorsPage .bc-header-actions{display:flex;justify-content:flex-end;gap:8px}
-      #bopeCreatorsPage #bcProfileSection{color:#fff!important}
-      #bopeCreatorsPage #bcProfileSection .bc-profile,#bopeCreatorsPage #bcProfileSection .bc-edit-card,#bopeCreatorsPage #bcProfileSection>button:not(.bc-profile-save){background:linear-gradient(145deg,rgba(49,34,73,.88),rgba(31,20,49,.92))!important;border:1px solid rgba(212,175,55,.62)!important;border-radius:18px!important;box-shadow:0 10px 26px rgba(0,0,0,.24),inset 0 1px rgba(255,255,255,.04)!important;color:#fff!important}
-      #bopeCreatorsPage #bcProfileSection .bc-profile{padding:16px!important;margin:0 0 14px!important}
-      #bopeCreatorsPage #bcProfileSection .bc-profile-cover{border:1px solid rgba(212,175,55,.45);border-radius:14px;background-color:#241936}
-      #bopeCreatorsPage #bcProfileSection .bc-profile-avatar{border:3px solid #D4AF37!important;box-shadow:0 0 0 3px rgba(212,175,55,.16),0 5px 18px #0008!important}
-      #bopeCreatorsPage #bcProfileSection .bc-profile-info strong{display:block;color:#fff!important;font-size:25px!important;line-height:1.2}
-      #bopeCreatorsPage #bcProfileSection .bc-profile-info .bc-handle{color:#D4AF37!important;font-size:13px!important}
-      #bopeCreatorsPage #bcProfileSection .bc-profile-tagline{display:block;margin-top:7px;color:#fff!important;font-size:14px!important}
-      #bopeCreatorsPage #bcProfileSection #bcAccountEmail{color:#aaa2b9!important}
-      #bopeCreatorsPage #bcProfileSection .bc-muted,#bopeCreatorsPage #bcProfileSection .bc-small,#bopeCreatorsPage #bcProfileSection .bc-profile-note{color:#bdb4ca!important}
-      #bopeCreatorsPage #bcProfileSection>button:not(.bc-profile-save){width:100%;align-items:center;gap:12px;margin:0 0 10px!important;padding:15px!important;text-align:left;font-size:14px!important;font-weight:800!important}
-      #bopeCreatorsPage #bcProfileSection>button:not(.bc-profile-save) span:first-child,#bopeCreatorsPage #bcProfileSection>button:not(.bc-profile-save) span:last-child{color:#D4AF37!important}
-      #bopeCreatorsPage #bcProfileSection .bc-edit-card{padding:16px!important;margin-top:12px!important}
-      #bopeCreatorsPage #bcProfileSection .bc-edit-card h3{color:#fff!important}
-      #bopeCreatorsPage #bcProfileSection .bc-field span{color:#eee8f5!important}
-      #bopeCreatorsPage #bcProfileSection input:not([type=file]),#bopeCreatorsPage #bcProfileSection textarea,#bopeCreatorsPage #bcProfileSection select{background:#241936!important;color:#fff!important;border:1px solid rgba(212,175,55,.58)!important;border-radius:13px!important;box-shadow:inset 0 1px 4px rgba(0,0,0,.2)!important}
-      #bopeCreatorsPage #bcProfileSection input::placeholder,#bopeCreatorsPage #bcProfileSection textarea::placeholder{color:#aaa0b9!important}
-      #bopeCreatorsPage #bcProfileSection .bc-upload-label{background:linear-gradient(120deg,#FF7A00,#FFC46B)!important;color:#211326!important;border:1px solid #D4AF37!important;border-radius:13px!important;padding:12px!important}
-      #bopeCreatorsPage #bcProfileSection input[type=file]::file-selector-button{border:0;border-radius:9px;padding:8px 10px;margin-right:7px;background:linear-gradient(120deg,#FF7A00,#FFC46B);color:#211326;font-weight:800}
-      #bopeCreatorsPage #bcProfileSection .bc-primary{width:100%;border:1px solid #D4AF37!important;border-radius:22px!important;background:linear-gradient(110deg,#FF7A00,#FFC46B)!important;color:#211326!important;font-weight:900!important;padding:15px 14px!important;box-shadow:0 7px 18px rgba(255,122,0,.2)!important}
-      #bopeCreatorsPage #bcProfileSection .bc-profile-actions{display:block;margin-top:10px}
-      #bopeCreatorsPage #bcProfileSection .bc-profile-actions .bc-secondary{width:100%;background:transparent!important;border:1px solid #D4AF37!important;border-radius:22px!important;color:#D4AF37!important;padding:13px!important}
-      #bopeCreatorsPage #bcProfileSection .bc-premium-footer{text-align:center;color:#a99bbd!important;font-size:11px!important;letter-spacing:.2px;margin:15px 0 4px}
-      #bopeCreatorsPage .bc-main-nav{background:#1A0F2E!important;border-top:1px solid rgba(212,175,55,.3)!important;border-bottom:1px solid rgba(212,175,55,.45)!important}
-      #bopeCreatorsPage .bc-main-nav button{color:#c9c3d2!important}
-      #bopeCreatorsPage .bc-main-nav button.active{color:#FF9A24!important}
-      #bopeCreatorsPage .bc-main-nav button.active:after{background:#FF9A24!important}
-      @media(max-width:360px){#bopeCreatorsPage .bc-premium-header{grid-template-columns:38px 1fr 82px}#bopeCreatorsPage #bcProfileSection .bc-profile-info strong{font-size:22px!important}}
-
 </style>
 
 </body></html>
