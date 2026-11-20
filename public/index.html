@@ -225,9 +225,10 @@
 /* Outils flottants du fil BOPE */
 .bc-feed-tools{position:fixed;right:16px;bottom:calc(82px + env(safe-area-inset-bottom));z-index:10060;display:none;flex-direction:column;gap:9px}
 .bc-feed-tools.show{display:flex}
-.bc-feed-tools button{width:46px;height:46px;border:0;border-radius:50%;background:#b91c1c;color:#fff;font-size:25px;font-weight:800;box-shadow:0 4px 14px rgba(0,0,0,.22);display:grid;place-items:center}
+.bc-feed-tools button{width:46px;height:46px;border:0;border-radius:50%;background:#b91c1c;color:#fff;font-size:25px;font-weight:800;box-shadow:0 4px 14px rgba(0,0,0,.22);display:grid;place-items:center;position:relative}
 .bc-feed-tools button:disabled{opacity:.65}
-.bc-feed-tools #bcFeedTop{background:#243b70;font-size:28px}
+.bc-feed-tools #bcFeedRefresh .bc-feed-refresh-badge{position:absolute;top:-5px;right:-7px;min-width:19px;height:19px;padding:0 5px;box-sizing:border-box;border:2px solid #fff;border-radius:12px;background:#f02849;color:#fff;font-size:10px;font-weight:800;line-height:15px;text-align:center;white-space:nowrap;display:grid;place-items:center;box-shadow:0 1px 4px #0005;z-index:2}
+.bc-feed-tools #bcFeedTop{background:#243b70;font-size:28px;position:static}
 .bc-new-posts-badge{position:fixed;left:50%;bottom:calc(142px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:10062;display:none;max-width:calc(100vw - 32px);border:0;border-radius:24px;padding:11px 18px;background:#d71920;color:#fff;font-size:14px;font-weight:800;box-shadow:0 5px 18px rgba(130,0,0,.3);white-space:nowrap}
 .bc-new-posts-badge.show{display:block}
 .bc-new-posts-badge:active{transform:translateX(-50%) scale(.97)}
@@ -1673,7 +1674,7 @@ function applyDRoute(route){
     </div>
    
  <div class="bc-feed-tools" id="bcFeedTools" aria-label="Outils du fil d’actualité">
-  <button type="button" id="bcFeedRefresh" onclick="bcRefreshFeed()" aria-label="Actualiser les publications" title="Actualiser">↻</button>
+  <button type="button" id="bcFeedRefresh" onclick="bcRefreshFeed()" aria-label="Actualiser les publications" title="Actualiser"><span id="bcFeedRefreshIcon" aria-hidden="true">↻</span><span id="bcFeedRefreshBadge" class="bc-feed-refresh-badge" style="display:none" aria-live="polite"></span></button>
   <button type="button" id="bcFeedTop" onclick="bcScrollFeedTop()" aria-label="Retour en haut" title="Retour en haut">↑</button>
  </div>
 </section>
@@ -4399,11 +4400,12 @@ window.bcNavigate=function(tab){
  window.bcScrollFeedTop=function(){
   const page=byId('bopeCreatorsPage');if(page)page.scrollTo({top:0,behavior:'smooth'});
  };  function bcSetNewPostsBadge(count){
-   const badge=byId('bcFeedNavBadge');if(!badge)return;
    const n=Math.max(0,Number(count)||0);
-   badge.textContent=n>99?'99+':String(n);
-   badge.style.display=n>0?'grid':'none';
-   badge.setAttribute('aria-label',n+' nouvelle'+(n>1?'s':'')+' publication'+(n>1?'s':'')+' disponible'+(n>1?'s':'')+'. Appuie sur Accueil pour actualiser le fil.');
+   const label=n+' nouvelle'+(n>1?'s':'')+' publication'+(n>1?'s':'')+' disponible'+(n>1?'s':'')+'. Appuie sur le bouton rouge pour actualiser le fil.';
+   const navBadge=byId('bcFeedNavBadge');
+   if(navBadge){navBadge.textContent=n>99?'99+':String(n);navBadge.style.display=n>0?'grid':'none';navBadge.setAttribute('aria-label',label);}
+   const refreshBadge=byId('bcFeedRefreshBadge');
+   if(refreshBadge){refreshBadge.textContent=n>99?'99+':String(n);refreshBadge.style.display=n>0?'grid':'none';refreshBadge.setAttribute('aria-label',label);}
   }
  window.bcCheckForNewPosts=async function(){
   if(!bcClient||!bcCurrentUser||!bcFeedNewestAt||bcFeedPollBusy)return;
@@ -4424,12 +4426,12 @@ window.bcNavigate=function(tab){
  };
  window.bcRefreshFeed=async function(){
   if(!bcCurrentUser||!bcClient)return;
-  const button=byId('bcFeedRefresh');if(button){button.disabled=true;button.textContent='…';}
+  const button=byId('bcFeedRefresh'),icon=byId('bcFeedRefreshIcon');if(button){button.disabled=true;if(icon)icon.textContent='…';}
   try{
    await Promise.all([window.bcLoadPosts(true),window.bcLoadStories()]);
    if(byId('bcPostStatus'))byId('bcPostStatus').textContent='Fil actualisé : les publications les plus récentes sont affichées.';
   }catch(err){if(byId('bcPostStatus'))byId('bcPostStatus').textContent='Impossible d’actualiser le fil. Réessaie.';}
-  finally{if(button){button.disabled=false;button.textContent='↻';}}
+  finally{if(button){button.disabled=false;if(icon)icon.textContent='↻';}}
  };
  (function(){
   const page=byId('bopeCreatorsPage'),tools=byId('bcFeedTools');if(!page||!tools)return;
