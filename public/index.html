@@ -544,6 +544,25 @@
 #bcMessagesPanel .bc-voice-action:disabled{opacity:.45}
 @media(max-width:380px){#bcMessagesPanel .bc-voice-composer{gap:7px;padding:9px 8px}#bcMessagesPanel .bc-voice-action{flex-basis:35px;width:35px;height:35px}}
 </style>
+
+<style id="bope-feature-isolation">
+/* Chaque sous-espace ouvert occupe l'écran et masque les éléments situés derrière. */
+#bopeMusicPage #bmArtistJoinPanel:not(.bm-hidden){
+ position:fixed!important;inset:0!important;z-index:10000!important;
+ display:block!important;overflow-y:auto!important;overscroll-behavior:contain;
+ margin:0!important;padding:calc(18px + env(safe-area-inset-top)) 15px calc(30px + env(safe-area-inset-bottom))!important;
+ border:0!important;border-radius:0!important;
+ background:radial-gradient(ellipse at 80% -5%,#35145b 0,#100b1b 32%,#07070a 68%)!important;
+}
+#bopeMusicPage #bmArtistJoinPanel:not(.bm-hidden)>.bm-back{position:sticky;top:0;z-index:2}
+#gamesPage{
+ position:fixed!important;inset:0!important;z-index:10000!important;
+ width:100%!important;max-width:none!important;height:100vh;height:100dvh;
+ overflow-y:auto!important;overscroll-behavior:contain;
+ margin:0!important;padding:calc(18px + env(safe-area-inset-top)) 14px calc(30px + env(safe-area-inset-bottom))!important;
+ background:radial-gradient(circle at top,#211b35,#050608 65%)!important;
+}
+</style>
 </head><body>
 
   <div class="topbar">
