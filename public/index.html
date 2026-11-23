@@ -4835,6 +4835,7 @@ function bmAddTrackToPlaylist(id,index){const p=bmPlaylists.find(x=>x.id===id);i
 function bmRemovePlaylistTrack(id,index){const p=bmPlaylists.find(x=>x.id===id);if(!p)return;p.tracks=p.tracks.filter(i=>i!==index);bmSavePlaylists();bmRenderPlaylists();}
 function bmRenamePlaylist(id){const p=bmPlaylists.find(x=>x.id===id);if(!p)return;const name=prompt('Nouveau nom de la playlist :',p.name);if(name===null)return;const clean=name.trim();if(!clean||clean.length>35){alert('Entre un nom de 1 à 35 caractères.');return;}p.name=clean;bmSavePlaylists();bmRenderPlaylists();}
 function bmDeletePlaylist(id){const p=bmPlaylists.find(x=>x.id===id);if(!p)return;if(!confirm('Supprimer la playlist « '+p.name+' » ?'))return;bmPlaylists=bmPlaylists.filter(x=>x.id!==id);bmSavePlaylists();bmRenderPlaylists();}
-\ndocument.addEventListener('DOMContentLoaded',bmRenderFavorites);\ndocument.addEventListener('DOMContentLoaded',bmRenderPlaylists);
+document.addEventListener('DOMContentLoaded',bmRenderFavorites);
+document.addEventListener('DOMContentLoaded',bmRenderPlaylists);
 </script>
 </body></html>
