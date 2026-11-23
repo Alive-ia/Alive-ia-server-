@@ -5005,6 +5005,22 @@ function bmOpenArtistJoin(){const card=document.getElementById('bmArtistJoinCard
 function bmCloseArtistJoin(){const card=document.getElementById('bmArtistJoinCard'),panel=document.getElementById('bmArtistJoinPanel'),draft=document.getElementById('bmArtistDraft');if(panel)panel.classList.add('bm-hidden');if(draft)draft.classList.add('bm-hidden');if(card)card.classList.remove('bm-hidden');}
 function bmShowArtistDraft(){const draft=document.getElementById('bmArtistDraft');if(draft)draft.classList.remove('bm-hidden');}
 function bmSaveArtistDraft(){const name=document.getElementById('bmDraftArtistName').value.trim(),genre=document.getElementById('bmDraftArtistGenre').value,bio=document.getElementById('bmDraftArtistBio').value.trim(),status=document.getElementById('bmArtistDraftStatus');if(!name||!genre){status.textContent='Indique ton nom d’artiste et choisis un style musical.';return;}try{localStorage.setItem('bopeMusicArtistDraft',JSON.stringify({name,genre,bio,savedAt:new Date().toISOString()}));status.textContent='✓ Brouillon enregistré sur cet appareil. Il reste privé et n’est pas encore envoyé à BOPE.';}catch(e){status.textContent='Impossible d’enregistrer le brouillon sur cet appareil.';}}
+function bmOrganizeHome(){
+ const main=document.querySelector('#bopeMusicPage .bm-main');
+ const home=document.getElementById('bmHomeContent');
+ if(!main||!home||home.dataset.organized==='1')return;
+ const search=main.querySelector(':scope > label.bm-search');
+ const feature=main.querySelector(':scope > .bm-feature');
+ const artistCard=document.getElementById('bmArtistJoinCard');
+ const demoCatalog=document.getElementById('bmDemoCatalog');
+ // Accueil : recherche rapide, mise en avant, espace artiste, découverte et démos.
+ if(search)home.insertBefore(search,home.firstChild);
+ if(feature)home.insertBefore(feature,search?search.nextSibling:home.firstChild);
+ if(artistCard)home.insertBefore(artistCard,feature?feature.nextSibling:home.firstChild);
+ if(demoCatalog)home.appendChild(demoCatalog);
+ home.dataset.organized='1';
+}
+document.addEventListener('DOMContentLoaded',bmOrganizeHome);
 document.addEventListener('DOMContentLoaded',bmRenderFavorites);
 document.addEventListener('DOMContentLoaded',bmRenderPlaylists);
 </script>
