@@ -575,9 +575,36 @@
       <button class="bope-hub-btn voice" onclick="bopeFeatureNotice('BOPE VOICE')"><span class="hub-icon">🎙️</span><span class="hub-name">BOPE VOICE</span><small>ASSISTANT VOCAL</small></button>
       <button class="bope-hub-btn business" onclick="bopeFeatureNotice('BOPE BUSINESS')"><span class="hub-icon">📈</span><span class="hub-name">BOPE BUSINESS</span><small>OUTILS POUR COMMERÇANTS</small></button>
       <button class="bope-hub-btn sports" onclick="bopeFeatureNotice('BOPE SPORTS')"><span class="hub-icon">⚽</span><span class="hub-name">BOPE SPORTS</span><small>SCORES & ACTUALITÉS SPORTIVES</small></button>
+      <button class="bope-hub-btn music" onclick="openBopeMusic()"><span class="hub-icon">🎵</span><span class="hub-name">BOPE MUSIQUE</span><small>ÉCOUTE & DÉCOUVERTE</small></button>
     </div>
     <div class="bope-hub-note">Ces espaces sont présentés en avant-première. Leurs fonctionnalités seront activées progressivement.</div>
   </section>
+
+<section id="bopeMusicPage" class="bope-music-screen" aria-label="BOPE MUSIQUE">
+ <div class="bm-wrap">
+  <header class="bm-header">
+   <button class="bm-back" type="button" onclick="closeBopeMusic()">← BOPE IA</button>
+   <div class="bm-brand"><span class="bm-logo">♫</span><div><strong>BOPE <em>MUSIQUE</em></strong><small>La musique nous rassemble</small></div></div>
+   <button class="bm-profile" type="button" onclick="bopeMusicTab('profil')">●</button>
+  </header>
+  <main class="bm-main">
+   <div class="bm-greeting"><span>MADE IN KIKWIT 🇨🇩</span><h1>La musique<br><i>à portée de main.</i></h1><p>Découvre les artistes, les sons et les talents d’ici et d’ailleurs.</p></div>
+   <label class="bm-search"><span>⌕</span><input id="bmSearchInput" type="search" placeholder="Rechercher un artiste, un titre..." oninput="bopeMusicSearch(this.value)"></label>
+   <section class="bm-feature">
+    <div class="bm-feature-art"><span>♫</span><small>BOPE MUSIQUE</small></div>
+    <div class="bm-feature-copy"><span class="bm-kicker">BIENTÔT SUR BOPE</span><h2>Les talents<br>congolais méritent<br>une grande scène.</h2><p>Un nouvel espace pour découvrir et soutenir les artistes.</p></div>
+   </section>
+   <section class="bm-section" id="bmHomeContent"><div class="bm-section-title"><div><span>EXPLORE</span><h2>Découvrir</h2></div><span class="bm-soon">EN PRÉPARATION</span></div>
+    <div class="bm-category-row"><button onclick="bopeMusicCategory('Rumba congolaise')">🇨🇩 Rumba</button><button onclick="bopeMusicCategory('Gospel')">🙏 Gospel</button><button onclick="bopeMusicCategory('Afrobeats')">🔥 Afrobeats</button><button onclick="bopeMusicCategory('Rap')">🎤 Rap</button></div>
+    <div class="bm-empty"><div>🎧</div><strong>Le catalogue musical arrive bientôt</strong><p>Nous préparons l’espace où tu pourras écouter et découvrir les artistes. Aucun morceau n’est encore disponible ici.</p></div>
+   </section>
+   <section class="bm-section bm-hidden" id="bmSearchContent"><div class="bm-section-title"><div><span>RECHERCHE</span><h2>Explorer les sons</h2></div></div><div class="bm-empty"><div>⌕</div><strong id="bmSearchTitle">Recherche musicale</strong><p id="bmSearchMessage">Saisis le nom d’un artiste ou d’un morceau. Le catalogue sera connecté prochainement.</p></div></section>
+   <section class="bm-section bm-hidden" id="bmLibraryContent"><div class="bm-section-title"><div><span>TON ESPACE</span><h2>Bibliothèque</h2></div></div><div class="bm-empty"><div>♡</div><strong>Ta bibliothèque t’attend</strong><p>Les favoris, playlists et titres enregistrés seront disponibles lorsque le catalogue sera activé.</p></div></section>
+   <section class="bm-section bm-hidden" id="bmProfileContent"><div class="bm-section-title"><div><span>BOPE MUSIQUE</span><h2>Ton profil musical</h2></div></div><div class="bm-empty"><div>◉</div><strong>Un espace pour chaque mélomane</strong><p>La connexion au compte BOPE et les profils d’artistes seront ajoutés dans une prochaine étape.</p></div></section>
+  </main>
+  <nav class="bm-nav" aria-label="Navigation BOPE MUSIQUE"><button class="active" onclick="bopeMusicTab('accueil',this)"><span>⌂</span>Accueil</button><button onclick="bopeMusicTab('recherche',this)"><span>⌕</span>Recherche</button><button onclick="bopeMusicTab('bibliotheque',this)"><span>▤</span>Bibliothèque</button><button onclick="bopeMusicTab('profil',this)"><span>◉</span>Profil</button></nav>
+ </div>
+</section>
 
 <section class="campus-screen" id="campusPage" aria-label="BOPE CAMPUS">
  <div class="campus-wrap">
@@ -4604,4 +4631,46 @@ window.bcNavigate=function(tab){
 }
 </style>
 
+<style id="bope-music-premium">
+.bope-hub-btn.music{--hub-a:#6424a8;--hub-b:#b34cff;--hub-border:#d7a5ff}
+.bope-music-screen{display:none;position:fixed;inset:0;z-index:80;overflow-y:auto;background:radial-gradient(ellipse at 80% -5%,#35145b 0,#100b1b 32%,#07070a 68%);color:#fff;font-family:Arial,sans-serif}
+.bope-music-screen.show{display:block}.bm-wrap{min-height:100%;padding-bottom:86px}.bm-header{position:sticky;top:0;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 15px;background:#09080def;border-bottom:1px solid #ffffff12;backdrop-filter:blur(14px)}
+.bm-back,.bm-profile{border:1px solid #ffffff20;background:#ffffff0c;color:#eee;border-radius:13px;padding:9px 11px;font-size:12px}.bm-profile{width:38px;height:38px;border-radius:50%;font-size:18px;color:#d9a6ff}
+.bm-brand{display:flex;align-items:center;gap:9px}.bm-logo{display:grid;place-items:center;width:38px;height:38px;border-radius:13px;background:linear-gradient(145deg,#8e38db,#4c1a80);font-size:25px;box-shadow:0 0 18px #8c3bce55}.bm-brand strong{display:block;font-size:17px;letter-spacing:1px}.bm-brand em{font-style:normal;color:#c78aff}.bm-brand small{display:block;color:#a99ab5;font-size:9px;margin-top:3px}
+.bm-main{width:min(100%,620px);margin:auto;padding:18px 16px 24px}.bm-greeting>span,.bm-kicker,.bm-section-title>div>span{font-size:9px;letter-spacing:2px;color:#c78aff;font-weight:800}.bm-greeting h1{font-size:clamp(34px,9vw,48px);line-height:1.02;letter-spacing:-1.5px;margin:12px 0}.bm-greeting h1 i{font-style:normal;color:#c78aff}.bm-greeting p{color:#bcb2c5;font-size:13px;line-height:1.6;max-width:340px;margin:0 0 18px}
+.bm-search{height:48px;display:flex;align-items:center;gap:10px;padding:0 14px;border:1px solid #ffffff18;border-radius:15px;background:#ffffff0c;color:#c78aff}.bm-search span{font-size:25px}.bm-search input{width:100%;border:0;outline:0;background:transparent;color:#fff;font-size:14px}.bm-search input::placeholder{color:#8e8498}
+.bm-feature{position:relative;display:flex;min-height:185px;overflow:hidden;margin:19px 0 26px;border:1px solid #a65de455;border-radius:22px;background:linear-gradient(115deg,#2a1042,#151020 62%,#32134a);box-shadow:0 12px 35px #0008}.bm-feature:after{content:"";position:absolute;width:190px;height:190px;border-radius:50%;right:-65px;top:-35px;background:radial-gradient(circle,#b65cff55,transparent 68%)}.bm-feature-art{width:38%;min-height:185px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(145deg,#8a3bd0,#331050);font-size:65px;color:#f5e7ff}.bm-feature-art small{font-size:8px;letter-spacing:2px;font-weight:800}.bm-feature-copy{position:relative;z-index:1;flex:1;padding:20px 13px}.bm-feature-copy h2{font-size:20px;line-height:1.12;margin:8px 0}.bm-feature-copy p{font-size:11px;line-height:1.5;color:#c4b7ce;margin:0}
+.bm-section{margin:24px 0}.bm-section-title{display:flex;align-items:end;justify-content:space-between;gap:8px;margin-bottom:14px}.bm-section-title h2{font-size:22px;margin:4px 0 0}.bm-soon{font-size:8px;letter-spacing:1px;color:#e7c77d;border:1px solid #e7c77d55;border-radius:20px;padding:6px 8px}
+.bm-category-row{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;scrollbar-width:none}.bm-category-row button{white-space:nowrap;border:1px solid #9b62bd55;background:#ffffff0b;color:#eee;border-radius:22px;padding:10px 13px;font-size:11px}
+.bm-empty{margin-top:12px;padding:25px 18px;text-align:center;border:1px dashed #76518c66;border-radius:18px;background:#ffffff06}.bm-empty>div{font-size:33px;color:#c78aff;margin-bottom:10px}.bm-empty strong{display:block;font-size:15px}.bm-empty p{max-width:390px;margin:8px auto 0;color:#a99fb0;font-size:12px;line-height:1.6}
+.bm-hidden{display:none!important}.bm-nav{position:fixed;bottom:0;left:0;right:0;z-index:4;display:grid;grid-template-columns:repeat(4,1fr);padding:8px 5px calc(8px + env(safe-area-inset-bottom));background:#0b0910f2;border-top:1px solid #ffffff17;backdrop-filter:blur(16px)}.bm-nav button{border:0;background:transparent;color:#8f8798;font-size:10px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px}.bm-nav button span{font-size:22px}.bm-nav button.active{color:#d09aff}.bm-nav button.active span{filter:drop-shadow(0 0 7px #b65cff)}
+@media(min-width:700px){.bm-main{padding-top:28px}.bm-header{padding-left:max(18px,calc((100vw - 620px)/2));padding-right:max(18px,calc((100vw - 620px)/2))}}
+</style>
+<script id="bope-music-navigation">
+function openBopeMusic(){
+ const page=document.getElementById('bopeMusicPage');if(!page)return;
+ document.getElementById('welcome').style.display='none';document.getElementById('chat').style.display='none';
+ document.querySelector('.box').style.display='none';document.getElementById('gamesLaunch').style.display='none';
+ document.querySelector('.bope-hub').style.display='none';page.classList.add('show');bopeMusicTab('accueil');
+}
+function closeBopeMusic(){
+ const page=document.getElementById('bopeMusicPage');if(page)page.classList.remove('show');
+ document.querySelector('.bope-hub').style.display='';document.getElementById('welcome').style.display='flex';
+ document.getElementById('chat').style.display='flex';document.querySelector('.box').style.display='flex';
+ document.getElementById('gamesLaunch').style.display='block';
+}
+function bopeMusicTab(tab,button){
+ const ids={accueil:'bmHomeContent',recherche:'bmSearchContent',bibliotheque:'bmLibraryContent',profil:'bmProfileContent'};
+ Object.entries(ids).forEach(([key,id])=>document.getElementById(id).classList.toggle('bm-hidden',key!==tab));
+ document.querySelectorAll('.bm-nav button').forEach(b=>b.classList.remove('active'));
+ if(button)button.classList.add('active');
+ else{const index={accueil:0,recherche:1,bibliotheque:2,profil:3}[tab];const nav=document.querySelectorAll('.bm-nav button');if(nav[index])nav[index].classList.add('active');}
+}
+function bopeMusicSearch(value){
+ bopeMusicTab('recherche');const title=document.getElementById('bmSearchTitle'),message=document.getElementById('bmSearchMessage');
+ title.textContent=value.trim()?'Recherche : '+value.trim():'Recherche musicale';
+ message.textContent=value.trim()?'Le catalogue musical n’est pas encore connecté. Ta recherche sera possible dès son ouverture.':'Saisis le nom d’un artiste ou d’un morceau. Le catalogue sera connecté prochainement.';
+}
+function bopeMusicCategory(name){bopeMusicTab('recherche');document.getElementById('bmSearchTitle').textContent=name;document.getElementById('bmSearchMessage').textContent='La rubrique '+name+' sera alimentée lorsque le catalogue musical sera disponible.';}
+</script>
 </body></html>
