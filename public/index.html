@@ -624,7 +624,12 @@
  <button type="button" class="bm-artist-start" onclick="bmShowTrackUpload()">🎵 Soumettre une chanson</button>
  <div id="bmTrackUploadForm" class="bm-hidden">
   <label>Titre de la chanson<input id="bmTrackTitle" maxlength="100" placeholder="Titre de ta chanson"></label>
-  <label>Fichier audio (MP3, M4A, WAV ou OGG)<input id="bmTrackAudio" type="file" accept="audio/mpeg,audio/mp4,audio/wav,audio/ogg,audio/*"></label>
+  <div class="bm-file-picker">
+  <span class="bm-file-picker-label">Fichier audio (MP3, M4A, WAV ou OGG)</span>
+  <input id="bmTrackAudio" type="file" accept="audio/*,.mp3,.m4a,.wav,.ogg,.aac,.flac" aria-label="Choisir un fichier audio" onchange="bmTrackFileSelected(this)" style="position:absolute;width:1px;height:1px;opacity:0;left:-10000px">
+  <button type="button" class="bm-artist-start" onclick="bmPickTrackAudio()">📂 Choisir une chanson dans le téléphone</button>
+  <p id="bmTrackAudioName" class="bm-file-name" aria-live="polite">Aucune chanson sélectionnée.</p>
+ </div>
   <label>Pochette (facultative)<input id="bmTrackCover" type="file" accept="image/jpeg,image/png,image/webp"></label>
   <label style="display:flex;gap:9px;align-items:flex-start;font-size:12px;color:#ddd"><input id="bmTrackRights" type="checkbox" style="width:auto;margin-top:2px"> Je confirme détenir les droits nécessaires ou l’autorisation de publier cette chanson sur BOPE MUSIQUE.</label>
   <button type="button" class="bm-artist-start" id="bmTrackSubmit" onclick="bmSubmitTrack()">Envoyer pour vérification</button>
@@ -4865,6 +4870,9 @@ window.bcNavigate=function(tab){
 #bopeMusicPage #bmTrackUploadForm label{display:flex;flex-direction:column;gap:6px;color:#d9d2e8;font-size:12px}
 #bopeMusicPage #bmTrackUploadForm input:not([type=checkbox]){width:100%;min-width:0;padding:11px;border:1px solid #514866;border-radius:9px;background:#211a2c;color:#fff}
 #bopeMusicPage #bmTrackUploadForm input[type=file]{font-size:11px}
+#bopeMusicPage .bm-file-picker{display:flex;flex-direction:column;gap:8px;position:relative}
+#bopeMusicPage .bm-file-picker-label{color:#d9d2e8;font-size:12px}
+#bopeMusicPage .bm-file-name{margin:0;padding:9px 10px;border:1px dashed #514866;border-radius:9px;color:#c7b9dd;font-size:11px;line-height:1.4;overflow-wrap:anywhere}
 #bopeMusicPage #bmTrackUploadForm input[type=checkbox]{width:18px;height:18px;flex:0 0 18px;accent-color:#a855f7}
 #bopeMusicPage #bmTrackUploadStatus{font-size:11px;line-height:1.5;color:#c7b9dd;margin:0}
 #bopeMusicPage #bmTrackSubmit:disabled{opacity:.55}
@@ -5044,6 +5052,15 @@ function bmShowTrackUpload(){
  const form=document.getElementById('bmTrackUploadForm');
  if(form)form.classList.remove('bm-hidden');
 }
+function bmPickTrackAudio(){
+ const input=document.getElementById('bmTrackAudio');
+ if(input)input.click();
+}
+function bmTrackFileSelected(input){
+ const file=input&&input.files&&input.files[0];
+ const label=document.getElementById('bmTrackAudioName');
+ if(label)label.textContent=file?'✓ '+file.name+' · '+(file.size/1024/1024).toFixed(1)+' Mo':'Aucune chanson sélectionnée.';
+}
 function bmTrackStatus(message,isError=false){
  const el=document.getElementById('bmTrackUploadStatus');
  if(el){el.textContent=message;el.style.color=isError?'#ff8585':'#c7b9dd';}
@@ -5061,7 +5078,8 @@ async function bmSubmitTrack(){
  if(!title||!audio){bmTrackStatus('Indique le titre et sélectionne un fichier audio.',true);return;}
  if(!rights){bmTrackStatus('Tu dois confirmer les droits ou l’autorisation de publication.',true);return;}
  if(audio.size>50*1024*1024){bmTrackStatus('Le fichier audio dépasse la limite de 50 Mo.',true);return;}
- if(!/^audio\//i.test(audio.type)){bmTrackStatus('Le fichier sélectionné ne semble pas être un fichier audio.',true);return;}
+ const audioExtension=(audio.name.split('.').pop()||'').toLowerCase();
+ if(audio.type&&!/^audio\//i.test(audio.type)&&!['mp3','m4a','wav','ogg','aac','flac'].includes(audioExtension)){bmTrackStatus('Choisis un fichier audio MP3, M4A, WAV, OGG, AAC ou FLAC.',true);return;}
  if(cover&&(!/^image\/(jpeg|png|webp)$/i.test(cover.type)||cover.size>5*1024*1024)){bmTrackStatus('La pochette doit être JPG, PNG ou WEBP et ne pas dépasser 5 Mo.',true);return;}
  button.disabled=true;button.textContent='Envoi en cours...';
  let uploadedAudioPath=null,uploadedCoverPath=null,client=null;
@@ -5092,6 +5110,7 @@ async function bmSubmitTrack(){
   if(insertError)throw insertError;
   document.getElementById('bmTrackTitle').value='';
   document.getElementById('bmTrackAudio').value='';
+  bmTrackFileSelected(document.getElementById('bmTrackAudio'));
   document.getElementById('bmTrackCover').value='';
   document.getElementById('bmTrackRights').checked=false;
   bmTrackStatus('✓ Chanson envoyée ! Elle est en attente de vérification et n’est pas encore visible dans le catalogue public.');
