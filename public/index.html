@@ -4714,16 +4714,40 @@ const bmDemoTracks=[
  {title:'Afro Lumière',artist:'Démo instrumentale · BOPE',icon:'✨',notes:[62,65,69,74,69,65,60,64,67,72,67,64,62,65,69,74,77,74,69,65]}
 ];
 function openBopeMusic(){
- const page=document.getElementById('bopeMusicPage');if(!page)return;
- document.getElementById('welcome').style.display='none';document.getElementById('chat').style.display='none';
- document.querySelector('.box').style.display='none';document.getElementById('gamesLaunch').style.display='none';
- document.querySelector('.bope-hub').style.display='none';page.classList.add('show');bopeMusicTab('accueil');
+ const page=document.getElementById('bopeMusicPage');
+ if(!page){console.error('BOPE MUSIQUE: écran introuvable');return;}
+ // Afficher d'abord l'écran musical pour éviter qu'une autre étape bloque son ouverture.
+ page.classList.add('show');
+ page.style.display='block';
+ page.style.visibility='visible';
+ page.style.zIndex='9999';
+ const welcome=document.getElementById('welcome');
+ const chat=document.getElementById('chat');
+ const composer=document.querySelector('.box');
+ const games=document.getElementById('gamesLaunch');
+ const hub=document.querySelector('.bope-hub');
+ if(welcome)welcome.style.display='none';
+ if(chat)chat.style.display='none';
+ if(composer)composer.style.display='none';
+ if(games)games.style.display='none';
+ if(hub)hub.style.display='none';
+ try{bopeMusicTab('accueil');}
+ catch(error){console.error('BOPE MUSIQUE: erreur de navigation',error);}
+ window.scrollTo(0,0);
 }
 function closeBopeMusic(){
- const page=document.getElementById('bopeMusicPage');if(page)page.classList.remove('show');
- document.querySelector('.bope-hub').style.display='';document.getElementById('welcome').style.display='flex';
- document.getElementById('chat').style.display='flex';document.querySelector('.box').style.display='flex';
- document.getElementById('gamesLaunch').style.display='block';
+ const page=document.getElementById('bopeMusicPage');
+ if(page){page.classList.remove('show');page.style.display='none';page.style.visibility='';page.style.zIndex='';}
+ const hub=document.querySelector('.bope-hub');
+ const welcome=document.getElementById('welcome');
+ const chat=document.getElementById('chat');
+ const composer=document.querySelector('.box');
+ const games=document.getElementById('gamesLaunch');
+ if(hub)hub.style.display='';
+ if(welcome)welcome.style.display='flex';
+ if(chat)chat.style.display='flex';
+ if(composer)composer.style.display='flex';
+ if(games)games.style.display='block';
 }
 function bopeMusicTab(tab,button){
  const ids={accueil:'bmHomeContent',recherche:'bmSearchContent',bibliotheque:'bmLibraryContent',profil:'bmProfileContent'};
