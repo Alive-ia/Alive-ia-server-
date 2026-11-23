@@ -4836,6 +4836,15 @@ window.bcNavigate=function(tab){
 #bopeMusicPage.bm-tab-recherche #bmSearchContent.bm-hidden,
 #bopeMusicPage.bm-tab-bibliotheque #bmLibraryContent.bm-hidden,
 #bopeMusicPage.bm-tab-profil #bmProfileContent.bm-hidden{display:block!important}
+/* Le bouton « Voir le profil » ouvre une fiche artiste sans le reste de l’accueil derrière. */
+#bopeMusicPage.bm-artist-profile-open .bm-greeting,
+#bopeMusicPage.bm-artist-profile-open #bmArtistJoinCard,
+#bopeMusicPage.bm-artist-profile-open #bmArtistJoinPanel,
+#bopeMusicPage.bm-artist-profile-open .bm-feature,
+#bopeMusicPage.bm-artist-profile-open #bmDemoCatalog{display:none!important}
+#bopeMusicPage.bm-artist-profile-open #bmHomeContent > .bm-section > :not(.bm-section:has(#bmArtistProfile)){display:none!important}
+#bopeMusicPage.bm-artist-profile-open #bmHomeContent .bm-section:has(#bmArtistProfile) > :not(#bmArtistProfile){display:none!important}
+#bopeMusicPage.bm-artist-profile-open #bmArtistProfile{display:block!important}
 </style>
 <script id="bope-music-navigation">
 let bmDemoAudio=null,bmDemoIndex=-1,bmDemoUrls=[],bmDemoFavorites=new Set();
@@ -4988,8 +4997,8 @@ function bmDeletePlaylist(id){const p=bmPlaylists.find(x=>x.id===id);if(!p)retur
 
 let bmArtistFollowing=false;
 try{bmArtistFollowing=localStorage.getItem('bopeMusicDemoArtistFollowed')==='1';}catch(e){}
-function bmOpenArtistProfile(){const card=document.querySelector('#bmHomeContent .bm-artist-card');const profile=document.getElementById('bmArtistProfile');if(card)card.classList.add('bm-hidden');if(profile)profile.classList.remove('bm-hidden');bmUpdateArtistFollow();}
-function bmCloseArtistProfile(){const card=document.querySelector('#bmHomeContent .bm-artist-card');const profile=document.getElementById('bmArtistProfile');if(profile)profile.classList.add('bm-hidden');if(card)card.classList.remove('bm-hidden');}
+function bmOpenArtistProfile(){const card=document.querySelector('#bmHomeContent .bm-artist-card');const profile=document.getElementById('bmArtistProfile');const page=document.getElementById('bopeMusicPage');if(card)card.classList.add('bm-hidden');if(profile)profile.classList.remove('bm-hidden');if(page)page.classList.add('bm-artist-profile-open');bmUpdateArtistFollow();}
+function bmCloseArtistProfile(){const card=document.querySelector('#bmHomeContent .bm-artist-card');const profile=document.getElementById('bmArtistProfile');const page=document.getElementById('bopeMusicPage');if(profile)profile.classList.add('bm-hidden');if(card)card.classList.remove('bm-hidden');if(page)page.classList.remove('bm-artist-profile-open');}
 function bmUpdateArtistFollow(){const button=document.getElementById('bmArtistFollow'),count=document.getElementById('bmArtistFollowers');if(button)button.textContent=bmArtistFollowing?'✓ Suivi':'＋ Suivre';if(count)count.textContent=bmArtistFollowing?'1':'0';}
 function bmToggleArtistFollow(){bmArtistFollowing=!bmArtistFollowing;try{localStorage.setItem('bopeMusicDemoArtistFollowed',bmArtistFollowing?'1':'0');}catch(e){}bmUpdateArtistFollow();}
 function bmOpenArtistJoin(){const card=document.getElementById('bmArtistJoinCard'),panel=document.getElementById('bmArtistJoinPanel');if(card)card.classList.add('bm-hidden');if(panel)panel.classList.remove('bm-hidden');try{const draft=JSON.parse(localStorage.getItem('bopeMusicArtistDraft')||'{}');if(draft.name)document.getElementById('bmDraftArtistName').value=draft.name;if(draft.genre)document.getElementById('bmDraftArtistGenre').value=draft.genre;if(draft.bio)document.getElementById('bmDraftArtistBio').value=draft.bio;}catch(e){}}
