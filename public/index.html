@@ -610,16 +610,22 @@
     </div>
    </section>
    <section class="bm-section bm-hidden" id="bmSearchContent"><div class="bm-section-title"><div><span>RECHERCHE</span><h2>Explorer les sons</h2></div></div><div class="bm-empty"><div>⌕</div><strong id="bmSearchTitle">Recherche musicale</strong><p id="bmSearchMessage">Saisis le nom d’un artiste ou d’un morceau. Le catalogue sera connecté prochainement.</p></div></section>
-   <section class="bm-section bm-hidden" id="bmLibraryContent"><div class="bm-section-title"><div><span>TON ESPACE</span><h2>Bibliothèque</h2></div></div><div class="bm-section"><div class="bm-section-title"><div><span>TES MORCEAUX</span><h2>❤️ Mes favoris</h2></div><span class="bm-soon" id="bmFavoriteCount">0 TITRE</span></div><div id="bmFavoriteList" class="bm-track-list"><div class="bm-empty"><div>♡</div><strong>Pas encore de favoris</strong><p>Appuie sur le cœur pendant l’écoute pour retrouver ici tes morceaux préférés.</p></div></div></div><p class="bm-demo-note">Tes favoris sont enregistrés sur cet appareil. La synchronisation entre plusieurs appareils sera ajoutée avec les comptes BOPE.</p></section>
+   <section class="bm-section bm-hidden" id="bmLibraryContent"><div class="bm-section-title"><div><span>TON ESPACE</span><h2>Bibliothèque</h2></div></div><div class="bm-section"><div class="bm-section-title"><div><span>TES MORCEAUX</span><h2>❤️ Mes favoris</h2></div><span class="bm-soon" id="bmFavoriteCount">0 TITRE</span></div><div id="bmFavoriteList" class="bm-track-list"><div class="bm-empty"><div>♡</div><strong>Pas encore de favoris</strong><p>Appuie sur le cœur pendant l’écoute pour retrouver ici tes morceaux préférés.</p></div></div></div><p class="bm-demo-note">Tes favoris sont enregistrés sur cet appareil. La synchronisation entre plusieurs appareils sera ajoutée avec les comptes BOPE.</p>
+    <div class="bm-section" id="bmPlaylistsSection">
+     <div class="bm-section-title"><div><span>TON ORGANISATION</span><h2>🎵 Mes playlists</h2></div><button class="bm-create-playlist" type="button" onclick="bmCreatePlaylist()">＋ Créer</button></div>
+     <div id="bmPlaylistList" class="bm-playlist-list"></div>
+     <p class="bm-demo-note">Tes playlists sont sauvegardées sur cet appareil. Elles contiennent actuellement les trois démos BOPE.</p>
+    </div>
+   </section>
    <section class="bm-section bm-hidden" id="bmProfileContent"><div class="bm-section-title"><div><span>BOPE MUSIQUE</span><h2>Ton profil musical</h2></div></div><div class="bm-empty"><div>◉</div><strong>Un espace pour chaque mélomane</strong><p>La connexion au compte BOPE et les profils d’artistes seront ajoutés dans une prochaine étape.</p></div></section>
 
    <section class="bm-section" id="bmDemoCatalog">
     <div class="bm-section-title"><div><span>PREMIÈRE ÉCOUTE</span><h2>Écouter BOPE</h2></div><span class="bm-soon">DÉMOS</span></div>
     <p class="bm-demo-note">Découvre le lecteur avec trois créations instrumentales synthétiques de démonstration. Ce ne sont pas encore des chansons d’artistes.</p>
     <div class="bm-track-list">
-     <button class="bm-track" type="button" onclick="bopePlayDemo(0)"><span class="bm-track-art">🎹</span><span class="bm-track-info"><strong>Rythmes de Kikwit</strong><small>Démo instrumentale · BOPE</small></span><span class="bm-track-play">▶</span></button>
-     <button class="bm-track" type="button" onclick="bopePlayDemo(1)"><span class="bm-track-art">🌅</span><span class="bm-track-info"><strong>Échos du Congo</strong><small>Démo instrumentale · BOPE</small></span><span class="bm-track-play">▶</span></button>
-     <button class="bm-track" type="button" onclick="bopePlayDemo(2)"><span class="bm-track-art">✨</span><span class="bm-track-info"><strong>Afro Lumière</strong><small>Démo instrumentale · BOPE</small></span><span class="bm-track-play">▶</span></button>
+     <div class="bm-track-row"><button class="bm-track" type="button" onclick="bopePlayDemo(0)"><span class="bm-track-art">🎹</span><span class="bm-track-info"><strong>Rythmes de Kikwit</strong><small>Démo instrumentale · BOPE</small></span><span class="bm-track-play">▶</span></button><button class="bm-add-playlist" type="button" onclick="bmChoosePlaylist(0)" aria-label="Ajouter à une playlist">＋</button></div>
+     <div class="bm-track-row"><button class="bm-track" type="button" onclick="bopePlayDemo(1)"><span class="bm-track-art">🌅</span><span class="bm-track-info"><strong>Échos du Congo</strong><small>Démo instrumentale · BOPE</small></span><span class="bm-track-play">▶</span></button><button class="bm-add-playlist" type="button" onclick="bmChoosePlaylist(1)" aria-label="Ajouter à une playlist">＋</button></div>
+     <div class="bm-track-row"><button class="bm-track" type="button" onclick="bopePlayDemo(2)"><span class="bm-track-art">✨</span><span class="bm-track-info"><strong>Afro Lumière</strong><small>Démo instrumentale · BOPE</small></span><span class="bm-track-play">▶</span></button><button class="bm-add-playlist" type="button" onclick="bmChoosePlaylist(2)" aria-label="Ajouter à une playlist">＋</button></div>
     </div>
    </section>
    <section class="bm-player" id="bmPlayer" aria-label="Lecteur audio">
@@ -4674,7 +4680,12 @@ window.bcNavigate=function(tab){
 @media(min-width:700px){.bm-main{padding-top:28px}.bm-header{padding-left:max(18px,calc((100vw - 620px)/2));padding-right:max(18px,calc((100vw - 620px)/2))}}
 </style>
 
-<style id="bope-music-player">
+<style id="bope-music-playlists">
+.bm-create-playlist,.bm-add-playlist,.bm-playlist-action{border:1px solid #a65de455;background:#281638;color:#e8c9ff;border-radius:12px;padding:9px 11px;font-weight:700}
+.bm-track-row{display:flex;align-items:center;gap:7px}.bm-track-row .bm-track{flex:1;min-width:0}.bm-add-playlist{width:40px;height:42px;flex:0 0 40px;font-size:21px;padding:0}
+.bm-playlist-list{display:flex;flex-direction:column;gap:10px}.bm-playlist-card{padding:13px;border:1px solid #76518c66;border-radius:15px;background:#ffffff08}.bm-playlist-head{display:flex;align-items:center;gap:9px}.bm-playlist-icon{font-size:25px}.bm-playlist-meta{flex:1;min-width:0}.bm-playlist-meta strong,.bm-playlist-meta small{display:block}.bm-playlist-meta small{color:#a99fb0;font-size:10px;margin-top:4px}.bm-playlist-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.bm-playlist-action{font-size:11px;padding:7px 9px}.bm-playlist-tracks{margin-top:10px;display:flex;flex-direction:column;gap:7px}.bm-playlist-track{display:flex;align-items:center;gap:8px;color:#eee;font-size:12px}.bm-playlist-track span:first-child{flex:1}.bm-playlist-track button{border:0;background:transparent;color:#ff9aaa;font-size:17px;padding:4px}
+.bm-playlist-empty{padding:18px;text-align:center;border:1px dashed #76518c66;border-radius:15px;color:#a99fb0;font-size:12px;line-height:1.5}
+</style>\n<style id="bope-music-player">
 .bm-demo-note{margin:-3px 0 12px;color:#a99fb0;font-size:11px;line-height:1.55}
 .bm-track-list{display:flex;flex-direction:column;gap:9px}
 .bm-track{width:100%;display:flex;align-items:center;gap:11px;padding:10px;border:1px solid #ffffff14;border-radius:14px;background:#ffffff08;color:#fff;text-align:left}
@@ -4783,6 +4794,23 @@ function bmRenderFavorites(){
 }
 function bmUpdateFavoriteButton(){const button=document.getElementById('bmLike');if(!button)return;button.textContent=bmDemoFavorites.has(bmDemoIndex)?'♥':'♡';button.style.color=bmDemoFavorites.has(bmDemoIndex)?'#ff75b5':'#e3c4ff';button.setAttribute('aria-label',bmDemoFavorites.has(bmDemoIndex)?'Retirer des favoris':'Ajouter aux favoris');}
 function bopeToggleDemoFavorite(){if(bmDemoIndex<0)return;if(bmDemoFavorites.has(bmDemoIndex))bmDemoFavorites.delete(bmDemoIndex);else bmDemoFavorites.add(bmDemoIndex);bmSaveFavorites();bmUpdateFavoriteButton();bmRenderFavorites();}
-document.addEventListener('DOMContentLoaded',bmRenderFavorites);
+
+let bmPlaylists=[];
+try{const saved=JSON.parse(localStorage.getItem('bopeMusicPlaylists')||'[]');if(Array.isArray(saved))bmPlaylists=saved.filter(p=>p&&typeof p.id==='string'&&typeof p.name==='string'&&Array.isArray(p.tracks)).map(p=>({...p,tracks:[...new Set(p.tracks.filter(i=>Number.isInteger(i)&&i>=0&&i<bmDemoTracks.length))]}));}catch(e){bmPlaylists=[];}
+function bmSavePlaylists(){try{localStorage.setItem('bopeMusicPlaylists',JSON.stringify(bmPlaylists));}catch(e){alert('Impossible de sauvegarder sur cet appareil. Vérifie son espace disponible.');}}
+function bmCreatePlaylist(){const name=prompt('Quel nom veux-tu donner à ta playlist ?');if(name===null)return;const clean=name.trim();if(!clean){alert('Entre un nom pour ta playlist.');return;}if(clean.length>35){alert('Le nom doit contenir au maximum 35 caractères.');return;}bmPlaylists.push({id:'pl-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),name:clean,tracks:[]});bmSavePlaylists();bmRenderPlaylists();}
+function bmRenderPlaylists(){
+ const root=document.getElementById('bmPlaylistList');if(!root)return;
+ if(!bmPlaylists.length){root.innerHTML='<div class="bm-playlist-empty">🎶 Tes playlists apparaîtront ici.<br>Crée ta première playlist, puis ajoute-y des démos BOPE.</div>';return;}
+ root.innerHTML=bmPlaylists.map(p=>'<article class="bm-playlist-card"><div class="bm-playlist-head"><span class="bm-playlist-icon">🎧</span><div class="bm-playlist-meta"><strong>'+bmEscapeHtml(p.name)+'</strong><small>'+p.tracks.length+' titre(s)</small></div></div><div class="bm-playlist-actions"><button class="bm-playlist-action" onclick="bmAddToPlaylistPrompt(\''+p.id+'\')">＋ Ajouter un titre</button><button class="bm-playlist-action" onclick="bmRenamePlaylist(\''+p.id+'\')">✎ Renommer</button><button class="bm-playlist-action" onclick="bmDeletePlaylist(\''+p.id+'\')">Supprimer</button></div><div class="bm-playlist-tracks">'+(p.tracks.length?p.tracks.map(i=>'<div class="bm-playlist-track"><span>'+bmEscapeHtml(bmDemoTracks[i].title)+'</span><button onclick="bopePlayDemo('+i+')" aria-label="Écouter">▶</button><button onclick="bmRemovePlaylistTrack(\''+p.id+'\','+i+')" aria-label="Retirer">×</button></div>').join(''):'<small style="color:#988ba3">Cette playlist est encore vide.</small>')+'</div></article>').join('');
+}
+function bmEscapeHtml(value){return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function bmChoosePlaylist(trackIndex){if(!bmPlaylists.length){if(confirm('Tu n’as pas encore de playlist. Veux-tu en créer une maintenant ?')){bmCreatePlaylist();}return;}const options=bmPlaylists.map((p,i)=>(i+1)+'. '+p.name).join('\n');const answer=prompt('Ajouter « '+bmDemoTracks[trackIndex].title+' » à quelle playlist ? Entre son numéro :\n'+options);if(answer===null)return;const index=Number(answer)-1;if(!Number.isInteger(index)||!bmPlaylists[index]){alert('Numéro de playlist invalide.');return;}bmAddTrackToPlaylist(bmPlaylists[index].id,trackIndex);}
+function bmAddToPlaylistPrompt(id){const p=bmPlaylists.find(x=>x.id===id);if(!p)return;const answer=prompt('Quel titre ajouter ?\n1. Rythmes de Kikwit\n2. Échos du Congo\n3. Afro Lumière');if(answer===null)return;const index=Number(answer)-1;if(!Number.isInteger(index)||index<0||index>=bmDemoTracks.length){alert('Numéro de titre invalide.');return;}bmAddTrackToPlaylist(id,index);}
+function bmAddTrackToPlaylist(id,index){const p=bmPlaylists.find(x=>x.id===id);if(!p)return;if(p.tracks.includes(index)){alert('Ce titre est déjà dans cette playlist.');return;}p.tracks.push(index);bmSavePlaylists();bmRenderPlaylists();}
+function bmRemovePlaylistTrack(id,index){const p=bmPlaylists.find(x=>x.id===id);if(!p)return;p.tracks=p.tracks.filter(i=>i!==index);bmSavePlaylists();bmRenderPlaylists();}
+function bmRenamePlaylist(id){const p=bmPlaylists.find(x=>x.id===id);if(!p)return;const name=prompt('Nouveau nom de la playlist :',p.name);if(name===null)return;const clean=name.trim();if(!clean||clean.length>35){alert('Entre un nom de 1 à 35 caractères.');return;}p.name=clean;bmSavePlaylists();bmRenderPlaylists();}
+function bmDeletePlaylist(id){const p=bmPlaylists.find(x=>x.id===id);if(!p)return;if(!confirm('Supprimer la playlist « '+p.name+' » ?'))return;bmPlaylists=bmPlaylists.filter(x=>x.id!==id);bmSavePlaylists();bmRenderPlaylists();}
+\ndocument.addEventListener('DOMContentLoaded',bmRenderFavorites);\ndocument.addEventListener('DOMContentLoaded',bmRenderPlaylists);
 </script>
 </body></html>
