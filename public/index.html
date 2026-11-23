@@ -612,6 +612,22 @@
    <section class="bm-section bm-hidden" id="bmSearchContent"><div class="bm-section-title"><div><span>RECHERCHE</span><h2>Explorer les sons</h2></div></div><div class="bm-empty"><div>⌕</div><strong id="bmSearchTitle">Recherche musicale</strong><p id="bmSearchMessage">Saisis le nom d’un artiste ou d’un morceau. Le catalogue sera connecté prochainement.</p></div></section>
    <section class="bm-section bm-hidden" id="bmLibraryContent"><div class="bm-section-title"><div><span>TON ESPACE</span><h2>Bibliothèque</h2></div></div><div class="bm-empty"><div>♡</div><strong>Ta bibliothèque t’attend</strong><p>Les favoris, playlists et titres enregistrés seront disponibles lorsque le catalogue sera activé.</p></div></section>
    <section class="bm-section bm-hidden" id="bmProfileContent"><div class="bm-section-title"><div><span>BOPE MUSIQUE</span><h2>Ton profil musical</h2></div></div><div class="bm-empty"><div>◉</div><strong>Un espace pour chaque mélomane</strong><p>La connexion au compte BOPE et les profils d’artistes seront ajoutés dans une prochaine étape.</p></div></section>
+
+   <section class="bm-section" id="bmDemoCatalog">
+    <div class="bm-section-title"><div><span>PREMIÈRE ÉCOUTE</span><h2>Écouter BOPE</h2></div><span class="bm-soon">DÉMOS</span></div>
+    <p class="bm-demo-note">Découvre le lecteur avec trois créations instrumentales synthétiques de démonstration. Ce ne sont pas encore des chansons d’artistes.</p>
+    <div class="bm-track-list">
+     <button class="bm-track" type="button" onclick="bopePlayDemo(0)"><span class="bm-track-art">🎹</span><span class="bm-track-info"><strong>Rythmes de Kikwit</strong><small>Démo instrumentale · BOPE</small></span><span class="bm-track-play">▶</span></button>
+     <button class="bm-track" type="button" onclick="bopePlayDemo(1)"><span class="bm-track-art">🌅</span><span class="bm-track-info"><strong>Échos du Congo</strong><small>Démo instrumentale · BOPE</small></span><span class="bm-track-play">▶</span></button>
+     <button class="bm-track" type="button" onclick="bopePlayDemo(2)"><span class="bm-track-art">✨</span><span class="bm-track-info"><strong>Afro Lumière</strong><small>Démo instrumentale · BOPE</small></span><span class="bm-track-play">▶</span></button>
+    </div>
+   </section>
+   <section class="bm-player" id="bmPlayer" aria-label="Lecteur audio">
+    <div class="bm-player-top"><div class="bm-player-art" id="bmPlayerArt">♫</div><div class="bm-player-meta"><strong id="bmNowTitle">Choisis une démo</strong><small id="bmNowArtist">BOPE MUSIQUE</small></div><button class="bm-like" id="bmLike" type="button" onclick="bopeToggleDemoFavorite()" aria-label="Ajouter aux favoris">♡</button></div>
+    <input id="bmProgress" class="bm-progress" type="range" min="0" max="100" value="0" step=".1" aria-label="Progression de lecture" oninput="bopeSeekDemo(this.value)">
+    <div class="bm-player-times"><span id="bmCurrentTime">0:00</span><span id="bmDuration">0:00</span></div>
+    <div class="bm-player-controls"><button type="button" onclick="bopePreviousDemo()" aria-label="Précédent">⏮</button><button type="button" class="bm-main-play" id="bmPlayPause" onclick="bopeToggleDemoPlayback()" aria-label="Lecture">▶</button><button type="button" onclick="bopeNextDemo()" aria-label="Suivant">⏭</button><label class="bm-volume">🔊 <input id="bmVolume" type="range" min="0" max="1" step=".05" value=".8" oninput="bopeSetDemoVolume(this.value)" aria-label="Volume"></label></div>
+   </section>
   </main>
   <nav class="bm-nav" aria-label="Navigation BOPE MUSIQUE"><button class="active" onclick="bopeMusicTab('accueil',this)"><span>⌂</span>Accueil</button><button onclick="bopeMusicTab('recherche',this)"><span>⌕</span>Recherche</button><button onclick="bopeMusicTab('bibliotheque',this)"><span>▤</span>Bibliothèque</button><button onclick="bopeMusicTab('profil',this)"><span>◉</span>Profil</button></nav>
  </div>
@@ -4657,7 +4673,33 @@ window.bcNavigate=function(tab){
 .bm-hidden{display:none!important}.bm-nav{position:fixed;bottom:0;left:0;right:0;z-index:4;display:grid;grid-template-columns:repeat(4,1fr);padding:8px 5px calc(8px + env(safe-area-inset-bottom));background:#0b0910f2;border-top:1px solid #ffffff17;backdrop-filter:blur(16px)}.bm-nav button{border:0;background:transparent;color:#8f8798;font-size:10px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px}.bm-nav button span{font-size:22px}.bm-nav button.active{color:#d09aff}.bm-nav button.active span{filter:drop-shadow(0 0 7px #b65cff)}
 @media(min-width:700px){.bm-main{padding-top:28px}.bm-header{padding-left:max(18px,calc((100vw - 620px)/2));padding-right:max(18px,calc((100vw - 620px)/2))}}
 </style>
+
+<style id="bope-music-player">
+.bm-demo-note{margin:-3px 0 12px;color:#a99fb0;font-size:11px;line-height:1.55}
+.bm-track-list{display:flex;flex-direction:column;gap:9px}
+.bm-track{width:100%;display:flex;align-items:center;gap:11px;padding:10px;border:1px solid #ffffff14;border-radius:14px;background:#ffffff08;color:#fff;text-align:left}
+.bm-track:active{background:#8c3bce33}
+.bm-track-art{width:46px;height:46px;flex:0 0 46px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(145deg,#7132a8,#25133a);font-size:23px}
+.bm-track-info{flex:1;min-width:0}.bm-track-info strong,.bm-track-info small{display:block}.bm-track-info strong{font-size:13px}.bm-track-info small{margin-top:4px;color:#a99fb0;font-size:10px}
+.bm-track-play{width:32px;height:32px;display:grid;place-items:center;border-radius:50%;background:#a84ce0;color:#fff;font-size:13px}
+.bm-player{position:fixed;z-index:5;left:10px;right:10px;bottom:70px;width:min(calc(100% - 20px),600px);margin:auto;padding:12px 13px 10px;border:1px solid #a65de455;border-radius:18px;background:#17101fee;box-shadow:0 10px 35px #000b;backdrop-filter:blur(18px)}
+.bm-player-top{display:flex;align-items:center;gap:10px}.bm-player-art{width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(145deg,#a64be0,#3b175c);font-size:24px}
+.bm-player-meta{flex:1;min-width:0}.bm-player-meta strong,.bm-player-meta small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bm-player-meta strong{font-size:12px}.bm-player-meta small{font-size:10px;color:#aa9bb7;margin-top:4px}
+.bm-like{border:0;background:transparent;color:#e3c4ff;font-size:25px}.bm-progress{width:100%;height:4px;margin:11px 0 0;accent-color:#c477f4}
+.bm-player-times{display:flex;justify-content:space-between;color:#9f94a8;font-size:9px;font-variant-numeric:tabular-nums}
+.bm-player-controls{display:flex;align-items:center;justify-content:center;gap:20px;margin-top:5px}.bm-player-controls>button{border:0;background:transparent;color:#eee;font-size:20px;padding:3px 6px}.bm-player-controls .bm-main-play{width:38px;height:38px;border-radius:50%;background:#bd70ed;color:#170d20;font-size:17px;font-weight:900}
+.bm-volume{display:flex;align-items:center;gap:5px;color:#ddd;font-size:13px}.bm-volume input{width:62px;accent-color:#c477f4}
+.bm-wrap{padding-bottom:310px}
+@media(min-width:700px){.bm-player{bottom:74px}.bm-wrap{padding-bottom:300px}}
+</style>
+
 <script id="bope-music-navigation">
+let bmDemoAudio=null,bmDemoIndex=-1,bmDemoUrls=[],bmDemoFavorites=new Set();
+const bmDemoTracks=[
+ {title:'Rythmes de Kikwit',artist:'Démo instrumentale · BOPE',icon:'🎹',notes:[60,64,67,72,67,64,62,65,69,74,69,65,60,64,67,72,74,72,67,64]},
+ {title:'Échos du Congo',artist:'Démo instrumentale · BOPE',icon:'🌅',notes:[57,60,64,69,64,60,55,59,62,67,62,59,57,60,64,69,72,69,64,60]},
+ {title:'Afro Lumière',artist:'Démo instrumentale · BOPE',icon:'✨',notes:[62,65,69,74,69,65,60,64,67,72,67,64,62,65,69,74,77,74,69,65]}
+];
 function openBopeMusic(){
  const page=document.getElementById('bopeMusicPage');if(!page)return;
  document.getElementById('welcome').style.display='none';document.getElementById('chat').style.display='none';
@@ -4680,8 +4722,55 @@ function bopeMusicTab(tab,button){
 function bopeMusicSearch(value){
  bopeMusicTab('recherche');const title=document.getElementById('bmSearchTitle'),message=document.getElementById('bmSearchMessage');
  title.textContent=value.trim()?'Recherche : '+value.trim():'Recherche musicale';
- message.textContent=value.trim()?'Le catalogue musical n’est pas encore connecté. Ta recherche sera possible dès son ouverture.':'Saisis le nom d’un artiste ou d’un morceau. Le catalogue sera connecté prochainement.';
+ message.textContent=value.trim()?'Le catalogue musical n’est pas encore connecté. Pour le moment, découvre les trois démos BOPE sur l’accueil.':'Saisis le nom d’un artiste ou d’un morceau. Le catalogue sera connecté prochainement.';
 }
 function bopeMusicCategory(name){bopeMusicTab('recherche');document.getElementById('bmSearchTitle').textContent=name;document.getElementById('bmSearchMessage').textContent='La rubrique '+name+' sera alimentée lorsque le catalogue musical sera disponible.';}
+function bmMidiFrequency(n){return 440*Math.pow(2,(n-69)/12);}
+function bmCreateDemoWav(track){
+ const rate=22050,duration=20,total=Math.floor(rate*duration),samples=new Float32Array(total),beat=.5;
+ track.notes.forEach((midi,index)=>{
+  const start=index*beat,frequency=bmMidiFrequency(midi),begin=Math.floor(start*rate),length=Math.floor(beat*rate);
+  for(let j=0;j<length&&begin+j<total;j++){
+   const t=j/rate,env=Math.min(1,t/.025)*Math.max(0,1-t/beat),v=(Math.sin(2*Math.PI*frequency*t)+.24*Math.sin(2*Math.PI*frequency*2*t)+.08*Math.sin(2*Math.PI*frequency*3*t))*env*.17;
+   samples[begin+j]+=v;
+  }
+ });
+ // Petite ligne de basse douce pour donner un rythme à la démo.
+ for(let step=0;step<40;step+=2){
+  const begin=Math.floor(step*beat*rate),freq=bmMidiFrequency(track.notes[(step/2)%track.notes.length]-24),len=Math.floor(.22*rate);
+  for(let j=0;j<len&&begin+j<total;j++){const t=j/rate;samples[begin+j]+=Math.sin(2*Math.PI*freq*t)*Math.exp(-t*13)*.22;}
+ }
+ const buffer=new ArrayBuffer(44+total*2),view=new DataView(buffer);
+ function writeString(offset,str){for(let i=0;i<str.length;i++)view.setUint8(offset+i,str.charCodeAt(i));}
+ writeString(0,'RIFF');view.setUint32(4,36+total*2,true);writeString(8,'WAVE');writeString(12,'fmt ');view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,1,true);view.setUint32(24,rate,true);view.setUint32(28,rate*2,true);view.setUint16(32,2,true);view.setUint16(34,16,true);writeString(36,'data');view.setUint32(40,total*2,true);
+ let offset=44;for(let i=0;i<total;i++){const s=Math.max(-1,Math.min(1,samples[i]));view.setInt16(offset,s<0?s*32768:s*32767,true);offset+=2;}
+ return new Blob([buffer],{type:'audio/wav'});
+}
+function bmFormatTime(seconds){if(!Number.isFinite(seconds))return'0:00';const s=Math.floor(seconds);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+function bopePlayDemo(index){
+ if(index<0||index>=bmDemoTracks.length)return;
+ const track=bmDemoTracks[index];
+ if(bmDemoAudio){bmDemoAudio.pause();bmDemoAudio.src='';}
+ if(bmDemoUrls[index])URL.revokeObjectURL(bmDemoUrls[index]);
+ bmDemoUrls[index]=URL.createObjectURL(bmCreateDemoWav(track));
+ bmDemoAudio=new Audio(bmDemoUrls[index]);bmDemoAudio.volume=Number(document.getElementById('bmVolume').value||.8);bmDemoIndex=index;
+ document.getElementById('bmNowTitle').textContent=track.title;document.getElementById('bmNowArtist').textContent=track.artist;document.getElementById('bmPlayerArt').textContent=track.icon;
+ document.getElementById('bmProgress').value=0;document.getElementById('bmCurrentTime').textContent='0:00';document.getElementById('bmDuration').textContent='0:20';document.getElementById('bmPlayPause').textContent='Ⅱ';
+ bmDemoAudio.addEventListener('timeupdate',()=>{if(!bmDemoAudio)return;document.getElementById('bmProgress').value=(bmDemoAudio.currentTime/Math.max(1,bmDemoAudio.duration))*100;document.getElementById('bmCurrentTime').textContent=bmFormatTime(bmDemoAudio.currentTime);});
+ bmDemoAudio.addEventListener('ended',()=>{document.getElementById('bmPlayPause').textContent='▶';document.getElementById('bmProgress').value=100;});
+ bmDemoAudio.play().then(()=>{document.getElementById('bmPlayPause').textContent='Ⅱ';}).catch(()=>{document.getElementById('bmPlayPause').textContent='▶';});
+ bmUpdateFavoriteButton();
+}
+function bopeToggleDemoPlayback(){
+ if(!bmDemoAudio){bopePlayDemo(0);return;}
+ if(bmDemoAudio.paused){bmDemoAudio.play().then(()=>document.getElementById('bmPlayPause').textContent='Ⅱ').catch(()=>{});}
+ else{bmDemoAudio.pause();document.getElementById('bmPlayPause').textContent='▶';}
+}
+function bopeNextDemo(){bopePlayDemo((bmDemoIndex+1)%bmDemoTracks.length);}
+function bopePreviousDemo(){if(bmDemoAudio&&bmDemoAudio.currentTime>3){bmDemoAudio.currentTime=0;return;}bopePlayDemo((bmDemoIndex-1+bmDemoTracks.length)%bmDemoTracks.length);}
+function bopeSeekDemo(value){if(bmDemoAudio&&Number.isFinite(bmDemoAudio.duration))bmDemoAudio.currentTime=(Number(value)/100)*bmDemoAudio.duration;}
+function bopeSetDemoVolume(value){if(bmDemoAudio)bmDemoAudio.volume=Number(value);}
+function bmUpdateFavoriteButton(){const button=document.getElementById('bmLike');button.textContent=bmDemoFavorites.has(bmDemoIndex)?'♥':'♡';button.style.color=bmDemoFavorites.has(bmDemoIndex)?'#ff75b5':'#e3c4ff';}
+function bopeToggleDemoFavorite(){if(bmDemoIndex<0)return;if(bmDemoFavorites.has(bmDemoIndex))bmDemoFavorites.delete(bmDemoIndex);else bmDemoFavorites.add(bmDemoIndex);bmUpdateFavoriteButton();}
 </script>
 </body></html>
