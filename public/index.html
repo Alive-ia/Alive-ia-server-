@@ -4822,6 +4822,21 @@ window.bcNavigate=function(tab){
  #bopeMusicPage .bm-add-playlist{width:44px;height:44px;flex-basis:44px}
 }
 </style>
+<style id="bope-music-tab-isolation">
+/* Dans Recherche, Bibliothèque et Profil, seul le contenu de l’onglet choisi reste visible. */
+#bopeMusicPage:not(.bm-tab-accueil) .bm-greeting,
+#bopeMusicPage:not(.bm-tab-accueil) #bmArtistJoinCard,
+#bopeMusicPage:not(.bm-tab-accueil) #bmArtistJoinPanel,
+#bopeMusicPage:not(.bm-tab-accueil) .bm-feature,
+#bopeMusicPage:not(.bm-tab-accueil) #bmHomeContent,
+#bopeMusicPage:not(.bm-tab-accueil) #bmDemoCatalog{display:none!important}
+#bopeMusicPage.bm-tab-recherche #bmSearchContent,
+#bopeMusicPage.bm-tab-bibliotheque #bmLibraryContent,
+#bopeMusicPage.bm-tab-profil #bmProfileContent{display:block!important}
+#bopeMusicPage.bm-tab-recherche #bmSearchContent.bm-hidden,
+#bopeMusicPage.bm-tab-bibliotheque #bmLibraryContent.bm-hidden,
+#bopeMusicPage.bm-tab-profil #bmProfileContent.bm-hidden{display:block!important}
+</style>
 <script id="bope-music-navigation">
 let bmDemoAudio=null,bmDemoIndex=-1,bmDemoUrls=[],bmDemoFavorites=new Set();
 try{const saved=JSON.parse(localStorage.getItem('bopeMusicDemoFavorites')||'[]');if(Array.isArray(saved))bmDemoFavorites=new Set(saved.filter(n=>Number.isInteger(n)&&n>=0&&n<3));}catch(e){bmDemoFavorites=new Set();}
@@ -4869,8 +4884,11 @@ function closeBopeMusic(){
 }
 function bopeMusicTab(tab,button){
  const ids={accueil:'bmHomeContent',recherche:'bmSearchContent',bibliotheque:'bmLibraryContent',profil:'bmProfileContent'};
+ if(!Object.prototype.hasOwnProperty.call(ids,tab))tab='accueil';
+ const musicPage=document.getElementById('bopeMusicPage');
+ if(musicPage){musicPage.classList.remove('bm-tab-accueil','bm-tab-recherche','bm-tab-bibliotheque','bm-tab-profil');musicPage.classList.add('bm-tab-'+tab);}
  if(tab==='bibliotheque')bmRenderFavorites();
- Object.entries(ids).forEach(([key,id])=>document.getElementById(id).classList.toggle('bm-hidden',key!==tab));
+ Object.entries(ids).forEach(([key,id])=>{const section=document.getElementById(id);if(section)section.classList.toggle('bm-hidden',key!==tab);});
  document.querySelectorAll('.bm-nav button').forEach(b=>b.classList.remove('active'));
  if(button)button.classList.add('active');
  else{const index={accueil:0,recherche:1,bibliotheque:2,profil:3}[tab];const nav=document.querySelectorAll('.bm-nav button');if(nav[index])nav[index].classList.add('active');}
