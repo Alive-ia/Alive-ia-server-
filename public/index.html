@@ -4705,6 +4705,91 @@ window.bcNavigate=function(tab){
 @media(min-width:700px){.bm-player{bottom:74px}.bm-wrap{padding-bottom:300px}}
 </style>
 
+<style id="bope-music-visual-unification">
+/* BOPE MUSIQUE — charte visuelle unifiée, lisible et adaptée au mobile */
+#bopeMusicPage{
+ --bm-bg:#09070d;--bm-surface:#17111f;--bm-surface-2:#21172b;
+ --bm-purple:#a855e8;--bm-purple-light:#d8a5ff;--bm-gold:#e7c77d;
+ --bm-text:#fff;--bm-muted:#b9adbf;--bm-border:#49345b;
+}
+#bopeMusicPage .bm-main{width:min(100%,650px);padding:20px 17px 30px}
+#bopeMusicPage .bm-section{margin:28px 0}
+#bopeMusicPage .bm-section-title{align-items:center;margin-bottom:15px}
+#bopeMusicPage .bm-section-title h2{font-size:21px;line-height:1.25}
+#bopeMusicPage .bm-greeting p,
+#bopeMusicPage .bm-feature-copy p{color:var(--bm-muted);line-height:1.65}
+#bopeMusicPage .bm-search{min-height:52px;border:1px solid var(--bm-border);background:#17111f;border-radius:15px}
+#bopeMusicPage .bm-search:focus-within{border-color:var(--bm-purple);box-shadow:0 0 0 3px #a855e822}
+#bopeMusicPage .bm-category-row,
+#bopeMusicPage .bm-search-categories{gap:9px;padding:4px 1px 12px}
+#bopeMusicPage .bm-category-row button,
+#bopeMusicPage .bm-search-categories button{
+ min-height:42px;padding:10px 16px;border:1px solid #59416b;border-radius:22px;
+ background:#1b1422;color:#e9dff0;font-size:12px;font-weight:700;
+}
+#bopeMusicPage .bm-category-row button:focus-visible,
+#bopeMusicPage .bm-search-categories button:focus-visible,
+#bopeMusicPage button:focus-visible{outline:2px solid var(--bm-gold);outline-offset:2px}
+#bopeMusicPage .bm-search-categories button.active,
+#bopeMusicPage .bm-category-row button.active{
+ background:var(--bm-purple);border-color:var(--bm-purple);color:#160b20;
+ box-shadow:0 4px 13px #a855e833;
+}
+#bopeMusicPage .bm-track{
+ min-height:66px;padding:11px 12px;border:1px solid #382a43;
+ background:#17111f;border-radius:15px;gap:12px;
+}
+#bopeMusicPage .bm-track-art{width:48px;height:48px;flex-basis:48px}
+#bopeMusicPage .bm-track-info strong{font-size:14px;line-height:1.35}
+#bopeMusicPage .bm-track-info small{font-size:11px;color:#b9adbf;line-height:1.4}
+#bopeMusicPage .bm-track-play{width:36px;height:36px;background:var(--bm-purple);color:#190d22;font-size:14px}
+#bopeMusicPage .bm-add-playlist{
+ width:46px;height:46px;flex-basis:46px;border-radius:13px;
+ background:#21172b;border:1px solid #77509a;color:#e8c9ff;font-size:23px;
+}
+#bopeMusicPage .bm-create-playlist,
+#bopeMusicPage .bm-playlist-action{
+ min-height:44px;padding:10px 14px;border-radius:12px;
+ background:#21172b;border:1px solid #77509a;color:#f0ddff;font-size:12px;font-weight:700;
+}
+#bopeMusicPage .bm-create-playlist{background:var(--bm-purple);border-color:var(--bm-purple);color:#180b20}
+#bopeMusicPage .bm-playlist-card,
+#bopeMusicPage .bm-empty,
+#bopeMusicPage .bm-playlist-empty{
+ background:#17111f;border-color:#49345b;border-radius:16px
+}
+#bopeMusicPage .bm-header{min-height:64px;background:#0d0912f5;border-bottom-color:#49345b}
+#bopeMusicPage .bm-back{
+ min-height:42px;padding:10px 14px;background:#21172b;border-color:#59416b;
+ color:#f4eafa;font-size:12px;font-weight:700
+}
+#bopeMusicPage .bm-profile{width:42px;height:42px;background:#21172b;border-color:#77509a}
+#bopeMusicPage .bm-nav{min-height:66px;padding:8px 7px calc(9px + env(safe-area-inset-bottom));background:#100b15f7;border-top-color:#49345b}
+#bopeMusicPage .bm-nav button{
+ min-height:50px;padding:5px 3px;gap:4px;color:#b9adbf;font-size:11px;font-weight:600
+}
+#bopeMusicPage .bm-nav button span{font-size:23px;line-height:1.1}
+#bopeMusicPage .bm-nav button.active{color:var(--bm-purple-light)}
+#bopeMusicPage .bm-player{
+ border-color:#77509a;background:#17101fee;
+ box-shadow:0 8px 30px #000c,0 0 0 1px #a855e811
+}
+#bopeMusicPage .bm-player-controls{gap:24px}
+#bopeMusicPage .bm-player-controls>button{min-width:42px;min-height:42px}
+#bopeMusicPage .bm-player-controls .bm-main-play{width:46px;height:46px;background:var(--bm-purple);color:#190d22}
+#bopeMusicPage .bm-like{width:44px;height:44px;border-radius:50%;background:#281b32}
+#bopeMusicPage .bm-progress{height:6px;accent-color:var(--bm-purple)}
+#bopeMusicPage button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+@media(max-width:380px){
+ #bopeMusicPage .bm-main{padding-left:13px;padding-right:13px}
+ #bopeMusicPage .bm-section-title h2{font-size:19px}
+ #bopeMusicPage .bm-category-row button,
+ #bopeMusicPage .bm-search-categories button{min-height:44px;padding:10px 13px}
+ #bopeMusicPage .bm-track{gap:9px;padding:9px}
+ #bopeMusicPage .bm-track-info strong{font-size:13px}
+ #bopeMusicPage .bm-add-playlist{width:44px;height:44px;flex-basis:44px}
+}
+</style>
 <script id="bope-music-navigation">
 let bmDemoAudio=null,bmDemoIndex=-1,bmDemoUrls=[],bmDemoFavorites=new Set();
 try{const saved=JSON.parse(localStorage.getItem('bopeMusicDemoFavorites')||'[]');if(Array.isArray(saved))bmDemoFavorites=new Set(saved.filter(n=>Number.isInteger(n)&&n>=0&&n<3));}catch(e){bmDemoFavorites=new Set();}
