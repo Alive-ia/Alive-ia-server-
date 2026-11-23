@@ -589,7 +589,7 @@
   </header>
   <main class="bm-main">
    <div class="bm-greeting"><span>MADE IN KIKWIT 🇨🇩</span><h1>La musique<br><i>à portée de main.</i></h1><p>Découvre les artistes, les sons et les talents d’ici et d’ailleurs.</p></div>
-   <label class="bm-search"><span>⌕</span><input id="bmSearchInput" type="search" placeholder="Rechercher un artiste, un titre..." oninput="bopeMusicSearch(this.value)"></label>
+   <label class="bm-search" onclick="bopeMusicTab('recherche')"><span>⌕</span><input type="search" placeholder="Rechercher un artiste, un titre..." readonly></label>
    <section class="bm-feature">
     <div class="bm-feature-art"><span>♫</span><small>BOPE MUSIQUE</small></div>
     <div class="bm-feature-copy"><span class="bm-kicker">BIENTÔT SUR BOPE</span><h2>Les talents<br>congolais méritent<br>une grande scène.</h2><p>Un nouvel espace pour découvrir et soutenir les artistes.</p></div>
@@ -609,7 +609,7 @@
      <div class="bm-empty"><div>🎧</div><strong>Un classement basé sur les écoutes réelles</strong><p>Les tendances seront calculées à partir des écoutes authentiques sur BOPE MUSIQUE, sans inventer de chiffres.</p></div>
     </div>
    </section>
-   <section class="bm-section bm-hidden" id="bmSearchContent"><div class="bm-section-title"><div><span>RECHERCHE</span><h2>Explorer les sons</h2></div></div><div class="bm-empty"><div>⌕</div><strong id="bmSearchTitle">Recherche musicale</strong><p id="bmSearchMessage">Saisis le nom d’un artiste ou d’un morceau. Le catalogue sera connecté prochainement.</p></div></section>
+   <section class="bm-section bm-hidden" id="bmSearchContent"><div class="bm-section-title"><div><span>RECHERCHE</span><h2>Explorer les sons</h2></div></div><label class="bm-search"><span>⌕</span><input id="bmSearchField" type="search" placeholder="Artiste, chanson ou style musical..." oninput="bopeMusicSearch(this.value)" autocomplete="off"></label><div class="bm-category-row bm-search-categories"><button type="button" onclick="bopeMusicCategory('Tout')">Tout</button><button type="button" onclick="bopeMusicCategory('Rumba')">🇨🇩 Rumba</button><button type="button" onclick="bopeMusicCategory('Gospel')">🙏 Gospel</button><button type="button" onclick="bopeMusicCategory('Afrobeats')">🔥 Afrobeats</button><button type="button" onclick="bopeMusicCategory('Rap')">🎤 Rap</button><button type="button" onclick="bopeMusicCategory('Jazz')">🎷 Jazz</button><button type="button" onclick="bopeMusicCategory('Traditionnel')">🪘 Traditionnel</button></div><p class="bm-demo-note" id="bmSearchMessage">Recherche parmi les démos disponibles sur BOPE MUSIQUE.</p><div id="bmSearchResults" class="bm-track-list"></div></section>
    <section class="bm-section bm-hidden" id="bmLibraryContent"><div class="bm-section-title"><div><span>TON ESPACE</span><h2>Bibliothèque</h2></div></div><div class="bm-section"><div class="bm-section-title"><div><span>TES MORCEAUX</span><h2>❤️ Mes favoris</h2></div><span class="bm-soon" id="bmFavoriteCount">0 TITRE</span></div><div id="bmFavoriteList" class="bm-track-list"><div class="bm-empty"><div>♡</div><strong>Pas encore de favoris</strong><p>Appuie sur le cœur pendant l’écoute pour retrouver ici tes morceaux préférés.</p></div></div></div><p class="bm-demo-note">Tes favoris sont enregistrés sur cet appareil. La synchronisation entre plusieurs appareils sera ajoutée avec les comptes BOPE.</p>
     <div class="bm-section" id="bmPlaylistsSection">
      <div class="bm-section-title"><div><span>TON ORGANISATION</span><h2>🎵 Mes playlists</h2></div><button class="bm-create-playlist" type="button" onclick="bmCreatePlaylist()">＋ Créer</button></div>
@@ -4680,6 +4680,7 @@ window.bcNavigate=function(tab){
 @media(min-width:700px){.bm-main{padding-top:28px}.bm-header{padding-left:max(18px,calc((100vw - 620px)/2));padding-right:max(18px,calc((100vw - 620px)/2))}}
 </style>
 
+<style id="bope-music-search">.bm-search{display:flex;align-items:center;gap:10px;margin:16px 0;padding:13px 15px;border:1px solid #a65de455;border-radius:15px;background:#ffffff0b;color:#d09aff}.bm-search input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:#fff;font-size:13px}.bm-search input::placeholder{color:#9d91a8}.bm-search-categories button.active{background:#8c3bce55;border-color:#c477f4;color:#fff}</style>
 <style id="bope-music-playlists">
 .bm-create-playlist,.bm-add-playlist,.bm-playlist-action{border:1px solid #a65de455;background:#281638;color:#e8c9ff;border-radius:12px;padding:9px 11px;font-weight:700}
 .bm-track-row{display:flex;align-items:center;gap:7px}.bm-track-row .bm-track{flex:1;min-width:0}.bm-add-playlist{width:40px;height:42px;flex:0 0 40px;font-size:21px;padding:0}
@@ -4709,9 +4710,9 @@ let bmDemoAudio=null,bmDemoIndex=-1,bmDemoUrls=[],bmDemoFavorites=new Set();
 try{const saved=JSON.parse(localStorage.getItem('bopeMusicDemoFavorites')||'[]');if(Array.isArray(saved))bmDemoFavorites=new Set(saved.filter(n=>Number.isInteger(n)&&n>=0&&n<3));}catch(e){bmDemoFavorites=new Set();}
 
 const bmDemoTracks=[
- {title:'Rythmes de Kikwit',artist:'Démo instrumentale · BOPE',icon:'🎹',notes:[60,64,67,72,67,64,62,65,69,74,69,65,60,64,67,72,74,72,67,64]},
- {title:'Échos du Congo',artist:'Démo instrumentale · BOPE',icon:'🌅',notes:[57,60,64,69,64,60,55,59,62,67,62,59,57,60,64,69,72,69,64,60]},
- {title:'Afro Lumière',artist:'Démo instrumentale · BOPE',icon:'✨',notes:[62,65,69,74,69,65,60,64,67,72,67,64,62,65,69,74,77,74,69,65]}
+ {title:'Rythmes de Kikwit',artist:'Démo instrumentale · BOPE',genre:'Rumba',icon:'🎹',notes:[60,64,67,72,67,64,62,65,69,74,69,65,60,64,67,72,74,72,67,64]},
+ {title:'Échos du Congo',artist:'Démo instrumentale · BOPE',genre:'Traditionnel',icon:'🌅',notes:[57,60,64,69,64,60,55,59,62,67,62,59,57,60,64,69,72,69,64,60]},
+ {title:'Afro Lumière',artist:'Démo instrumentale · BOPE',genre:'Afrobeats',icon:'✨',notes:[62,65,69,74,69,65,60,64,67,72,67,64,62,65,69,74,77,74,69,65]}
 ];
 function openBopeMusic(){
  const page=document.getElementById('bopeMusicPage');
@@ -4757,12 +4758,26 @@ function bopeMusicTab(tab,button){
  if(button)button.classList.add('active');
  else{const index={accueil:0,recherche:1,bibliotheque:2,profil:3}[tab];const nav=document.querySelectorAll('.bm-nav button');if(nav[index])nav[index].classList.add('active');}
 }
+let bmSearchGenre='Tout';
 function bopeMusicSearch(value){
- bopeMusicTab('recherche');const title=document.getElementById('bmSearchTitle'),message=document.getElementById('bmSearchMessage');
- title.textContent=value.trim()?'Recherche : '+value.trim():'Recherche musicale';
- message.textContent=value.trim()?'Le catalogue musical n’est pas encore connecté. Pour le moment, découvre les trois démos BOPE sur l’accueil.':'Saisis le nom d’un artiste ou d’un morceau. Le catalogue sera connecté prochainement.';
+ const query=String(value||'').trim().toLocaleLowerCase('fr');
+ const results=bmDemoTracks.map((track,index)=>({track,index})).filter(({track})=>{
+  const matchesText=!query||[track.title,track.artist,track.genre,'bope','démo','demo'].join(' ').toLocaleLowerCase('fr').includes(query);
+  const matchesGenre=bmSearchGenre==='Tout'||track.genre===bmSearchGenre;
+  return matchesText&&matchesGenre;
+ });
+ const root=document.getElementById('bmSearchResults'),message=document.getElementById('bmSearchMessage');
+ if(!root||!message)return;
+ message.textContent=query||bmSearchGenre!=='Tout'?'Résultats dans les démos disponibles ('+results.length+').':'Recherche dans les démos BOPE disponibles. Le catalogue des artistes sera ajouté avec leurs autorisations.';
+ if(!results.length){root.innerHTML='<div class="bm-empty"><div>⌕</div><strong>Aucun résultat pour le moment</strong><p>Essaie un autre titre, artiste ou style. Le catalogue s’enrichira progressivement.</p></div>';return;}
+ root.innerHTML=results.map(({track,index})=>'<div class="bm-track-row"><button class="bm-track" type="button" onclick="bopePlayDemo('+index+')"><span class="bm-track-art">'+track.icon+'</span><span class="bm-track-info"><strong>'+bmEscapeHtml(track.title)+'</strong><small>'+bmEscapeHtml(track.artist)+' · '+bmEscapeHtml(track.genre)+'</small></span><span class="bm-track-play">▶</span></button><button class="bm-add-playlist" type="button" onclick="bmChoosePlaylist('+index+')" aria-label="Ajouter à une playlist">＋</button></div>').join('');
 }
-function bopeMusicCategory(name){bopeMusicTab('recherche');document.getElementById('bmSearchTitle').textContent=name;document.getElementById('bmSearchMessage').textContent='La rubrique '+name+' sera alimentée lorsque le catalogue musical sera disponible.';}
+function bopeMusicCategory(name){
+ bmSearchGenre=name==='Tout'?'Tout':name;
+ const field=document.getElementById('bmSearchField');if(field)field.value='';
+ document.querySelectorAll('.bm-search-categories button').forEach(button=>button.classList.toggle('active',button.textContent.trim().includes(name)||name==='Tout'&&button.textContent.trim()==='Tout'));
+ bopeMusicSearch('');
+}
 function bmMidiFrequency(n){return 440*Math.pow(2,(n-69)/12);}
 function bmCreateDemoWav(track){
  const rate=22050,duration=20,total=Math.floor(rate*duration),samples=new Float32Array(total),beat=.5;
