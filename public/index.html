@@ -610,7 +610,7 @@
     </div>
    </section>
    <section class="bm-section bm-hidden" id="bmSearchContent"><div class="bm-section-title"><div><span>RECHERCHE</span><h2>Explorer les sons</h2></div></div><div class="bm-empty"><div>⌕</div><strong id="bmSearchTitle">Recherche musicale</strong><p id="bmSearchMessage">Saisis le nom d’un artiste ou d’un morceau. Le catalogue sera connecté prochainement.</p></div></section>
-   <section class="bm-section bm-hidden" id="bmLibraryContent"><div class="bm-section-title"><div><span>TON ESPACE</span><h2>Bibliothèque</h2></div></div><div class="bm-empty"><div>♡</div><strong>Ta bibliothèque t’attend</strong><p>Les favoris, playlists et titres enregistrés seront disponibles lorsque le catalogue sera activé.</p></div></section>
+   <section class="bm-section bm-hidden" id="bmLibraryContent"><div class="bm-section-title"><div><span>TON ESPACE</span><h2>Bibliothèque</h2></div></div><div class="bm-section"><div class="bm-section-title"><div><span>TES MORCEAUX</span><h2>❤️ Mes favoris</h2></div><span class="bm-soon" id="bmFavoriteCount">0 TITRE</span></div><div id="bmFavoriteList" class="bm-track-list"><div class="bm-empty"><div>♡</div><strong>Pas encore de favoris</strong><p>Appuie sur le cœur pendant l’écoute pour retrouver ici tes morceaux préférés.</p></div></div></div><p class="bm-demo-note">Tes favoris sont enregistrés sur cet appareil. La synchronisation entre plusieurs appareils sera ajoutée avec les comptes BOPE.</p></section>
    <section class="bm-section bm-hidden" id="bmProfileContent"><div class="bm-section-title"><div><span>BOPE MUSIQUE</span><h2>Ton profil musical</h2></div></div><div class="bm-empty"><div>◉</div><strong>Un espace pour chaque mélomane</strong><p>La connexion au compte BOPE et les profils d’artistes seront ajoutés dans une prochaine étape.</p></div></section>
 
    <section class="bm-section" id="bmDemoCatalog">
@@ -4695,6 +4695,8 @@ window.bcNavigate=function(tab){
 
 <script id="bope-music-navigation">
 let bmDemoAudio=null,bmDemoIndex=-1,bmDemoUrls=[],bmDemoFavorites=new Set();
+try{const saved=JSON.parse(localStorage.getItem('bopeMusicDemoFavorites')||'[]');if(Array.isArray(saved))bmDemoFavorites=new Set(saved.filter(n=>Number.isInteger(n)&&n>=0&&n<3));}catch(e){bmDemoFavorites=new Set();}
+
 const bmDemoTracks=[
  {title:'Rythmes de Kikwit',artist:'Démo instrumentale · BOPE',icon:'🎹',notes:[60,64,67,72,67,64,62,65,69,74,69,65,60,64,67,72,74,72,67,64]},
  {title:'Échos du Congo',artist:'Démo instrumentale · BOPE',icon:'🌅',notes:[57,60,64,69,64,60,55,59,62,67,62,59,57,60,64,69,72,69,64,60]},
@@ -4714,6 +4716,7 @@ function closeBopeMusic(){
 }
 function bopeMusicTab(tab,button){
  const ids={accueil:'bmHomeContent',recherche:'bmSearchContent',bibliotheque:'bmLibraryContent',profil:'bmProfileContent'};
+ if(tab==='bibliotheque')bmRenderFavorites();
  Object.entries(ids).forEach(([key,id])=>document.getElementById(id).classList.toggle('bm-hidden',key!==tab));
  document.querySelectorAll('.bm-nav button').forEach(b=>b.classList.remove('active'));
  if(button)button.classList.add('active');
@@ -4770,7 +4773,16 @@ function bopeNextDemo(){bopePlayDemo((bmDemoIndex+1)%bmDemoTracks.length);}
 function bopePreviousDemo(){if(bmDemoAudio&&bmDemoAudio.currentTime>3){bmDemoAudio.currentTime=0;return;}bopePlayDemo((bmDemoIndex-1+bmDemoTracks.length)%bmDemoTracks.length);}
 function bopeSeekDemo(value){if(bmDemoAudio&&Number.isFinite(bmDemoAudio.duration))bmDemoAudio.currentTime=(Number(value)/100)*bmDemoAudio.duration;}
 function bopeSetDemoVolume(value){if(bmDemoAudio)bmDemoAudio.volume=Number(value);}
-function bmUpdateFavoriteButton(){const button=document.getElementById('bmLike');button.textContent=bmDemoFavorites.has(bmDemoIndex)?'♥':'♡';button.style.color=bmDemoFavorites.has(bmDemoIndex)?'#ff75b5':'#e3c4ff';}
-function bopeToggleDemoFavorite(){if(bmDemoIndex<0)return;if(bmDemoFavorites.has(bmDemoIndex))bmDemoFavorites.delete(bmDemoIndex);else bmDemoFavorites.add(bmDemoIndex);bmUpdateFavoriteButton();}
+function bmSaveFavorites(){try{localStorage.setItem('bopeMusicDemoFavorites',JSON.stringify([...bmDemoFavorites]));}catch(e){console.warn('Sauvegarde des favoris indisponible',e);}}
+function bmRenderFavorites(){
+ const list=document.getElementById('bmFavoriteList'),count=document.getElementById('bmFavoriteCount');if(!list||!count)return;
+ const ids=[...bmDemoFavorites].filter(i=>bmDemoTracks[i]);
+ count.textContent=ids.length+' '+(ids.length>1?'TITRES':'TITRE');
+ if(!ids.length){list.innerHTML='<div class="bm-empty"><div>♡</div><strong>Pas encore de favoris</strong><p>Appuie sur le cœur pendant l’écoute pour retrouver ici tes morceaux préférés.</p></div>';return;}
+ list.innerHTML=ids.map(i=>'<button class="bm-track" type="button" onclick="bopePlayDemo('+i+')"><span class="bm-track-art">'+bmDemoTracks[i].icon+'</span><span class="bm-track-info"><strong>'+bmDemoTracks[i].title+'</strong><small>'+bmDemoTracks[i].artist+'</small></span><span class="bm-track-play">▶</span></button>').join('');
+}
+function bmUpdateFavoriteButton(){const button=document.getElementById('bmLike');if(!button)return;button.textContent=bmDemoFavorites.has(bmDemoIndex)?'♥':'♡';button.style.color=bmDemoFavorites.has(bmDemoIndex)?'#ff75b5':'#e3c4ff';button.setAttribute('aria-label',bmDemoFavorites.has(bmDemoIndex)?'Retirer des favoris':'Ajouter aux favoris');}
+function bopeToggleDemoFavorite(){if(bmDemoIndex<0)return;if(bmDemoFavorites.has(bmDemoIndex))bmDemoFavorites.delete(bmDemoIndex);else bmDemoFavorites.add(bmDemoIndex);bmSaveFavorites();bmUpdateFavoriteButton();bmRenderFavorites();}
+document.addEventListener('DOMContentLoaded',bmRenderFavorites);
 </script>
 </body></html>
