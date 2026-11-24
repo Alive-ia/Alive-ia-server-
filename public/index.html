@@ -703,7 +703,7 @@
     <div class="bm-player-controls"><button type="button" onclick="bopePreviousDemo()" aria-label="Précédent">⏮</button><button type="button" class="bm-main-play" id="bmPlayPause" onclick="bopeToggleDemoPlayback()" aria-label="Lecture">▶</button><button type="button" onclick="bopeNextDemo()" aria-label="Suivant">⏭</button><label class="bm-volume">🔊 <input id="bmVolume" type="range" min="0" max="1" step=".05" value=".8" oninput="bopeSetDemoVolume(this.value)" aria-label="Volume"></label></div>
    </section>
   </main>
-  <nav class="bm-nav" aria-label="Navigation BOPE MUSIQUE"><button class="active" onclick="bopeMusicTab('accueil',this)"><span>⌂</span>Accueil</button><button onclick="bopeMusicTab('recherche',this)"><span>⌕</span>Recherche</button><button onclick="bopeMusicTab('bibliotheque',this)"><span>▤</span>Bibliothèque</button><button onclick="bopeMusicTab('profil',this)"><span>◉</span>Profil</button></nav>
+  <nav class="bm-nav" aria-label="Navigation BOPE MUSIQUE"><button class="active" onclick="bopeMusicTab('accueil',this)"><span>⌂</span>Accueil</button><button onclick="bopeMusicTab('recherche',this)"><span>⌕</span>Recherche</button><button onclick="bopeMusicTab('bibliotheque',this)"><span>▤</span>Bibliothèque</button><button onclick="bopeMusicTab('populaire',this)"><span>🏆</span>Populaires</button><button onclick="bopeMusicTab('profil',this)"><span>◉</span>Profil</button></nav>
  </div>
 </section>
 
@@ -4961,18 +4961,19 @@ function closeBopeMusic(){
  if(games)games.style.display='block';
 }
 function bopeMusicTab(tab,button){
- const ids={accueil:'bmHomeContent',recherche:'bmSearchContent',bibliotheque:'bmLibraryContent',profil:'bmProfileContent'};
+ const ids={accueil:'bmHomeContent',recherche:'bmSearchContent',bibliotheque:'bmLibraryContent',populaire:'bmPopularSection',profil:'bmProfileContent'};
  if(!Object.prototype.hasOwnProperty.call(ids,tab))tab='accueil';
  const musicPage=document.getElementById('bopeMusicPage');
- if(musicPage){musicPage.classList.remove('bm-tab-accueil','bm-tab-recherche','bm-tab-bibliotheque','bm-tab-profil');musicPage.classList.add('bm-tab-'+tab);}
+ if(musicPage){musicPage.classList.remove('bm-tab-accueil','bm-tab-recherche','bm-tab-bibliotheque','bm-tab-populaire','bm-tab-profil');musicPage.classList.add('bm-tab-'+tab);}
  if(tab==='bibliotheque')bmRenderFavorites();
  if(tab==='profil')bmCheckMusicAdmin();
  if(tab==='recherche')bmLoadPublishedTracks(true);
+ if(tab==='populaire')bmLoadMusicStats();
  if(tab==='accueil'){bmClosePublishedArtist();bmLoadPublishedTracks(true);}
  Object.entries(ids).forEach(([key,id])=>{const section=document.getElementById(id);if(section)section.classList.toggle('bm-hidden',key!==tab);});
  document.querySelectorAll('.bm-nav button').forEach(b=>b.classList.remove('active'));
  if(button)button.classList.add('active');
- else{const index={accueil:0,recherche:1,bibliotheque:2,profil:3}[tab];const nav=document.querySelectorAll('.bm-nav button');if(nav[index])nav[index].classList.add('active');}
+ else{const index={accueil:0,recherche:1,bibliotheque:2,populaire:3,profil:4}[tab];const nav=document.querySelectorAll('.bm-nav button');if(nav[index])nav[index].classList.add('active');}
 }
 let bmSearchGenre='Tout';
 let bmPublishedTracks=[];
@@ -5534,6 +5535,10 @@ function bmOrganizeHome(){
  const feature=main.querySelector(':scope > .bm-feature');
  const artistCard=document.getElementById('bmArtistJoinCard');
  const demoCatalog=document.getElementById('bmDemoCatalog');
+ const popular=document.getElementById('bmPopularSection');
+ const searchContent=document.getElementById('bmSearchContent');
+ // Le classement devient un écran indépendant, accessible depuis la navigation.
+ if(popular&&searchContent&&popular.parentElement!==main){main.insertBefore(popular,searchContent);popular.classList.add('bm-hidden');}
  // Accueil : recherche rapide, mise en avant, espace artiste, découverte et démos.
  if(search)home.insertBefore(search,home.firstChild);
  if(feature)home.insertBefore(feature,search?search.nextSibling:home.firstChild);
