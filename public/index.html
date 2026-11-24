@@ -5142,10 +5142,36 @@ async function bmPlayPublishedTrack(trackId,button){
  try{
   const client=await bmGetMusicClient();
   const {data,error}=await client.functions.invoke('bope-music-play',{body:{track_id:trackId}});
-  if(error||!data?.signed_url)throw new Error(data?.error||error?.message||'Lecture indisponible.');
+  if(error||!data?.signed_url||!data?.playback_session_id)throw new Error(data?.error||error?.message||'Lecture indisponible.');
   audioBox.innerHTML='<audio controls autoplay preload="none" style="width:100%" src="'+bmEscapeHtml(data.signed_url)+'">Ton navigateur ne prend pas en charge la lecture audio.</audio>';
   audioBox.style.display='block';
   const audio=audioBox.querySelector('audio');
+  let listenedSeconds=0,lastAudioTime=null,listenRecorded=false,recordingInProgress=false;
+  const recordListen=async()=>{
+   if(listenRecorded||recordingInProgress)return;
+   recordingInProgress=true;
+   try{
+    const result=await client.functions.invoke('bope-music-record-listen',{body:{playback_session_id:data.playback_session_id}});
+    if(result.error)throw result.error;
+    if(result.data?.counted||result.data?.reason==='artist_self_listen')listenRecorded=true;
+    else if(result.data?.error)console.warn('BOPE MUSIQUE écoute non comptée:',result.data.error);
+   }catch(recordError){console.warn('BOPE MUSIQUE enregistrement écoute:',recordError);}
+   finally{recordingInProgress=false;}
+  };
+  audio.addEventListener('playing',()=>{lastAudioTime=audio.currentTime;});
+  audio.addEventListener('pause',()=>{lastAudioTime=null;});
+  audio.addEventListener('waiting',()=>{lastAudioTime=null;});
+  audio.addEventListener('seeking',()=>{lastAudioTime=null;});
+  audio.addEventListener('seeked',()=>{lastAudioTime=audio.paused?null:audio.currentTime;});
+  audio.addEventListener('timeupdate',()=>{
+   if(audio.paused||audio.seeking){lastAudioTime=null;return;}
+   if(lastAudioTime!==null){
+    const delta=audio.currentTime-lastAudioTime;
+    if(delta>0&&delta<=3)listenedSeconds+=delta;
+   }
+   lastAudioTime=audio.currentTime;
+   if(listenedSeconds>=30)recordListen();
+  });
   audio.play().catch(()=>{});
   button.textContent='✓';
  }catch(error){
