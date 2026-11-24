@@ -666,7 +666,19 @@
      <p class="bm-demo-note">Tes playlists sont sauvegardées sur cet appareil. Elles contiennent actuellement les trois démos BOPE.</p>
     </div>
    </section>
-   <section class="bm-section bm-hidden" id="bmProfileContent"><div class="bm-section-title"><div><span>BOPE MUSIQUE</span><h2>Ton profil musical</h2></div></div><div class="bm-empty"><div>◉</div><strong>Un espace pour chaque mélomane</strong><p>La connexion au compte BOPE et les profils d’artistes seront ajoutés dans une prochaine étape.</p></div></section>
+   <section class="bm-section bm-hidden" id="bmProfileContent">
+    <div class="bm-section-title"><div><span>BOPE MUSIQUE</span><h2>Ton profil musical</h2></div></div>
+    <div class="bm-empty"><div>◉</div><strong>Un espace pour chaque mélomane</strong><p>Ton espace musical évoluera avec ton compte BOPE.</p></div>
+    <div id="bmAdminEntry" class="bm-admin-entry bm-hidden">
+     <div><span>🔐 ESPACE SÉCURISÉ</span><strong>Administration BOPE MUSIQUE</strong><small>Vérifie les chansons envoyées par les artistes.</small></div>
+     <button type="button" onclick="bmOpenAdminPanel()">Ouvrir</button>
+    </div>
+    <section id="bmAdminPanel" class="bm-admin-panel bm-hidden">
+     <div class="bm-admin-head"><div><span>MODÉRATION</span><h3>Chansons en attente</h3></div><button type="button" onclick="bmLoadAdminTracks()">↻ Actualiser</button></div>
+     <p id="bmAdminStatus" aria-live="polite">Chargement des chansons...</p>
+     <div id="bmAdminTrackList" class="bm-admin-track-list"></div>
+    </section>
+   </section>
 
    <section class="bm-section" id="bmDemoCatalog">
     <div class="bm-section-title"><div><span>PREMIÈRE ÉCOUTE</span><h2>Écouter BOPE</h2></div><span class="bm-soon">DÉMOS</span></div>
@@ -4727,6 +4739,23 @@ window.bcNavigate=function(tab){
 .bm-empty{margin-top:12px;padding:25px 18px;text-align:center;border:1px dashed #76518c66;border-radius:18px;background:#ffffff06}.bm-empty>div{font-size:33px;color:#c78aff;margin-bottom:10px}.bm-empty strong{display:block;font-size:15px}.bm-empty p{max-width:390px;margin:8px auto 0;color:#a99fb0;font-size:12px;line-height:1.6}
 .bm-hidden{display:none!important}.bm-nav{position:fixed;bottom:0;left:0;right:0;z-index:4;display:grid;grid-template-columns:repeat(4,1fr);padding:8px 5px calc(8px + env(safe-area-inset-bottom));background:#0b0910f2;border-top:1px solid #ffffff17;backdrop-filter:blur(16px)}.bm-nav button{border:0;background:transparent;color:#8f8798;font-size:10px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px}.bm-nav button span{font-size:22px}.bm-nav button.active{color:#d09aff}.bm-nav button.active span{filter:drop-shadow(0 0 7px #b65cff)}
 @media(min-width:700px){.bm-main{padding-top:28px}.bm-header{padding-left:max(18px,calc((100vw - 620px)/2));padding-right:max(18px,calc((100vw - 620px)/2))}}
+
+#bopeMusicPage .bm-admin-entry{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;padding:14px;border:1px solid #a65de477;border-radius:16px;background:linear-gradient(135deg,#24152f,#15101b)}
+#bopeMusicPage .bm-admin-entry>div{min-width:0}#bopeMusicPage .bm-admin-entry span,#bopeMusicPage .bm-admin-entry strong,#bopeMusicPage .bm-admin-entry small{display:block}#bopeMusicPage .bm-admin-entry span{font-size:9px;letter-spacing:1px;color:#d6a3ff}#bopeMusicPage .bm-admin-entry strong{font-size:13px;margin:5px 0}#bopeMusicPage .bm-admin-entry small{font-size:10px;color:#aa9eb5}
+#bopeMusicPage .bm-admin-entry button,#bopeMusicPage .bm-admin-head button,.bm-admin-decision{border:1px solid #a65de4;background:#7132a8;color:#fff;border-radius:11px;padding:9px 12px;font-weight:700;font-size:11px}
+#bopeMusicPage .bm-admin-panel{margin-top:14px;padding:14px;border:1px solid #76518c88;border-radius:16px;background:#100d15}
+#bopeMusicPage .bm-admin-head{display:flex;align-items:center;justify-content:space-between;gap:8px}#bopeMusicPage .bm-admin-head span{font-size:9px;letter-spacing:1px;color:#d6a3ff}#bopeMusicPage .bm-admin-head h3{margin:4px 0;font-size:17px}
+#bopeMusicPage #bmAdminStatus{font-size:11px;color:#b8a9c3;line-height:1.5}
+#bopeMusicPage .bm-admin-track-list{display:flex;flex-direction:column;gap:12px}
+#bopeMusicPage .bm-admin-track{padding:12px;border:1px solid #ffffff1c;border-radius:13px;background:#ffffff08}
+#bopeMusicPage .bm-admin-track strong{display:block;font-size:14px}#bopeMusicPage .bm-admin-track small{display:block;color:#b6a9c0;font-size:10px;margin-top:4px}
+#bopeMusicPage .bm-admin-track audio{width:100%;height:38px;margin-top:10px}
+#bopeMusicPage .bm-admin-actions{display:flex;gap:8px;margin-top:10px}
+#bopeMusicPage .bm-admin-actions button{flex:1;min-height:40px;border-radius:10px;font-size:11px;font-weight:700}
+#bopeMusicPage .bm-admin-actions .approve{background:#164d35;border:1px solid #2b9866;color:#b9ffdb}
+#bopeMusicPage .bm-admin-actions .reject{background:#4a2028;border:1px solid #a94b5d;color:#ffd2d8}
+@media(max-width:360px){#bopeMusicPage .bm-admin-entry{align-items:flex-start}#bopeMusicPage .bm-admin-entry button{padding:8px}}
+
 </style>
 
 <style id="bope-music-search">.bm-search{display:flex;align-items:center;gap:10px;margin:16px 0;padding:13px 15px;border:1px solid #a65de455;border-radius:15px;background:#ffffff0b;color:#d09aff}.bm-search input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:#fff;font-size:13px}.bm-search input::placeholder{color:#9d91a8}.bm-search-categories button.active{background:#8c3bce55;border-color:#c477f4;color:#fff}</style>
@@ -4930,6 +4959,7 @@ function bopeMusicTab(tab,button){
  const musicPage=document.getElementById('bopeMusicPage');
  if(musicPage){musicPage.classList.remove('bm-tab-accueil','bm-tab-recherche','bm-tab-bibliotheque','bm-tab-profil');musicPage.classList.add('bm-tab-'+tab);}
  if(tab==='bibliotheque')bmRenderFavorites();
+ if(tab==='profil')bmCheckMusicAdmin();
  Object.entries(ids).forEach(([key,id])=>{const section=document.getElementById(id);if(section)section.classList.toggle('bm-hidden',key!==tab);});
  document.querySelectorAll('.bm-nav button').forEach(b=>b.classList.remove('active'));
  if(button)button.classList.add('active');
@@ -5048,6 +5078,72 @@ async function bmGetMusicClient(){
  if(!response.ok||!config.url||!config.publishableKey)throw new Error(config.error||"Configuration BOPE indisponible.");
  bmMusicClient=window.supabase.createClient(config.url,config.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
  return bmMusicClient;
+}
+let bmAdminTracksCache=[];
+let bmAdminCheckRunning=false;
+async function bmCallAdmin(action,payload={}){
+ const client=await bmGetMusicClient();
+ const {data,error}=await client.functions.invoke('bope-music-admin',{body:{action,...payload}});
+ if(error)throw new Error(data?.error||error.message||'Service administration indisponible.');
+ if(data?.error)throw new Error(data.error);
+ return data;
+}
+async function bmCheckMusicAdmin(){
+ if(bmAdminCheckRunning)return;
+ const entry=document.getElementById('bmAdminEntry');
+ if(!entry)return;
+ bmAdminCheckRunning=true;
+ try{
+  const data=await bmCallAdmin('list');
+  bmAdminTracksCache=Array.isArray(data.tracks)?data.tracks:[];
+  entry.classList.remove('bm-hidden');
+  const small=entry.querySelector('small');
+  if(small)small.textContent=bmAdminTracksCache.length+' chanson(s) en attente de vérification.';
+ }catch(error){
+  entry.classList.add('bm-hidden');
+ }finally{bmAdminCheckRunning=false;}
+}
+async function bmOpenAdminPanel(){
+ const panel=document.getElementById('bmAdminPanel');
+ if(!panel)return;
+ panel.classList.remove('bm-hidden');
+ await bmLoadAdminTracks();
+}
+async function bmLoadAdminTracks(){
+ const status=document.getElementById('bmAdminStatus'),list=document.getElementById('bmAdminTrackList');
+ if(!status||!list)return;
+ status.textContent='Chargement des chansons en attente...';list.innerHTML='';
+ try{
+  const data=await bmCallAdmin('list');
+  bmAdminTracksCache=Array.isArray(data.tracks)?data.tracks:[];
+  status.textContent=bmAdminTracksCache.length
+   ?bmAdminTracksCache.length+' chanson(s) à examiner. Écoute chaque titre avant de décider.'
+   :'Aucune chanson en attente. Tout est à jour.';
+  if(!bmAdminTracksCache.length){list.innerHTML='<div class="bm-empty"><div>✓</div><strong>Tout est à jour</strong><p>Les nouvelles soumissions apparaîtront ici.</p></div>';return;}
+  list.innerHTML=bmAdminTracksCache.map(track=>{
+   const id=bmEscapeHtml(track.id),title=bmEscapeHtml(track.title||'Sans titre'),artist=bmEscapeHtml(track.artist_name||'Artiste inconnu');
+   const genre=bmEscapeHtml(track.genre||'Style non précisé'),date=track.created_at?new Date(track.created_at).toLocaleString('fr-FR'):'Date inconnue';
+   const audio=track.audio_url?'<audio controls preload="none" src="'+bmEscapeHtml(track.audio_url)+'">Ton navigateur ne prend pas en charge la lecture audio.</audio>':'<small>Lecture audio indisponible pour ce fichier.</small>';
+   return '<article class="bm-admin-track"><strong>'+title+'</strong><small>'+artist+' · '+genre+'</small><small>Reçue le '+bmEscapeHtml(date)+'</small>'+audio+'<div class="bm-admin-actions"><button class="approve" type="button" onclick="bmModerateTrack(\''+id+'\',\'publish\')">✓ Approuver</button><button class="reject" type="button" onclick="bmModerateTrack(\''+id+'\',\'reject\')">✕ Refuser</button></div></article>';
+  }).join('');
+ }catch(error){
+  status.textContent=error.message||'Impossible de charger les chansons.';
+ }
+}
+async function bmModerateTrack(trackId,decision){
+ let note='';
+ if(decision==='reject'){
+  note=prompt('Motif du refus (facultatif) :')||'';
+  if(!confirm('Confirmer le refus de cette chanson ?'))return;
+ }else if(!confirm('Confirmer la publication ? La chanson deviendra accessible aux auditeurs.'))return;
+ const status=document.getElementById('bmAdminStatus');
+ if(status)status.textContent='Enregistrement de ta décision...';
+ try{
+  const data=await bmCallAdmin('moderate',{track_id:trackId,decision,note});
+  if(status)status.textContent=data.track?.status==='published'?'✓ Chanson approuvée et publiée.':'✓ Chanson refusée.';
+  await bmLoadAdminTracks();
+  await bmCheckMusicAdmin();
+ }catch(error){if(status)status.textContent=error.message||'La décision n’a pas pu être enregistrée.';}
 }
 function bmShowTrackUpload(){
  const form=document.getElementById('bmTrackUploadForm');
