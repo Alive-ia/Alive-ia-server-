@@ -4989,7 +4989,7 @@ async function bmLoadPublishedTracks(force=false){
   bmPublishedArtistProfiles={};
   const artistIds=[...new Set(bmPublishedTracks.map(track=>track.created_by).filter(Boolean))];
   if(artistIds.length){
-   const {data:profiles,error:profileError}=await client.from('bope_music_artist_profiles').select('user_id,artist_name,bio,main_genre,avatar_path').in('user_id',artistIds);
+   const {data:profiles,error:profileError}=await client.from('bope_music_artist_profiles').select('user_id,artist_name,bio,main_genre,avatar_path,follower_count').in('user_id',artistIds);
    if(profileError)console.warn('BOPE MUSIQUE profils artistes:',profileError);
    (profiles||[]).forEach(profile=>{
     let avatarUrl='';
@@ -5066,8 +5066,69 @@ function bmOpenPublishedArtist(name){
  const bio=String(group.profile?.bio||'').trim()||group.tracks.find(track=>String(track.description||'').trim())?.description||'Découvrez les chansons publiées de cet artiste sur BOPE MUSIQUE.';
  const genre=group.profile?.main_genre||group.tracks[0]?.genre||'—';
  const avatar=group.profile?.avatar_url?'<img class="bm-artist-avatar" src="'+bmEscapeHtml(group.profile.avatar_url)+'" alt="Photo de '+bmEscapeHtml(group.name)+'">':'<span>🎤</span>';
- root.innerHTML='<div class="bm-artist-cover">'+avatar+'<small>ARTISTE BOPE · CATALOGUE OFFICIEL</small></div><div class="bm-artist-profile-head"><div><h3>'+bmEscapeHtml(group.name)+'</h3><p>Artiste indépendant · BOPE MUSIQUE</p></div></div><p class="bm-artist-bio">'+bmEscapeHtml(bio)+'</p><div class="bm-artist-stats"><div><strong>'+group.tracks.length+'</strong><small>CHANSON(S) PUBLIÉE(S)</small></div><div><strong>'+bmEscapeHtml(genre)+'</strong><small>STYLE MUSICAL</small></div></div><h3 class="bm-artist-subtitle">Catalogue musical</h3><div class="bm-track-list">'+group.tracks.map(track=>'<article class="bm-track-row bm-published-track"><div class="bm-track"><span class="bm-track-art">🎵</span><span class="bm-track-info"><strong>'+bmEscapeHtml(track.title||'Sans titre')+'</strong><small>'+bmEscapeHtml(track.genre||'Musique')+'</small></span></div><button class="bm-add-playlist" type="button" onclick="bmPlayPublishedTrack(\''+bmEscapeHtml(track.id)+'\',this)" aria-label="Écouter '+bmEscapeHtml(track.title||'la chanson')+'">▶</button><div class="bm-published-audio" style="display:none;flex-basis:100%;padding:0 8px 10px"></div></article>').join('')+'</div>';
+ root.innerHTML='<div class="bm-artist-cover">'+avatar+'<small>ARTISTE BOPE · CATALOGUE OFFICIEL</small></div><div class="bm-artist-profile-head"><div><h3>'+bmEscapeHtml(group.name)+'</h3><p>Artiste indépendant · BOPE MUSIQUE</p></div></div><p class="bm-artist-bio">'+bmEscapeHtml(bio)+'</p><div class="bm-artist-stats"><div><strong>'+group.tracks.length+'</strong><small>CHANSON(S) PUBLIÉE(S)</small></div><div><strong>'+bmEscapeHtml(genre)+'</strong><small>STYLE MUSICAL</small></div><div><strong id="bmPublishedArtistFollowerCount">'+Number(group.profile?.follower_count||0)+'</strong><small>ABONNÉ(S)</small></div></div><button type="button" id="bmPublishedArtistFollowButton" class="bm-artist-follow-button" style="display:block;width:100%;max-width:280px;margin:14px auto 22px;padding:12px 18px;border:1px solid #39c6b4;border-radius:24px;background:linear-gradient(100deg,#124b50,#176b70);color:#fff;font-weight:800;font-size:14px" onclick="bmTogglePublishedArtistFollow(\''+bmEscapeHtml(group.userId||'')+'\',this)">Chargement…</button><h3 class="bm-artist-subtitle">Catalogue musical</h3><div class="bm-track-list">'+group.tracks.map(track=>'<article class="bm-track-row bm-published-track"><div class="bm-track"><span class="bm-track-art">🎵</span><span class="bm-track-info"><strong>'+bmEscapeHtml(track.title||'Sans titre')+'</strong><small>'+bmEscapeHtml(track.genre||'Musique')+'</small></span></div><button class="bm-add-playlist" type="button" onclick="bmPlayPublishedTrack(\''+bmEscapeHtml(track.id)+'\',this)" aria-label="Écouter '+bmEscapeHtml(track.title||'la chanson')+'">▶</button><div class="bm-published-audio" style="display:none;flex-basis:100%;padding:0 8px 10px"></div></article>').join('')+'</div>';
  window.scrollTo(0,0);
+ bmLoadPublishedArtistFollowState(group.userId);
+}
+async function bmLoadPublishedArtistFollowState(artistUserId){
+ const button=document.getElementById('bmPublishedArtistFollowButton');
+ if(!button||!artistUserId){if(button){button.textContent='Profil artiste indisponible';button.disabled=true;}return;}
+ try{
+  const client=await bmGetMusicClient();
+  const {data:{session},error:sessionError}=await client.auth.getSession();
+  if(sessionError)throw sessionError;
+  if(!session){button.textContent='Se connecter pour suivre';button.disabled=false;button.dataset.followState='signed-out';return;}
+  if(session.user.id===artistUserId){button.textContent='Ton profil artiste';button.disabled=true;button.dataset.followState='self';return;}
+  const {data,error}=await client.from('bope_music_artist_follows').select('id').eq('follower_id',session.user.id).eq('artist_user_id',artistUserId).maybeSingle();
+  if(error)throw error;
+  button.dataset.followState=data?'following':'not-following';
+  button.textContent=data?'✓ Suivi':'＋ Suivre cet artiste';
+  button.disabled=false;
+ }catch(error){
+  console.error('BOPE MUSIQUE suivi artiste:',error);
+  button.textContent='Réessayer';
+  button.disabled=false;
+  button.dataset.followState='error';
+ }
+}
+async function bmTogglePublishedArtistFollow(artistUserId,button){
+ if(!artistUserId||!button)return;
+ button.disabled=true;
+ const original=button.textContent;
+ try{
+  const client=await bmGetMusicClient();
+  const {data:{session},error:sessionError}=await client.auth.getSession();
+  if(sessionError)throw sessionError;
+  if(!session){
+   button.disabled=false;
+   button.textContent='Se connecter pour suivre';
+   if(typeof window.openBopeCreators==='function')window.openBopeCreators();
+   else alert('Connecte-toi à ton compte BOPE Créateur pour suivre cet artiste.');
+   return;
+  }
+  if(session.user.id===artistUserId){button.textContent='Ton profil artiste';return;}
+  const {data:existing,error:readError}=await client.from('bope_music_artist_follows').select('id').eq('follower_id',session.user.id).eq('artist_user_id',artistUserId).maybeSingle();
+  if(readError)throw readError;
+  if(existing){
+   const {error}=await client.from('bope_music_artist_follows').delete().eq('id',existing.id).eq('follower_id',session.user.id);
+   if(error)throw error;
+  }else{
+   const {error}=await client.from('bope_music_artist_follows').insert({follower_id:session.user.id,artist_user_id:artistUserId});
+   if(error)throw error;
+  }
+  const {data:profile,error:profileError}=await client.from('bope_music_artist_profiles').select('follower_count').eq('user_id',artistUserId).maybeSingle();
+  if(profileError)throw profileError;
+  const count=document.getElementById('bmPublishedArtistFollowerCount');
+  if(count)count.textContent=String(profile?.follower_count||0);
+  button.dataset.followState=existing?'not-following':'following';
+  button.textContent=existing?'＋ Suivre cet artiste':'✓ Suivi';
+ }catch(error){
+  console.error('BOPE MUSIQUE modification suivi:',error);
+  button.textContent=original||'Réessayer';
+  alert(error.message||'Impossible de modifier cet abonnement. Réessaie.');
+ }finally{
+  if(button.dataset.followState!=='self')button.disabled=false;
+ }
 }
 function bmClosePublishedArtist(){
  const home=document.getElementById('bmPublishedHomeContent'),page=document.getElementById('bmPublishedArtistPage');
