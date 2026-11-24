@@ -644,15 +644,20 @@
    </section>
    <section class="bm-section" id="bmHomeContent"><div class="bm-section-title"><div><span>EXPLORE</span><h2>Découvrir</h2></div><span class="bm-soon">EN PRÉPARATION</span></div>
     <div class="bm-category-row"><button onclick="bopeMusicCategory('Rumba congolaise')">🇨🇩 Rumba</button><button onclick="bopeMusicCategory('Gospel')">🙏 Gospel</button><button onclick="bopeMusicCategory('Afrobeats')">🔥 Afrobeats</button><button onclick="bopeMusicCategory('Rap')">🎤 Rap</button><button onclick="bopeMusicCategory('Jazz')">🎷 Jazz</button><button onclick="bopeMusicCategory('Musique traditionnelle')">🪘 Traditionnel</button></div>
-    <div class="bm-section">
-     <div class="bm-section-title"><div><span>À LA UNE</span><h2>Artistes à découvrir</h2></div><span class="bm-soon">BIENTÔT</span></div>
-     <article class="bm-artist-card"><div class="bm-artist-avatar">🎤</div><div class="bm-artist-info"><strong>Artiste démo BOPE</strong><small>Profil de démonstration · Catalogue BOPE</small><p>Découvre la présentation d’un profil artiste sur BOPE MUSIQUE.</p><button type="button" class="bm-artist-open" onclick="bmOpenArtistProfile()">Voir le profil</button></div></article>
-     <div class="bm-artist-profile bm-hidden" id="bmArtistProfile"><button type="button" class="bm-back" onclick="bmCloseArtistProfile()">← Retour aux artistes</button><div class="bm-artist-cover"><span>🎤</span><small>PROFIL DE DÉMONSTRATION</small></div><div class="bm-artist-profile-head"><div><h3>Artiste démo BOPE</h3><p>Artiste indépendant · BOPE MUSIQUE</p></div><button type="button" id="bmArtistFollow" class="bm-artist-follow" onclick="bmToggleArtistFollow()">＋ Suivre</button></div><p class="bm-artist-bio">Bienvenue sur ce profil de démonstration. Ici, chaque artiste pourra présenter son univers, sa biographie et ses sorties musicales. Les vrais profils seront créés ou validés avec l’accord des artistes.</p><div class="bm-artist-stats"><div><strong id="bmArtistFollowers">0</strong><small>ABONNÉS SUR CET APPAREIL</small></div><div><strong>3</strong><small>DÉMOS BOPE</small></div></div><h3 class="bm-artist-subtitle">Titres en démonstration</h3><div class="bm-track-list"><button class="bm-track" type="button" onclick="bopePlayDemo(0)"><span class="bm-track-art">🎹</span><span class="bm-track-info"><strong>Rythmes de Kikwit</strong><small>Démo instrumentale · BOPE</small></span><span class="bm-track-play">▶</span></button><button class="bm-track" type="button" onclick="bopePlayDemo(1)"><span class="bm-track-art">🌅</span><span class="bm-track-info"><strong>Échos du Congo</strong><small>Démo instrumentale · BOPE</small></span><span class="bm-track-play">▶</span></button><button class="bm-track" type="button" onclick="bopePlayDemo(2)"><span class="bm-track-art">✨</span><span class="bm-track-info"><strong>Afro Lumière</strong><small>Démo instrumentale · BOPE</small></span><span class="bm-track-play">▶</span></button></div><p class="bm-demo-note">Ce profil et ces abonnements sont une démonstration locale, pas un compte artiste réel.</p></div>
-    </div>
-    <div class="bm-section">
-     <div class="bm-section-title"><div><span>NOUVEAUTÉS</span><h2>Albums & singles</h2></div><span class="bm-soon">BIENTÔT</span></div>
-     <div class="bm-empty"><div>💿</div><strong>Les sorties musicales</strong><p>Retrouve ici les albums et les nouveaux singles, avec les informations de l’artiste et les crédits.</p></div>
-    </div>
+    <section class="bm-section" id="bmPublishedHomeContent">
+     <div class="bm-section">
+      <div class="bm-section-title"><div><span>NOUVEAUTÉS</span><h2>Dernières sorties</h2></div><span class="bm-soon">CATALOGUE BOPE</span></div>
+      <div id="bmHomeLatestTracks" class="bm-track-list"><div class="bm-empty"><div>🎵</div><strong>Chargement des nouveautés...</strong><p>Les chansons validées apparaîtront ici.</p></div></div>
+     </div>
+     <div class="bm-section">
+      <div class="bm-section-title"><div><span>DÉCOUVERTE</span><h2>Artistes BOPE</h2></div></div>
+      <div id="bmHomeArtists" class="bm-track-list"><div class="bm-empty"><div>🎤</div><strong>Découvre les artistes</strong><p>Les artistes ayant des chansons publiées apparaîtront ici.</p></div></div>
+     </div>
+    </section>
+    <section class="bm-section bm-hidden" id="bmPublishedArtistPage">
+     <button type="button" class="bm-back" onclick="bmClosePublishedArtist()">← Retour à BOPE MUSIQUE</button>
+     <div id="bmPublicArtistProfile"></div>
+    </section>
     <div class="bm-section">
      <div class="bm-section-title"><div><span>LES PLUS ÉCOUTÉS</span><h2>Titres populaires</h2></div><span class="bm-soon">BIENTÔT</span></div>
      <div class="bm-empty"><div>🎧</div><strong>Un classement basé sur les écoutes réelles</strong><p>Les tendances seront calculées à partir des écoutes authentiques sur BOPE MUSIQUE, sans inventer de chiffres.</p></div>
@@ -4961,6 +4966,7 @@ function bopeMusicTab(tab,button){
  if(tab==='bibliotheque')bmRenderFavorites();
  if(tab==='profil')bmCheckMusicAdmin();
  if(tab==='recherche')bmLoadPublishedTracks(true);
+ if(tab==='accueil'){bmClosePublishedArtist();bmLoadPublishedTracks(true);}
  Object.entries(ids).forEach(([key,id])=>{const section=document.getElementById(id);if(section)section.classList.toggle('bm-hidden',key!==tab);});
  document.querySelectorAll('.bm-nav button').forEach(b=>b.classList.remove('active'));
  if(button)button.classList.add('active');
@@ -4976,11 +4982,12 @@ async function bmLoadPublishedTracks(force=false){
  message.textContent='Chargement du catalogue BOPE MUSIQUE...';
  try{
   const client=await bmGetMusicClient();
-  const {data,error}=await client.from('bope_music_tracks').select('id,title,artist_name,genre,created_at').eq('status','published').order('created_at',{ascending:false}).limit(100);
+  const {data,error}=await client.from('bope_music_tracks').select('id,title,artist_name,genre,description,created_at').eq('status','published').order('created_at',{ascending:false}).limit(100);
   if(error)throw error;
   bmPublishedTracks=Array.isArray(data)?data:[];
   bmPublishedTracksLoaded=true;
   bopeMusicSearch(document.getElementById('bmSearchField')?.value||'');
+  bmRenderPublishedHome();
  }catch(error){
   console.error('BOPE MUSIQUE catalogue:',error);
   message.textContent='Impossible de charger le catalogue pour le moment. Vérifie ta connexion puis réessaie.';
@@ -5005,9 +5012,51 @@ function bopeMusicSearch(value){
  const total=demoResults.length+publishedResults.length;
  message.textContent='Catalogue BOPE : '+publishedResults.length+' chanson(s) publiée(s) · '+demoResults.length+' démo(s).';
  if(!total){root.innerHTML='<div class="bm-empty"><div>⌕</div><strong>Aucun résultat pour le moment</strong><p>Essaie un autre titre, artiste ou style. Les chansons publiées apparaîtront ici.</p></div>';return;}
+ const artistMatches=query?bmGetPublishedArtists(publishedResults).filter(artist=>bmNormalizeArtist(artist.name).includes(bmNormalizeArtist(query))):[];
+ const artistHtml=artistMatches.map(artist=>'<button type="button" class="bm-track bm-public-artist-result" data-artist="'+encodeURIComponent(artist.name)+'"><span class="bm-track-art">🎤</span><span class="bm-track-info"><strong>'+bmEscapeHtml(artist.name)+'</strong><small>Voir le profil · '+artist.tracks.length+' chanson(s) publiée(s)</small></span><span class="bm-track-play">›</span></button>').join('');
  const publishedHtml=publishedResults.map(track=>'<article class="bm-track-row bm-published-track"><div class="bm-track"><span class="bm-track-art">🎵</span><span class="bm-track-info"><strong>'+bmEscapeHtml(track.title||'Sans titre')+'</strong><small>'+bmEscapeHtml(track.artist_name||'Artiste')+' · '+bmEscapeHtml(track.genre||'Musique')+'</small></span></div><button class="bm-add-playlist" type="button" onclick="bmPlayPublishedTrack(\''+bmEscapeHtml(track.id)+'\',this)" aria-label="Écouter '+bmEscapeHtml(track.title||'la chanson')+'">▶</button><div class="bm-published-audio" style="display:none;flex-basis:100%;padding:0 8px 10px"></div></article>').join('');
  const demosHtml=demoResults.map(({track,index})=>'<div class="bm-track-row"><button class="bm-track" type="button" onclick="bopePlayDemo('+index+')"><span class="bm-track-art">'+track.icon+'</span><span class="bm-track-info"><strong>'+bmEscapeHtml(track.title)+'</strong><small>'+bmEscapeHtml(track.artist)+' · '+bmEscapeHtml(track.genre)+'</small></span><span class="bm-track-play">▶</span></button><button class="bm-add-playlist" type="button" onclick="bmChoosePlaylist('+index+')" aria-label="Ajouter à une playlist">＋</button></div>').join('');
- root.innerHTML=publishedHtml+demosHtml;
+ root.innerHTML=(artistHtml?'<div class="bm-section-title"><div><span>ARTISTES</span><h2>Profils correspondants</h2></div></div>'+artistHtml:'')+publishedHtml+demosHtml;
+ root.querySelectorAll('.bm-public-artist-result').forEach(button=>button.addEventListener('click',()=>bmOpenPublishedArtist(decodeURIComponent(button.dataset.artist||''))));
+}
+function bmNormalizeArtist(value){return String(value||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLocaleLowerCase('fr').trim();}
+function bmGetPublishedArtists(tracks){
+ const map=new Map();
+ (tracks||[]).forEach(track=>{
+  const name=String(track.artist_name||'Artiste inconnu').trim();if(!name)return;
+  const key=bmNormalizeArtist(name);
+  if(!map.has(key))map.set(key,{name,tracks:[]});
+  map.get(key).tracks.push(track);
+ });
+ return [...map.values()];
+}
+function bmRenderPublishedHome(){
+ const latest=document.getElementById('bmHomeLatestTracks'),artistsRoot=document.getElementById('bmHomeArtists');
+ if(!latest||!artistsRoot)return;
+ const tracks=bmPublishedTracks||[];
+ if(!tracks.length){
+  latest.innerHTML='<div class="bm-empty"><div>🎵</div><strong>Les nouveautés arrivent</strong><p>Les chansons validées par BOPE apparaîtront automatiquement ici.</p></div>';
+  artistsRoot.innerHTML='<div class="bm-empty"><div>🎤</div><strong>Les artistes arrivent</strong><p>Les profils seront visibles dès qu’un artiste aura au moins une chanson publiée.</p></div>';
+  return;
+ }
+ latest.innerHTML=tracks.slice(0,8).map(track=>'<article class="bm-track-row bm-published-track"><div class="bm-track"><span class="bm-track-art">🎵</span><span class="bm-track-info"><strong>'+bmEscapeHtml(track.title||'Sans titre')+'</strong><small>'+bmEscapeHtml(track.artist_name||'Artiste')+' · '+bmEscapeHtml(track.genre||'Musique')+'</small></span></div><button class="bm-add-playlist" type="button" onclick="bmPlayPublishedTrack(\''+bmEscapeHtml(track.id)+'\',this)" aria-label="Écouter '+bmEscapeHtml(track.title||'la chanson')+'">▶</button><div class="bm-published-audio" style="display:none;flex-basis:100%;padding:0 8px 10px"></div></article>').join('');
+ const groups=bmGetPublishedArtists(tracks);
+ artistsRoot.innerHTML=groups.map(artist=>'<button type="button" class="bm-track bm-home-artist" data-artist="'+encodeURIComponent(artist.name)+'"><span class="bm-track-art">🎤</span><span class="bm-track-info"><strong>'+bmEscapeHtml(artist.name)+'</strong><small>'+artist.tracks.length+' chanson(s) publiée(s) · '+bmEscapeHtml(artist.tracks[0]?.genre||'Artiste BOPE')+'</small></span><span class="bm-track-play">›</span></button>').join('');
+ artistsRoot.querySelectorAll('.bm-home-artist').forEach(button=>button.addEventListener('click',()=>bmOpenPublishedArtist(decodeURIComponent(button.dataset.artist||''))));
+}
+function bmOpenPublishedArtist(name){
+ const group=bmGetPublishedArtists(bmPublishedTracks).find(item=>bmNormalizeArtist(item.name)===bmNormalizeArtist(name));
+ if(!group)return;
+ const home=document.getElementById('bmPublishedHomeContent'),page=document.getElementById('bmPublishedArtistPage'),root=document.getElementById('bmPublicArtistProfile');
+ if(!home||!page||!root)return;
+ home.classList.add('bm-hidden');page.classList.remove('bm-hidden');
+ const bio=group.tracks.find(track=>String(track.description||'').trim())?.description||'Découvrez les chansons publiées de cet artiste sur BOPE MUSIQUE.';
+ root.innerHTML='<div class="bm-artist-cover"><span>🎤</span><small>ARTISTE BOPE · CATALOGUE OFFICIEL</small></div><div class="bm-artist-profile-head"><div><h3>'+bmEscapeHtml(group.name)+'</h3><p>Artiste indépendant · BOPE MUSIQUE</p></div></div><p class="bm-artist-bio">'+bmEscapeHtml(bio)+'</p><div class="bm-artist-stats"><div><strong>'+group.tracks.length+'</strong><small>CHANSON(S) PUBLIÉE(S)</small></div><div><strong>'+bmEscapeHtml(group.tracks[0]?.genre||'—')+'</strong><small>STYLE MUSICAL</small></div></div><h3 class="bm-artist-subtitle">Catalogue musical</h3><div class="bm-track-list">'+group.tracks.map(track=>'<article class="bm-track-row bm-published-track"><div class="bm-track"><span class="bm-track-art">🎵</span><span class="bm-track-info"><strong>'+bmEscapeHtml(track.title||'Sans titre')+'</strong><small>'+bmEscapeHtml(track.genre||'Musique')+'</small></span></div><button class="bm-add-playlist" type="button" onclick="bmPlayPublishedTrack(\''+bmEscapeHtml(track.id)+'\',this)" aria-label="Écouter '+bmEscapeHtml(track.title||'la chanson')+'">▶</button><div class="bm-published-audio" style="display:none;flex-basis:100%;padding:0 8px 10px"></div></article>').join('')+'</div>';
+ window.scrollTo(0,0);
+}
+function bmClosePublishedArtist(){
+ const home=document.getElementById('bmPublishedHomeContent'),page=document.getElementById('bmPublishedArtistPage');
+ if(home)home.classList.remove('bm-hidden');if(page)page.classList.add('bm-hidden');
 }
 async function bmPlayPublishedTrack(trackId,button){
  const row=button?.closest('.bm-published-track');
