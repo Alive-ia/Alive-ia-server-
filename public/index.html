@@ -5581,6 +5581,16 @@ document.addEventListener('DOMContentLoaded',bmRenderPlaylists);
  #bopeMusicPage .bm-feature-copy h2{font-size:14px}
 }
 </style>
+
+<style id="bope-music-five-tab-navigation">
+/* Navigation compacte à cinq onglets, adaptée aux petits écrans Android. */
+#bopeMusicPage .bm-nav{grid-template-columns:repeat(5,minmax(0,1fr));}
+#bopeMusicPage .bm-nav button{min-width:0;padding:4px 1px;font-size:9px;white-space:nowrap;}
+#bopeMusicPage .bm-nav button span{font-size:20px;line-height:1.1;}
+#bopeMusicPage.bm-tab-populaire #bmPopularSection{display:block!important;}
+#bopeMusicPage.bm-tab-populaire #bmPopularSection.bm-hidden{display:block!important;}
+@media(max-width:360px){#bopeMusicPage .bm-nav button{font-size:8px}#bopeMusicPage .bm-nav button span{font-size:18px}}
+</style>
 </body></html>
 <style id="bope-music-rankings">
 #bopeMusicPage .bm-ranking-row{align-items:center;gap:8px}
