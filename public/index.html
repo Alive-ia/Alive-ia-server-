@@ -619,7 +619,7 @@
   <main class="bm-main">
    <div class="bm-greeting"><span>MADE IN KIKWIT 🇨🇩</span><h1>La musique<br><i>à portée de main.</i></h1><p>Découvre les artistes, les sons et les talents d’ici et d’ailleurs.</p></div>
    <section class="bm-artist-join" id="bmArtistJoinCard"><div class="bm-artist-join-icon">🎙️</div><div class="bm-artist-join-copy"><span>POUR LES TALENTS</span><strong>Tu fais de la musique ?</strong><p>Présente ton univers et prépare ton arrivée sur BOPE MUSIQUE.</p></div><button type="button" onclick="bmOpenArtistJoin()">Devenir artiste</button></section>
-   <section class="bm-artist-join-panel bm-hidden" id="bmArtistJoinPanel"><button type="button" class="bm-back" onclick="bmCloseArtistJoin()">← Retour à l’accueil</button><div class="bm-artist-join-hero"><span>🎤</span><small>ESPACE ARTISTE BOPE</small><h2>Ta musique mérite<br>une scène.</h2><p>BOPE MUSIQUE prépare un espace pour les artistes indépendants, groupes et labels.</p></div><div class="bm-artist-join-benefits"><div>🎨 <strong>Ton profil</strong><small>Photo, nom et biographie</small></div><div>🎵 <strong>Ta musique</strong><small>Albums et chansons autorisés</small></div><div>📊 <strong>Ton suivi</strong><small>Écoutes et abonnés réels</small></div></div><p class="bm-artist-join-note">L’inscription artiste sera gratuite au lancement. Les publications seront ouvertes après vérification des droits musicaux. Cette première étape est une démonstration : aucun compte artiste réel n’est créé pour le moment.</p><button type="button" class="bm-artist-start" onclick="bmShowArtistDraft()">Préparer mon profil artiste</button><div class="bm-artist-draft bm-hidden" id="bmArtistDraft"><label>Nom d’artiste<input id="bmDraftArtistName" maxlength="50" placeholder="Ex. : Nom de scène"></label><label>Style musical<select id="bmDraftArtistGenre"><option value="">Choisir un style</option><option>Rumba</option><option>Gospel</option><option>Afrobeats</option><option>Rap</option><option>Jazz</option><option>Musique traditionnelle</option><option>Autre</option></select></label><label>Petite biographie<textarea id="bmDraftArtistBio" maxlength="300" rows="3" placeholder="Présente-toi en quelques mots..."></textarea></label><button type="button" class="bm-artist-start" onclick="bmSaveArtistDraft()">Enregistrer mon brouillon</button><p class="bm-artist-join-note" id="bmArtistDraftStatus" aria-live="polite">Ton profil artiste est conservé sur cet appareil pour préparer ta soumission.</p>
+   <section class="bm-artist-join-panel bm-hidden" id="bmArtistJoinPanel"><button type="button" class="bm-back" onclick="bmCloseArtistJoin()">← Retour à l’accueil</button><div class="bm-artist-join-hero"><span>🎤</span><small>ESPACE ARTISTE BOPE</small><h2>Ta musique mérite<br>une scène.</h2><p>BOPE MUSIQUE prépare un espace pour les artistes indépendants, groupes et labels.</p></div><div class="bm-artist-join-benefits"><div>🎨 <strong>Ton profil</strong><small>Photo, nom et biographie</small></div><div>🎵 <strong>Ta musique</strong><small>Albums et chansons autorisés</small></div><div>📊 <strong>Ton suivi</strong><small>Écoutes et abonnés réels</small></div></div><p class="bm-artist-join-note">Crée ton profil musical indépendant de ton profil BOPE SOCIAL. Les chansons restent soumises à vérification des droits avant publication.</p><button type="button" class="bm-artist-start" onclick="bmShowArtistDraft()">Mon profil artiste</button><div class="bm-artist-draft bm-hidden" id="bmArtistDraft"><div class="bm-section-title"><div><span>IDENTITÉ MUSICALE</span><h3>Mon profil artiste</h3></div></div><label>Nom d’artiste<input id="bmDraftArtistName" maxlength="50" placeholder="Ex. : Nom de scène"></label><label>Style musical principal<select id="bmDraftArtistGenre"><option value="">Choisir un style</option><option>Rumba</option><option>Gospel</option><option>Afrobeats</option><option>Rap</option><option>Jazz</option><option>Musique traditionnelle</option><option>Autre</option></select></label><label>Biographie musicale<textarea id="bmDraftArtistBio" maxlength="500" rows="4" placeholder="Présente ton parcours et ton univers musical..."></textarea></label><label>Photo de profil (JPG, PNG ou WEBP · 5 Mo maximum)<input id="bmArtistAvatar" type="file" accept="image/jpeg,image/png,image/webp"></label><button type="button" class="bm-artist-start" id="bmArtistProfileSave" onclick="bmSaveArtistProfile()">Enregistrer mon profil</button><p class="bm-artist-join-note" id="bmArtistDraftStatus" aria-live="polite">Connecte-toi à BOPE Créateur pour enregistrer ton profil sur BOPE.</p>
 <div class="bm-artist-upload-area">
  <button type="button" class="bm-artist-start" onclick="bmShowTrackUpload()">🎵 Soumettre une chanson</button>
  <div id="bmTrackUploadForm" class="bm-hidden">
@@ -5163,10 +5163,81 @@ function bmOpenArtistProfile(){const card=document.querySelector('#bmHomeContent
 function bmCloseArtistProfile(){const card=document.querySelector('#bmHomeContent .bm-artist-card');const profile=document.getElementById('bmArtistProfile');const page=document.getElementById('bopeMusicPage');if(profile)profile.classList.add('bm-hidden');if(card)card.classList.remove('bm-hidden');if(page)page.classList.remove('bm-artist-profile-open');}
 function bmUpdateArtistFollow(){const button=document.getElementById('bmArtistFollow'),count=document.getElementById('bmArtistFollowers');if(button)button.textContent=bmArtistFollowing?'✓ Suivi':'＋ Suivre';if(count)count.textContent=bmArtistFollowing?'1':'0';}
 function bmToggleArtistFollow(){bmArtistFollowing=!bmArtistFollowing;try{localStorage.setItem('bopeMusicDemoArtistFollowed',bmArtistFollowing?'1':'0');}catch(e){}bmUpdateArtistFollow();}
-function bmOpenArtistJoin(){const card=document.getElementById('bmArtistJoinCard'),panel=document.getElementById('bmArtistJoinPanel');if(card)card.classList.add('bm-hidden');if(panel)panel.classList.remove('bm-hidden');try{const draft=JSON.parse(localStorage.getItem('bopeMusicArtistDraft')||'{}');if(draft.name)document.getElementById('bmDraftArtistName').value=draft.name;if(draft.genre)document.getElementById('bmDraftArtistGenre').value=draft.genre;if(draft.bio)document.getElementById('bmDraftArtistBio').value=draft.bio;}catch(e){}}
+function bmOpenArtistJoin(){const card=document.getElementById('bmArtistJoinCard'),panel=document.getElementById('bmArtistJoinPanel');if(card)card.classList.add('bm-hidden');if(panel)panel.classList.remove('bm-hidden');bmLoadArtistProfile();}
 function bmCloseArtistJoin(){const card=document.getElementById('bmArtistJoinCard'),panel=document.getElementById('bmArtistJoinPanel'),draft=document.getElementById('bmArtistDraft');if(panel)panel.classList.add('bm-hidden');if(draft)draft.classList.add('bm-hidden');if(card)card.classList.remove('bm-hidden');}
 function bmShowArtistDraft(){const draft=document.getElementById('bmArtistDraft');if(draft)draft.classList.remove('bm-hidden');}
 function bmSaveArtistDraft(){const name=document.getElementById('bmDraftArtistName').value.trim(),genre=document.getElementById('bmDraftArtistGenre').value,bio=document.getElementById('bmDraftArtistBio').value.trim(),status=document.getElementById('bmArtistDraftStatus');if(!name||!genre){status.textContent='Indique ton nom d’artiste et choisis un style musical.';return;}try{localStorage.setItem('bopeMusicArtistDraft',JSON.stringify({name,genre,bio,savedAt:new Date().toISOString()}));status.textContent='✓ Brouillon enregistré sur cet appareil. Il reste privé et n’est pas encore envoyé à BOPE.';}catch(e){status.textContent='Impossible d’enregistrer le brouillon sur cet appareil.';}}
+function bmArtistProfileStatus(message,isError=false){const el=document.getElementById('bmArtistDraftStatus');if(el){el.textContent=message;el.style.color=isError?'#ff8585':'#c7b9dd';}}
+async function bmLoadArtistProfile(){
+ try{
+  const client=await bmGetMusicClient();
+  const {data:{session},error:authError}=await client.auth.getSession();
+  if(authError)throw authError;
+  if(!session){bmArtistProfileStatus('Connecte-toi à BOPE Créateur puis reviens pour créer ton profil.',true);return;}
+  const {data,error}=await client.from('bope_music_artist_profiles').select('artist_name,bio,main_genre,avatar_path').eq('user_id',session.user.id).maybeSingle();
+  if(error)throw error;
+  if(data){
+   document.getElementById('bmDraftArtistName').value=data.artist_name||'';
+   document.getElementById('bmDraftArtistBio').value=data.bio||'';
+   document.getElementById('bmDraftArtistGenre').value=data.main_genre||'';
+   bmArtistProfileStatus('✓ Ton profil artiste enregistré a été chargé. Tu peux le modifier.');
+   if(data.avatar_path){
+    const {data:publicData}=client.storage.from('bope-music-artist-avatars').getPublicUrl(data.avatar_path);
+    const url=publicData?.publicUrl;
+    let preview=document.getElementById('bmArtistAvatarPreview');
+    if(!preview){preview=document.createElement('img');preview.id='bmArtistAvatarPreview';preview.alt='Photo de profil artiste';preview.style.cssText='width:88px;height:88px;object-fit:cover;border-radius:50%;display:block;margin:8px 0';document.getElementById('bmArtistAvatar').after(preview);}
+    preview.src=url;
+   }
+  }else{
+   try{const draft=JSON.parse(localStorage.getItem('bopeMusicArtistDraft')||'{}');if(draft.name)document.getElementById('bmDraftArtistName').value=draft.name;if(draft.genre)document.getElementById('bmDraftArtistGenre').value=draft.genre;if(draft.bio)document.getElementById('bmDraftArtistBio').value=draft.bio;}catch(_e){}
+   bmArtistProfileStatus('Complète les informations puis enregistre ton profil artiste.');
+  }
+ }catch(error){console.error('BOPE MUSIQUE profil artiste:',error);bmArtistProfileStatus(error.message||'Impossible de charger ton profil artiste.',true);}
+}
+async function bmSaveArtistProfile(){
+ const button=document.getElementById('bmArtistProfileSave');
+ const name=document.getElementById('bmDraftArtistName').value.trim();
+ const genre=document.getElementById('bmDraftArtistGenre').value;
+ const bio=document.getElementById('bmDraftArtistBio').value.trim();
+ const avatar=document.getElementById('bmArtistAvatar')?.files?.[0]||null;
+ if(!name||!genre){bmArtistProfileStatus('Indique ton nom d’artiste et choisis un style musical.',true);return;}
+ if(avatar&&(!/^image\/(jpeg|png|webp)$/i.test(avatar.type)||avatar.size>5*1024*1024)){bmArtistProfileStatus('La photo doit être JPG, PNG ou WEBP et ne pas dépasser 5 Mo.',true);return;}
+ button.disabled=true;button.textContent='Enregistrement...';
+ let client=null,uploadedPath=null;
+ try{
+  client=await bmGetMusicClient();
+  const {data:{session},error:authError}=await client.auth.getSession();
+  if(authError)throw authError;
+  if(!session){bmArtistProfileStatus('Connecte-toi à BOPE Créateur puis reviens ici.',true);return;}
+  const userId=session.user.id;
+  let avatarPath=null;
+  const {data:existing,error:readError}=await client.from('bope_music_artist_profiles').select('avatar_path').eq('user_id',userId).maybeSingle();
+  if(readError)throw readError;
+  avatarPath=existing?.avatar_path||null;
+  if(avatar){
+   const ext=avatar.type==='image/png'?'png':avatar.type==='image/webp'?'webp':'jpg';
+   uploadedPath=userId+'/artist/'+crypto.randomUUID()+'.'+ext;
+   const upload=await client.storage.from('bope-music-artist-avatars').upload(uploadedPath,avatar,{contentType:avatar.type,upsert:false});
+   if(upload.error)throw upload.error;
+   avatarPath=uploadedPath;
+  }
+  const {error:saveError}=await client.from('bope_music_artist_profiles').upsert({user_id:userId,artist_name:name,bio,main_genre:genre,avatar_path:avatarPath,updated_at:new Date().toISOString()},{onConflict:'user_id'});
+  if(saveError)throw saveError;
+  try{localStorage.setItem('bopeMusicArtistDraft',JSON.stringify({name,genre,bio,savedAt:new Date().toISOString()}));}catch(_e){}
+  if(avatarPath){
+   const {data:publicData}=client.storage.from('bope-music-artist-avatars').getPublicUrl(avatarPath);
+   let preview=document.getElementById('bmArtistAvatarPreview');
+   if(!preview){preview=document.createElement('img');preview.id='bmArtistAvatarPreview';preview.alt='Photo de profil artiste';preview.style.cssText='width:88px;height:88px;object-fit:cover;border-radius:50%;display:block;margin:8px 0';document.getElementById('bmArtistAvatar').after(preview);}
+   preview.src=publicData.publicUrl;
+  }
+  bmArtistProfileStatus('✓ Ton profil artiste est enregistré sur BOPE MUSIQUE. Il est indépendant de ton profil BOPE SOCIAL.');
+ }catch(error){
+  if(client&&uploadedPath){try{await client.storage.from('bope-music-artist-avatars').remove([uploadedPath]);}catch(_e){}}
+  console.error('BOPE MUSIQUE sauvegarde profil:',error);
+  bmArtistProfileStatus(error.message||'Impossible d’enregistrer ton profil. Réessaie.',true);
+ }finally{button.disabled=false;button.textContent='Enregistrer mon profil';}
+}
+
 
 let bmMusicClient=null;
 async function bmGetMusicClient(){
