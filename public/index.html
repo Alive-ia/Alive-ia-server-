@@ -4960,24 +4960,74 @@ function bopeMusicTab(tab,button){
  if(musicPage){musicPage.classList.remove('bm-tab-accueil','bm-tab-recherche','bm-tab-bibliotheque','bm-tab-profil');musicPage.classList.add('bm-tab-'+tab);}
  if(tab==='bibliotheque')bmRenderFavorites();
  if(tab==='profil')bmCheckMusicAdmin();
+ if(tab==='recherche')bmLoadPublishedTracks(true);
  Object.entries(ids).forEach(([key,id])=>{const section=document.getElementById(id);if(section)section.classList.toggle('bm-hidden',key!==tab);});
  document.querySelectorAll('.bm-nav button').forEach(b=>b.classList.remove('active'));
  if(button)button.classList.add('active');
  else{const index={accueil:0,recherche:1,bibliotheque:2,profil:3}[tab];const nav=document.querySelectorAll('.bm-nav button');if(nav[index])nav[index].classList.add('active');}
 }
 let bmSearchGenre='Tout';
+let bmPublishedTracks=[];
+let bmPublishedTracksLoaded=false;
+async function bmLoadPublishedTracks(force=false){
+ const root=document.getElementById('bmSearchResults'),message=document.getElementById('bmSearchMessage');
+ if(!root||!message)return;
+ if(bmPublishedTracksLoaded&&!force){bopeMusicSearch(document.getElementById('bmSearchField')?.value||'');return;}
+ message.textContent='Chargement du catalogue BOPE MUSIQUE...';
+ try{
+  const client=await bmGetMusicClient();
+  const {data,error}=await client.from('bope_music_tracks').select('id,title,artist_name,genre,created_at').eq('status','published').order('created_at',{ascending:false}).limit(100);
+  if(error)throw error;
+  bmPublishedTracks=Array.isArray(data)?data:[];
+  bmPublishedTracksLoaded=true;
+  bopeMusicSearch(document.getElementById('bmSearchField')?.value||'');
+ }catch(error){
+  console.error('BOPE MUSIQUE catalogue:',error);
+  message.textContent='Impossible de charger le catalogue pour le moment. Vérifie ta connexion puis réessaie.';
+  root.innerHTML='<div class="bm-empty"><div>⚠</div><strong>Catalogue momentanément indisponible</strong><p>Réessaie dans quelques instants.</p><button type="button" onclick="bmLoadPublishedTracks(true)">Réessayer</button></div>';
+ }
+}
 function bopeMusicSearch(value){
  const query=String(value||'').trim().toLocaleLowerCase('fr');
- const results=bmDemoTracks.map((track,index)=>({track,index})).filter(({track})=>{
+ const demoResults=bmDemoTracks.map((track,index)=>({track,index})).filter(({track})=>{
   const matchesText=!query||[track.title,track.artist,track.genre,'bope','démo','demo'].join(' ').toLocaleLowerCase('fr').includes(query);
   const matchesGenre=bmSearchGenre==='Tout'||track.genre===bmSearchGenre;
   return matchesText&&matchesGenre;
  });
+ const publishedResults=bmPublishedTracks.filter(track=>{
+  const matchesText=!query||[track.title,track.artist_name,track.genre].join(' ').toLocaleLowerCase('fr').includes(query);
+  const genre=bmSearchGenre==='Rumba congolaise'?'Rumba':bmSearchGenre;
+  const matchesGenre=bmSearchGenre==='Tout'||String(track.genre||'').toLocaleLowerCase('fr').includes(String(genre).toLocaleLowerCase('fr'));
+  return matchesText&&matchesGenre;
+ });
  const root=document.getElementById('bmSearchResults'),message=document.getElementById('bmSearchMessage');
  if(!root||!message)return;
- message.textContent=query||bmSearchGenre!=='Tout'?'Résultats dans les démos disponibles ('+results.length+').':'Recherche dans les démos BOPE disponibles. Le catalogue des artistes sera ajouté avec leurs autorisations.';
- if(!results.length){root.innerHTML='<div class="bm-empty"><div>⌕</div><strong>Aucun résultat pour le moment</strong><p>Essaie un autre titre, artiste ou style. Le catalogue s’enrichira progressivement.</p></div>';return;}
- root.innerHTML=results.map(({track,index})=>'<div class="bm-track-row"><button class="bm-track" type="button" onclick="bopePlayDemo('+index+')"><span class="bm-track-art">'+track.icon+'</span><span class="bm-track-info"><strong>'+bmEscapeHtml(track.title)+'</strong><small>'+bmEscapeHtml(track.artist)+' · '+bmEscapeHtml(track.genre)+'</small></span><span class="bm-track-play">▶</span></button><button class="bm-add-playlist" type="button" onclick="bmChoosePlaylist('+index+')" aria-label="Ajouter à une playlist">＋</button></div>').join('');
+ const total=demoResults.length+publishedResults.length;
+ message.textContent='Catalogue BOPE : '+publishedResults.length+' chanson(s) publiée(s) · '+demoResults.length+' démo(s).';
+ if(!total){root.innerHTML='<div class="bm-empty"><div>⌕</div><strong>Aucun résultat pour le moment</strong><p>Essaie un autre titre, artiste ou style. Les chansons publiées apparaîtront ici.</p></div>';return;}
+ const publishedHtml=publishedResults.map(track=>'<article class="bm-track-row bm-published-track"><div class="bm-track"><span class="bm-track-art">🎵</span><span class="bm-track-info"><strong>'+bmEscapeHtml(track.title||'Sans titre')+'</strong><small>'+bmEscapeHtml(track.artist_name||'Artiste')+' · '+bmEscapeHtml(track.genre||'Musique')+'</small></span></div><button class="bm-add-playlist" type="button" onclick="bmPlayPublishedTrack(\''+bmEscapeHtml(track.id)+'\',this)" aria-label="Écouter '+bmEscapeHtml(track.title||'la chanson')+'">▶</button><div class="bm-published-audio" style="display:none;flex-basis:100%;padding:0 8px 10px"></div></article>').join('');
+ const demosHtml=demoResults.map(({track,index})=>'<div class="bm-track-row"><button class="bm-track" type="button" onclick="bopePlayDemo('+index+')"><span class="bm-track-art">'+track.icon+'</span><span class="bm-track-info"><strong>'+bmEscapeHtml(track.title)+'</strong><small>'+bmEscapeHtml(track.artist)+' · '+bmEscapeHtml(track.genre)+'</small></span><span class="bm-track-play">▶</span></button><button class="bm-add-playlist" type="button" onclick="bmChoosePlaylist('+index+')" aria-label="Ajouter à une playlist">＋</button></div>').join('');
+ root.innerHTML=publishedHtml+demosHtml;
+}
+async function bmPlayPublishedTrack(trackId,button){
+ const row=button?.closest('.bm-published-track');
+ const audioBox=row?.querySelector('.bm-published-audio');
+ if(!audioBox)return;
+ button.disabled=true;button.textContent='…';
+ try{
+  const client=await bmGetMusicClient();
+  const {data,error}=await client.functions.invoke('bope-music-play',{body:{track_id:trackId}});
+  if(error||!data?.signed_url)throw new Error(data?.error||error?.message||'Lecture indisponible.');
+  audioBox.innerHTML='<audio controls autoplay preload="none" style="width:100%" src="'+bmEscapeHtml(data.signed_url)+'">Ton navigateur ne prend pas en charge la lecture audio.</audio>';
+  audioBox.style.display='block';
+  const audio=audioBox.querySelector('audio');
+  audio.play().catch(()=>{});
+  button.textContent='✓';
+ }catch(error){
+  console.error('BOPE MUSIQUE lecture:',error);
+  button.textContent='!';
+  alert(error.message||'Impossible de lancer cette chanson.');
+ }finally{button.disabled=false;}
 }
 function bopeMusicCategory(name){
  bmSearchGenre=name==='Tout'?'Tout':name;
