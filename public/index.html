@@ -5425,4 +5425,35 @@ document.addEventListener('DOMContentLoaded',bmOrganizeHome);
 document.addEventListener('DOMContentLoaded',bmRenderFavorites);
 document.addEventListener('DOMContentLoaded',bmRenderPlaylists);
 </script>
+<style id="bope-music-compact-banner">
+/* Bannière d'accueil plus compacte, avec une identité bleu pétrole et turquoise. */
+#bopeMusicPage .bm-feature{
+ min-height:112px;
+ margin:12px 0 18px;
+ border:1px solid #38bfc455;
+ border-radius:15px;
+ background:linear-gradient(110deg,#103b48,#102630 68%,#164653);
+ box-shadow:0 6px 18px #0005;
+}
+#bopeMusicPage .bm-feature:after{
+ width:120px;height:120px;right:-42px;top:-32px;
+ background:radial-gradient(circle,#35d1c044,transparent 70%);
+}
+#bopeMusicPage .bm-feature-art{
+ width:27%;min-height:112px;
+ background:linear-gradient(145deg,#168b91,#10505d);
+ font-size:42px;color:#e2ffff;
+}
+#bopeMusicPage .bm-feature-art small{font-size:7px;letter-spacing:1.2px}
+#bopeMusicPage .bm-feature-copy{padding:12px 11px}
+#bopeMusicPage .bm-feature-copy h2{font-size:15px;line-height:1.15;margin:5px 0}
+#bopeMusicPage .bm-feature-copy p{font-size:9px;line-height:1.35;color:#b8d7dc}
+#bopeMusicPage .bm-feature-copy .bm-kicker{font-size:8px;letter-spacing:.7px;color:#63e0d5}
+@media(max-width:380px){
+ #bopeMusicPage .bm-feature{min-height:104px}
+ #bopeMusicPage .bm-feature-art{min-height:104px;width:25%;font-size:36px}
+ #bopeMusicPage .bm-feature-copy{padding:10px 9px}
+ #bopeMusicPage .bm-feature-copy h2{font-size:14px}
+}
+</style>
 </body></html>
