@@ -5019,7 +5019,7 @@ function bopeMusicSearch(value){
  root.innerHTML=(artistHtml?'<div class="bm-section-title"><div><span>ARTISTES</span><h2>Profils correspondants</h2></div></div>'+artistHtml:'')+publishedHtml+demosHtml;
  root.querySelectorAll('.bm-public-artist-result').forEach(button=>button.addEventListener('click',()=>bmOpenPublishedArtist(decodeURIComponent(button.dataset.artist||''))));
 }
-function bmNormalizeArtist(value){return String(value||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLocaleLowerCase('fr').trim();}
+function bmNormalizeArtist(value){return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('fr').trim();}
 function bmGetPublishedArtists(tracks){
  const map=new Map();
  (tracks||[]).forEach(track=>{
