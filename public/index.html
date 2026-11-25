@@ -559,6 +559,17 @@
 #bopeSportsPage .bs-date-strip{border-top:1px solid #203c2a;border-bottom:1px solid #203c2a;margin-top:4px;padding:9px 0}
 #bopeSportsPage .bs-filter-strip{padding-top:10px}
 #bopeSportsPage .bs-fixtures-empty{margin-top:4px;background:#0d1d14}
+#bopeSportsPage .bs-match-list{display:grid;gap:9px;margin-top:5px}
+#bopeSportsPage .bs-match-card{padding:12px;border:1px solid #294c35;border-radius:13px;background:linear-gradient(145deg,#102319,#0b1911)}
+#bopeSportsPage .bs-match-comp{display:flex;justify-content:space-between;gap:8px;color:#a9c7b1;font-size:10px;margin-bottom:10px}
+#bopeSportsPage .bs-match-teams{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px}
+#bopeSportsPage .bs-match-team{font-size:12px;font-weight:700;overflow-wrap:anywhere}
+#bopeSportsPage .bs-match-team:last-child{text-align:right}
+#bopeSportsPage .bs-match-score{font-size:16px;font-weight:900;color:#c5f36b;white-space:nowrap}
+#bopeSportsPage .bs-match-meta{display:flex;justify-content:space-between;gap:8px;margin-top:9px;color:#9fbea7;font-size:10px}
+#bopeSportsPage .bs-attribution{text-align:center;padding:16px 8px 24px;color:#9fbea7;font-size:10px}
+#bopeSportsPage .bs-attribution a{color:#c5f36b;text-decoration:underline;font-weight:700}
+
 #bopeSportsPage .bs-fixtures-empty small{display:block;color:#9fbea7;font-size:10px;margin-top:8px}
 #bopeSportsPage .bs-section-title{display:flex;align-items:end;justify-content:space-between;gap:8px;margin:22px 2px 11px}
 #bopeSportsPage .bs-section-title h2{font-size:16px;margin:0}
@@ -670,18 +681,18 @@
 <div class="bs-date-strip"><button>Hier</button><button class="selected">Aujourd’hui</button><button>Demain</button><button>Calendrier ›</button></div>
 <div class="bs-filter-strip"><button class="selected">Tous</button><button>🔴 En direct</button><button>À venir</button><button>Terminés</button></div>
 <div class="bs-section-title"><h2>Matchs du jour</h2><small>Scores fiables uniquement</small></div>
-<div class="bs-empty bs-fixtures-empty"><b>⚽</b>Les rencontres et les scores apparaîtront ici dès que la source sportive sera connectée.<small>Aucun match ni score fictif n’est affiché.</small></div>
+<div id="bsHomeMatches" class="bs-match-list"><div class="bs-empty bs-fixtures-empty"><b>⚽</b>Chargement des rencontres…<small>Aucun score fictif ne sera affiché.</small></div></div>
 <div class="bs-section-title"><h2>Explorer les compétitions</h2><small>Bientôt disponible</small></div>
 <div class="bs-panel"><strong>🏆 Compétitions et classements</strong><p>Retrouve les championnats, les équipes et leurs positions.</p></div>
 <div class="bs-panel"><strong>🎯 Pronostics gratuits</strong><p>Prédictions avec points et classements communautaires, sans mise d'argent.</p></div>
 <div class="bs-panel"><strong>📺 Regarder les matchs</strong><p>Vidéo intégrée avec les droits nécessaires ou liens vers les diffuseurs officiels.</p></div>
 </section>
-<section id="bsFootballPanel" class="bs-tab-panel"><div class="bs-section-title"><h2>⚽ Football</h2><small>Compétitions</small></div><div class="bs-empty"><b>⚽</b>Les calendriers et résultats de football seront affichés ici après connexion d'une source sportive fiable.<br><br>Aucun score fictif n'est affiché.</div></section>
+<section id="bsFootballPanel" class="bs-tab-panel"><div class="bs-section-title"><h2>⚽ Football</h2><small>Compétitions</small></div><div id="bsFootballMatches" class="bs-match-list"><div class="bs-empty"><b>⚽</b>Chargement des matchs de football…</div></div></section>
 <section id="bsBasketPanel" class="bs-tab-panel"><div class="bs-section-title"><h2>🏀 Basketball</h2><small>Compétitions</small></div><div class="bs-empty"><b>🏀</b>Les matchs, scores et classements de basketball seront ajoutés progressivement.</div></section>
 <section id="bsOtherPanel" class="bs-tab-panel"><div class="bs-section-title"><h2>🏐 Autres sports</h2><small>Multisports</small></div><div class="bs-shortcuts"><div class="bs-shortcut"><span>🎾</span><strong>Tennis</strong></div><div class="bs-shortcut"><span>🏐</span><strong>Volleyball</strong></div><div class="bs-shortcut"><span>🥊</span><strong>Boxe</strong></div></div><div class="bs-panel"><p>D'autres disciplines seront intégrées selon la disponibilité des données sportives.</p></div></section>
-<section id="bsLivePanel" class="bs-tab-panel"><div class="bs-section-title"><h2>🔴 En direct</h2><small>Scores live</small></div><div class="bs-empty"><b>📡</b>Aucun flux de scores n'est encore connecté.<br>Les scores en direct apparaîtront ici après intégration d'une API sportive.</div></section>
+<section id="bsLivePanel" class="bs-tab-panel"><div class="bs-section-title"><h2>🔴 En direct</h2><small>Scores live</small></div><div id="bsLiveMatches" class="bs-match-list"><div class="bs-empty"><b>📡</b>Recherche des matchs en direct…</div></div></section>
 <section id="bsNewsPanel" class="bs-tab-panel"><div class="bs-section-title"><h2>📰 Actualités</h2><small>Sport</small></div><div class="bs-empty"><b>📰</b>Les actualités sportives vérifiées seront ajoutées dans cette rubrique.</div></section>
-</main></div>
+</main><footer class="bs-attribution">Données sportives : <a href="https://sportscore.com/" target="_blank" rel="dofollow noopener">Powered by SportScore</a></footer></div>
 <nav class="bs-nav" aria-label="Navigation BOPE SPORTS"><button class="active" onclick="bopeSportsTab('accueil',this)"><span>🏠</span>Accueil</button><button onclick="bopeSportsTab('football',this)"><span>⚽</span>Football</button><button onclick="bopeSportsTab('basket',this)"><span>🏀</span>Basket</button><button onclick="bopeSportsTab('direct',this)"><span>🔴</span>Direct</button><button onclick="bopeSportsTab('actus',this)"><span>📰</span>Actus</button></nav></section>
 
 <section id="bopeMusicPage" class="bope-music-screen" aria-label="BOPE MUSIQUE">
@@ -1248,12 +1259,67 @@ function closeBopeSports(){
  const hub=document.querySelector('.bope-hub'),welcome=document.getElementById('welcome'),chat=document.getElementById('chat'),composer=document.querySelector('.box'),games=document.getElementById('gamesLaunch');
  if(hub)hub.style.display='';if(welcome)welcome.style.display='flex';if(chat)chat.style.display='flex';if(composer)composer.style.display='flex';if(games)games.style.display='block';
 }
+
+function bsLocalDateString(){
+ const d=new Date(),y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+ return y+'-'+m+'-'+day;
+}
+function bsSetMessage(target,title,detail){
+ const box=document.createElement('div');box.className='bs-empty';
+ const icon=document.createElement('b');icon.textContent='⚽';box.appendChild(icon);
+ const line=document.createElement('div');line.textContent=title;box.appendChild(line);
+ if(detail){const small=document.createElement('small');small.textContent=detail;box.appendChild(small);}
+ target.replaceChildren(box);
+}
+function bsRenderMatches(matches,target){
+ target.replaceChildren();
+ if(!Array.isArray(matches)||!matches.length){bsSetMessage(target,'Aucun match trouvé pour cette date.','Les rencontres seront affichées dès que la source en fournit.');return;}
+ matches.forEach(match=>{
+  const card=document.createElement('article');card.className='bs-match-card';
+  const comp=document.createElement('div');comp.className='bs-match-comp';
+  comp.textContent=match.competition||match.league||match.tournament||'Football';
+  const status=match.status_text||match.status||'';
+  const statusEl=document.createElement('span');statusEl.textContent=status;comp.appendChild(statusEl);card.appendChild(comp);
+  const teams=document.createElement('div');teams.className='bs-match-teams';
+  const home=document.createElement('div');home.className='bs-match-team';home.textContent=match.home||match.home_team||match.home_name||'Équipe domicile';
+  const score=document.createElement('div');score.className='bs-match-score';
+  const hs=match.home_score??match.score_home??match.homeScore,as=match.away_score??match.score_away??match.awayScore;
+  score.textContent=(hs===null||hs===undefined||hs===''?'–':hs)+' : '+(as===null||as===undefined||as===''?'–':as);
+  const away=document.createElement('div');away.className='bs-match-team';away.textContent=match.away||match.away_team||match.away_name||'Équipe visiteuse';
+  teams.append(home,score,away);card.appendChild(teams);
+  const meta=document.createElement('div');meta.className='bs-match-meta';
+  const time=match.time||match.start_time||match.date||'Horaire à confirmer';
+  let displayTime=time;
+  if(time&&time!=='Horaire à confirmer'){const parsed=new Date(time);if(!Number.isNaN(parsed.getTime()))displayTime=parsed.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',timeZone:'Africa/Kinshasa'});}
+  const dateEl=document.createElement('span');dateEl.textContent=displayTime;
+  const sourceStatus=document.createElement('span');sourceStatus.textContent=String(match.status||'').toLowerCase()==='live'?'EN DIRECT':(String(match.status||'').toLowerCase()==='finished'?'TERMINÉ':'');
+  meta.append(dateEl,sourceStatus);card.appendChild(meta);target.appendChild(card);
+ });
+}
+async function bsLoadFixtures(){
+ const date=bsLocalDateString();
+ const home=document.getElementById('bsHomeMatches'),football=document.getElementById('bsFootballMatches'),live=document.getElementById('bsLiveMatches');
+ [home,football,live].filter(Boolean).forEach(el=>bsSetMessage(el,'Chargement des rencontres…','Connexion à la source sportive.'));
+ try{
+  const response=await fetch('/api/sports/fixtures?date='+encodeURIComponent(date)+'&status=all',{headers:{Accept:'application/json'}});
+  const payload=await response.json();
+  if(!response.ok)throw new Error(payload.error||'Service sportif indisponible');
+  const matches=Array.isArray(payload.matches)?payload.matches:[];
+  if(home)bsRenderMatches(matches.slice(0,12),home);
+  if(football)bsRenderMatches(matches,football);
+  const liveMatches=matches.filter(m=>String(m.status||'').toLowerCase()==='live'||String(m.status_text||'').toLowerCase().includes('live'));
+  if(live)bsRenderMatches(liveMatches,live);
+ }catch(error){
+  [home,football,live].filter(Boolean).forEach(el=>bsSetMessage(el,'Impossible de charger les matchs.','Vérifie la connexion puis réessaie.'));
+ }
+}
 function bopeSportsTab(tab,button){
  const ids={accueil:'bsHomePanel',football:'bsFootballPanel',basket:'bsBasketPanel',autres:'bsOtherPanel',direct:'bsLivePanel',actus:'bsNewsPanel'};if(!ids[tab])tab='accueil';
  document.querySelectorAll('#bopeSportsPage .bs-tab-panel').forEach(el=>el.classList.remove('active'));
  const panel=document.getElementById(ids[tab]);if(panel)panel.classList.add('active');
  document.querySelectorAll('#bopeSportsPage .bs-nav button').forEach(el=>el.classList.remove('active'));
  if(button)button.classList.add('active');else{const ix={accueil:0,football:1,basket:2,direct:3,actus:4}[tab],nav=document.querySelectorAll('#bopeSportsPage .bs-nav button');if(nav[ix])nav[ix].classList.add('active');}
+ if(tab==='accueil'||tab==='football'||tab==='direct')bsLoadFixtures();
 }
 
   let MODE='court';
