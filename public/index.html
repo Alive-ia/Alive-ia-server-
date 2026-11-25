@@ -1310,9 +1310,10 @@ function bsMatchStatus(m){
  return 'upcoming';
 }
 function bsMatchMinute(m){
- const candidates=[m.minute,m.elapsed,m.time_elapsed,m.match_time,m.status_text];
- for(const v of candidates){if(v===undefined||v===null)continue;const match=String(v).match(/(\d{1,3})\s*['′]?/);if(match&&Number(match[1])<=130)return match[1]+"′";}
- return '';
+ const candidates=[m.minute,m.elapsed,m.time_elapsed,m.match_time];
+ for(const v of candidates){if(v===undefined||v===null||v==='')continue;const match=String(v).match(/(\d{1,3})\s*(?:['′]|min)?/i);if(match&&Number(match[1])<=130)return match[1]+"′";}
+ const label=String(m.status_text||'');const explicit=label.match(/(\d{1,3})\s*(?:['′]|min)\b/i);
+ return explicit&&Number(explicit[1])<=130?explicit[1]+"′":'';
 }
 function bsSortMatches(list){return [...list].sort((a,b)=>{
  const p=m=>bsMatchStatus(m)==='live'?0:bsCompetitionRegion(m.competition||'')==='rdc'?1:bsCompetitionRegion(m.competition||'')==='africa'?2:3;
@@ -5893,9 +5894,9 @@ document.addEventListener('DOMContentLoaded',bmRenderPlaylists);
 #bopeSportsPage .bs-competition-rail{display:flex;gap:13px;overflow-x:auto;padding:5px 2px 14px;scrollbar-width:none;scroll-snap-type:x mandatory}
 #bopeSportsPage .bs-competition-rail::-webkit-scrollbar{display:none}
 #bopeSportsPage .bs-league-orb{flex:0 0 66px;width:66px;min-width:66px;padding:0;border:0;background:transparent;color:#fff;display:flex;flex-direction:column;align-items:center;gap:6px;scroll-snap-align:start}
-#bopeSportsPage .bs-league-orb>span{width:57px;height:57px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 25%,#252525,#090909 72%);border:2px solid #ff0000;box-shadow:inset 0 2px 8px #ffffff12,0 5px 12px #0007;font-size:21px;color:#fff;transition:.2s}
+#bopeSportsPage .bs-league-orb>span{width:57px;height:57px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 25%,#252525,#090909 72%);border:2px solid #ff0000;box-shadow:inset 0 2px 8px #ffffff12,0 5px 12px #0007;font-size:21px;color:#fff;filter:grayscale(1) brightness(1.8);transition:.2s}
 #bopeSportsPage .bs-league-orb small{font-size:9px;line-height:1.15;text-align:center;color:#d6e5da;white-space:nowrap;max-width:72px;overflow:hidden;text-overflow:ellipsis}
-#bopeSportsPage .bs-league-orb.active>span{background:linear-gradient(145deg,#00e676,#009b43);border-color:#8affb7;box-shadow:0 0 0 3px #00c85328,0 0 20px #00e67688,inset 0 1px 9px #ffffff55;color:#fff}
+#bopeSportsPage .bs-league-orb.active>span{background:linear-gradient(145deg,#00e676,#009b43);border-color:#8affb7;box-shadow:0 0 0 3px #00c85328,0 0 20px #00e67688,inset 0 1px 9px #ffffff55;color:#fff;filter:none}
 #bopeSportsPage .bs-league-orb.active small{color:#00e676;font-weight:900}
 #bopeSportsPage .bs-date-strip,#bopeSportsPage .bs-filter-strip{display:flex;gap:7px;overflow-x:auto;padding:9px 0;scrollbar-width:none}
 #bopeSportsPage .bs-date-strip{border-top:1px solid #ffffff12;border-bottom:1px solid #ffffff12}
