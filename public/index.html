@@ -1376,6 +1376,9 @@ function bsRenderCompetitionExplorer(){
  rail.replaceChildren();
  const all=document.createElement('button');all.type='button';all.className='bs-league-orb'+(!bsActiveCompetition?' active':'');all.onclick=()=>{bsActiveCompetition='';bsApplyCompetitionFilters();bsRenderCompetitionExplorer();};
  const allIcon=document.createElement('span');allIcon.textContent='⚽';const allLabel=document.createElement('small');allLabel.textContent='Tous';all.append(allIcon,allLabel);rail.appendChild(all);
+ const rdc=document.createElement('button');rdc.type='button';rdc.className='bs-league-orb'+(bsActiveCompetition==='__rdc__'?' active':'');rdc.title='Toutes les compétitions de la République démocratique du Congo';
+ rdc.onclick=()=>{bsActiveCompetition=bsActiveCompetition==='__rdc__'?'':'__rdc__';bsApplyCompetitionFilters();bsRenderCompetitionExplorer();};
+ const rdcIcon=document.createElement('span');rdcIcon.textContent='🇨🇩';const rdcLabel=document.createElement('small');rdcLabel.textContent='RDC';rdc.append(rdcIcon,rdcLabel);rail.appendChild(rdc);
  entries.forEach(([name])=>{
   const button=document.createElement('button');button.type='button';button.className='bs-league-orb'+(bsActiveCompetition===name?' active':'');button.title=name;
   button.onclick=()=>{bsActiveCompetition=bsActiveCompetition===name?'':name;bsApplyCompetitionFilters();bsRenderCompetitionExplorer();};
@@ -1391,11 +1394,11 @@ function bsSetStatus(status,button){
 function bsApplyCompetitionFilters(){
  let list=bsSportsMatches.filter(m=>{
   const comp=m.competition||m.league||m.tournament||'Autres';
-  return (!bsActiveCompetition||comp===bsActiveCompetition)&&
+  return (!bsActiveCompetition||(bsActiveCompetition==='__rdc__'?bsCompetitionRegion(comp)==='rdc':comp===bsActiveCompetition))&&
    (bsSelectedStatus==='all'||bsMatchStatus(m)===bsSelectedStatus);
  });
  const title=document.getElementById('bsSelectedCompetitionTitle'),meta=document.getElementById('bsSelectedCompetitionMeta');
- if(title)title.textContent=bsActiveCompetition||'Tous les matchs';
+ if(title)title.textContent=bsActiveCompetition==='__rdc__'?'🇨🇩 Compétitions de la RDC':(bsActiveCompetition||'Tous les matchs');
  if(meta)meta.textContent=list.length+' rencontre(s)';
  const target=document.getElementById('bsFootballMatches');if(!target)return;
  target.replaceChildren();if(!list.length){bsSetMessage(target,'Aucun match pour ce filtre.','Choisis une autre date ou un autre statut.');return;}
