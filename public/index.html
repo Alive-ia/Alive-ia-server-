@@ -687,7 +687,9 @@
 </section>
 <section id="bsFootballPanel" class="bs-tab-panel">
  <div class="bs-football-heading"><div><span>BOPE SPORTS <i>• FOOTBALL</i></span><h1>Les rencontres</h1><small>Le terrain est à vous. Made in Kikwit 🇨🇩</small></div><div class="bs-heading-mark">⚽</div></div>
- <div class="bs-competition-title"><strong>CHAMPIONNATS</strong><small id="bsCompetitionCount">Chargement…</small></div>
+ <div class="bs-competition-title"><strong>EXPLORER LES COMPÉTITIONS</strong><small>Classement par popularité et région</small></div>
+ <div class="bs-category-rail" id="bsCategoryGrid" aria-label="Catégories de championnats"></div>
+ <div class="bs-competition-title"><strong>CHAMPIONNATS DISPONIBLES</strong><small id="bsCompetitionCount">Chargement…</small></div>
  <div class="bs-competition-rail" id="bsCompetitionGrid" aria-label="Choisir un championnat"><div class="bs-empty">Chargement…</div></div>
  <div class="bs-date-strip" id="bsDateFilters" aria-label="Choisir une date">
  <button data-day="-1" onclick="bsSetDay(-1,this)">Hier</button><button class="selected" data-day="0" onclick="bsSetDay(0,this)">Aujourd'hui</button><button data-day="1" onclick="bsSetDay(1,this)">Demain</button></div>
@@ -1281,6 +1283,7 @@ function bsSetMessage(target,title,detail){
 }
 let bsSportsMatches=[];
 let bsActiveCompetition='';
+let bsActiveCategory='popular';
 let bsSelectedDay=0;
 let bsSelectedStatus='all';
 function bsLocalDateString(offset=0){
@@ -1292,6 +1295,39 @@ function bsSetMessage(target,title,detail){
  const box=document.createElement('div');box.className='bs-empty';const icon=document.createElement('b');icon.textContent='⚽';box.appendChild(icon);
  const line=document.createElement('div');line.textContent=title;box.appendChild(line);
  if(detail){const small=document.createElement('small');small.textContent=detail;box.appendChild(small);}target.replaceChildren(box);
+}
+function bsCompetitionCategory(name){
+ const n=String(name||'').toLowerCase();
+ if(n.includes('dr congo')||n.includes('vodacom')||n.includes('linafoot')||n.includes('coupe du congo'))return 'rdc';
+ if(/caf|africa|girabola|botola|betway|motsepe|premiership.*south africa|egypt|senegal|algeria|tunisia|morocco|angola|nigeria|ghana|tanzania|uganda|kenya|benin|zimbabwe|botswana|cameroon|ivory coast|côte d'ivoire/.test(n))return 'africa';
+ if(/libertadores|sudamericana|brasil|brazil|argentina|mls|mexico|concacaf|colombia|chile|uruguay|ecuador|peru|paraguay|bolivia|venezuela|north america|south america/.test(n))return 'americas';
+ if(/japan|j-league|korea|k league|china|australia|a-league|asia|afc|saudi|qatar|uae|iran|india|thailand|indonesia|vietnam|malaysia/.test(n))return 'asia';
+ if(/premier league|la liga|serie a|bundesliga|ligue 1|eredivisie|champions league|europa league|conference league|uefa|fa cup|copa del rey|coupe de france|dfb|super lig|pro league|championship|europe|portugal|belgium|netherlands|scotland|turkey|germany|france|england|spain|italy/.test(n))return 'europe';
+ return 'other';
+}
+function bsIsPopularCompetition(name){
+ const n=String(name||'').toLowerCase();
+ return /premier league|la liga|bundesliga|serie a|ligue 1|champions league|europa league|conference league|saudi pro league|eredivisie|liga portugal|caf champions|caf confederation|vodacom|dr congo|linafoot|botola|girabola|betway premiership|brasileirao|serie a brazil|mls|liga mx|libertadores/.test(n);
+}
+function bsRenderCategoryExplorer(){
+ const rail=document.getElementById('bsCategoryGrid');if(!rail)return;
+ const categories=[
+  ['popular','🔥','Les plus suivis'],
+  ['rdc','🇨🇩','RDC'],
+  ['africa','🌍','Afrique'],
+  ['europe','🏆','Europe'],
+  ['americas','🌎','Amériques'],
+  ['asia','🌏','Asie & Océanie'],
+  ['other','⚽','Autres']
+ ];
+ rail.replaceChildren();
+ categories.forEach(([key,icon,label])=>{
+  const button=document.createElement('button');button.type='button';
+  button.className='bs-category-chip'+(bsActiveCategory===key?' active':'');
+  button.innerHTML='<span>'+icon+'</span><b>'+label+'</b>';
+  button.onclick=()=>{bsActiveCategory=bsActiveCategory===key?'':key;bsActiveCompetition='';bsApplyCompetitionFilters();bsRenderCategoryExplorer();bsRenderCompetitionExplorer();};
+  rail.appendChild(button);
+ });
 }
 function bsCompetitionRegion(name){
  const n=String(name||'').toLowerCase();
@@ -1370,7 +1406,8 @@ function bsRenderCompetitionExplorer(){
  const rail=document.getElementById('bsCompetitionGrid');if(!rail)return;
  const counts=new Map();bsSportsMatches.forEach(m=>{const name=m.competition||m.league||m.tournament||'Autres';counts.set(name,(counts.get(name)||0)+1);});
  const entries=[...counts.entries()].sort((a,b)=>{
-  const rank={rdc:0,africa:1,europe:2,world:3};return rank[bsCompetitionRegion(a[0])]-rank[bsCompetitionRegion(b[0])]||a[0].localeCompare(b[0]);
+  const popularA=bsIsPopularCompetition(a[0])?0:1,popularB=bsIsPopularCompetition(b[0])?0:1;
+  return popularA-popularB||bsCompetitionCategory(a[0]).localeCompare(bsCompetitionCategory(b[0]))||a[0].localeCompare(b[0]);
  });
  const count=document.getElementById('bsCompetitionCount');if(count)count.textContent=entries.length+' ligues';
  rail.replaceChildren();
@@ -1394,7 +1431,9 @@ function bsSetStatus(status,button){
 function bsApplyCompetitionFilters(){
  let list=bsSportsMatches.filter(m=>{
   const comp=m.competition||m.league||m.tournament||'Autres';
-  return (!bsActiveCompetition||(bsActiveCompetition==='__rdc__'?bsCompetitionRegion(comp)==='rdc':comp===bsActiveCompetition))&&
+  const category=bsCompetitionCategory(comp);
+  const categoryMatch=!bsActiveCategory||(bsActiveCategory==='popular'?bsIsPopularCompetition(comp):category===bsActiveCategory);
+  return categoryMatch&&(!bsActiveCompetition||(bsActiveCompetition==='__rdc__'?category==='rdc':comp===bsActiveCompetition))&&
    (bsSelectedStatus==='all'||bsMatchStatus(m)===bsSelectedStatus);
  });
  const title=document.getElementById('bsSelectedCompetitionTitle'),meta=document.getElementById('bsSelectedCompetitionMeta');
@@ -1420,7 +1459,7 @@ async function bsLoadFixtures(){
   const payload=await response.json();if(!response.ok)throw new Error(payload.error||'Service sportif indisponible');
   bsSportsMatches=Array.isArray(payload.matches)?payload.matches:[];
   if(home)bsRenderMatches(bsSortMatches(bsSportsMatches).slice(0,12),home);
-  bsRenderCompetitionExplorer();bsApplyCompetitionFilters();
+  bsRenderCategoryExplorer();bsRenderCompetitionExplorer();bsApplyCompetitionFilters();
   if(live)bsRenderMatches(bsSportsMatches.filter(m=>bsMatchStatus(m)==='live'),live);
  }catch(error){[home,football,live].filter(Boolean).forEach(el=>bsSetMessage(el,'Impossible de charger les matchs.','Vérifie la connexion puis réessaie.'));}
 }
@@ -5937,7 +5976,15 @@ document.addEventListener('DOMContentLoaded',bmRenderPlaylists);
 #bopeSportsPage .bs-nav button.active span{filter:drop-shadow(0 0 6px #00e676)}
 #bopeSportsPage .bs-empty{background:#111;border-color:#31583c;color:#e5f1e8}
 @media(max-width:360px){#bopeSportsPage .bs-league-orb{flex-basis:61px;width:61px;min-width:61px}#bopeSportsPage .bs-league-orb>span{width:53px;height:53px}#bopeSportsPage .bs-match-team{font-size:11px}#bopeSportsPage .bs-match-score{font-size:22px}#bopeSportsPage .bs-date-strip button,#bopeSportsPage .bs-filter-strip button{font-size:9px;padding:8px 5px}}
-</style></html>
+
+<style id="bope-sports-smart-competition-categories">
+#bopeSportsPage .bs-category-rail{display:flex;gap:8px;overflow-x:auto;padding:3px 1px 13px;scrollbar-width:none}
+#bopeSportsPage .bs-category-rail::-webkit-scrollbar{display:none}
+#bopeSportsPage .bs-category-chip{flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:9px 11px;border:1px solid #31523c;border-radius:22px;background:linear-gradient(145deg,#111,#080808);color:#d8eee0;font-size:10px;white-space:nowrap}
+#bopeSportsPage .bs-category-chip span{font-size:15px}
+#bopeSportsPage .bs-category-chip.active{background:linear-gradient(120deg,#00c853,#008c3a);border-color:#8affb7;color:#052313;box-shadow:0 0 14px #00e67655}
+#bopeSportsPage .bs-category-chip.active b{font-weight:900}
+</style></style></html>
 <style id="bope-music-rankings">
 #bopeMusicPage .bm-ranking-row{align-items:center;gap:8px}
 #bopeMusicPage .bm-ranking-position{flex:0 0 28px;color:#f0cf72;font-weight:900;text-align:center;font-size:15px}
