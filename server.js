@@ -197,6 +197,51 @@ app.get('/api/supabase-config', (req, res) => {
   res.json({ url, publishableKey });
 });
 
+
+ // === BOPE SPORTS : PROXY SPORTScore AVEC CACHE ===
+ const bopeSportsCache = new Map();
+ const BOPE_SPORTS_CACHE_MS = 60 * 1000;
+ app.get('/api/sports/fixtures', async (req, res) => {
+   const date = String(req.query.date || '');
+   const status = String(req.query.status || 'all').toLowerCase();
+   if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) return res.status(400).json({ error: 'Date invalide. Format attendu : AAAA-MM-JJ.' });
+   if (!['all', 'live', 'upcoming', 'finished'].includes(status)) return res.status(400).json({ error: 'Statut de match invalide.' });
+   const cacheKey = date + ':' + status;
+   const cached = bopeSportsCache.get(cacheKey);
+   if (cached && Date.now() - cached.at < BOPE_SPORTS_CACHE_MS) {
+     res.set('Cache-Control', 'public, max-age=45');
+     return res.json({ ...cached.data, cached: true });
+   }
+   try {
+     const statuses = status === 'all' ? ['live', 'upcoming', 'finished'] : [status];
+     const responses = await Promise.all(statuses.map(async item => {
+       const url = 'https://sportscore.com/api/v1/fixtures/?sport=football&date=' + encodeURIComponent(date) + '&status=' + encodeURIComponent(item) + '&limit=50';
+       const response = await fetch(url, { headers: { Accept: 'application/json' } });
+       if (!response.ok) throw new Error('SportScore HTTP ' + response.status);
+       return response.json();
+     }));
+     const matches = [];
+     for (const payload of responses) {
+       const rows = Array.isArray(payload) ? payload : (payload && (payload.matches || payload.fixtures || payload.results || payload.data)) || [];
+       if (Array.isArray(rows)) matches.push(...rows);
+     }
+     const seen = new Set();
+     const uniqueMatches = matches.filter(match => {
+       const key = String(match.id || match.slug || match.url || [match.home || match.home_team, match.away || match.away_team, match.time || match.date].join('|'));
+       if (seen.has(key)) return false;
+       seen.add(key);
+       return true;
+     });
+     const data = { sport: 'football', date, status, count: uniqueMatches.length, matches: uniqueMatches, source_updated_at: new Date().toISOString() };
+     bopeSportsCache.set(cacheKey, { at: Date.now(), data });
+     res.set('Cache-Control', 'public, max-age=45');
+     return res.json(data);
+   } catch (error) {
+     console.error('BOPE SPORTS API:', error.message);
+     return res.status(502).json({ error: 'Les données sportives sont momentanément indisponibles. Réessaie dans un instant.' });
+   }
+ });
+
 // === BOPE CREATEUR : COMPTES ET PUBLICATIONS DE DEMONSTRATION ===
 const BOPE_DEMO_ACCOUNTS = [
   { username: 'BOPE_Officiel', display_name: 'BOPE Officiel', bio: 'Compte officiel de BOPE 🇨🇩' },
