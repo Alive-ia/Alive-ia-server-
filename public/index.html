@@ -550,10 +550,12 @@
 #bopeSportsPage .bs-section-title{display:flex;align-items:end;justify-content:space-between;gap:8px;margin:22px 2px 11px}
 #bopeSportsPage .bs-section-title h2{font-size:16px;margin:0}
 #bopeSportsPage .bs-section-title small{color:#9fbea7;font-size:10px}
-#bopeSportsPage .bs-shortcuts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
-#bopeSportsPage .bs-shortcut{border:1px solid #294c35;border-radius:15px;background:#102319;color:#fff;padding:13px 7px;min-height:91px;text-align:center}
-#bopeSportsPage .bs-shortcut span{display:block;font-size:25px;margin-bottom:7px}
-#bopeSportsPage .bs-shortcut strong{font-size:11px}
+#bopeSportsPage .bs-shortcuts{display:grid;grid-template-columns:repeat(3,minmax(0,100px));justify-content:space-between;gap:10px;max-width:350px;margin:0 auto}
+#bopeSportsPage .bs-shortcut{width:100%;aspect-ratio:1/1;min-height:0;border:1px solid #315b40;border-radius:18px;background:linear-gradient(145deg,#142d20,#0c1c13);color:#fff;padding:9px 5px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;box-shadow:0 5px 14px #0003;transition:transform .15s,border-color .15s}
+#bopeSportsPage .bs-shortcut:active{transform:scale(.96);border-color:#b8f34b}
+#bopeSportsPage .bs-shortcut span{display:block;font-size:27px;line-height:1;margin:0}
+#bopeSportsPage .bs-shortcut strong{font-size:10px;line-height:1.2}
+@media(max-width:360px){#bopeSportsPage .bs-shortcuts{grid-template-columns:repeat(3,minmax(0,88px))}}
 #bopeSportsPage .bs-panel{border:1px solid #294c35;border-radius:17px;background:#0d1d14;padding:14px;margin-top:11px}
 #bopeSportsPage .bs-panel p{font-size:12px;color:#b9cfbf;line-height:1.5;margin:7px 0 0}
 #bopeSportsPage .bs-empty{padding:17px 12px;text-align:center;border:1px dashed #45664d;border-radius:13px;color:#c5d9c9;font-size:12px;line-height:1.5}
