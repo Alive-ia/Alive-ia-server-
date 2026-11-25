@@ -548,6 +548,18 @@
 #bopeSportsPage .bs-hero p{font-size:11px;line-height:1.4;color:#bcd2c1;margin:0}
 #bopeSportsPage .bs-status{margin-top:10px;padding:9px 11px;border-radius:12px;background:#09180f;border:1px solid #345b3c;color:#d7f0d9;font-size:10px;line-height:1.4}
 #bopeSportsPage .bs-hero-mark{flex:0 0 46px;width:46px;height:46px;border-radius:14px;background:#1c3d28;display:grid;place-items:center;font-size:26px}
+#bopeSportsPage .bs-topline{display:flex;align-items:center;justify-content:space-between;margin:2px 2px 13px}
+#bopeSportsPage .bs-topline strong{display:block;font-size:18px;letter-spacing:.4px}
+#bopeSportsPage .bs-topline small{display:block;color:#9fbea7;font-size:10px;margin-top:3px}
+#bopeSportsPage .bs-live-badge{font-size:9px;font-weight:800;letter-spacing:.7px;color:#c5f36b;background:#183523;border:1px solid #315b40;border-radius:20px;padding:6px 9px}
+#bopeSportsPage .bs-sport-strip,#bopeSportsPage .bs-date-strip,#bopeSportsPage .bs-filter-strip{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding:2px 0 8px}
+#bopeSportsPage .bs-sport-strip::-webkit-scrollbar,#bopeSportsPage .bs-date-strip::-webkit-scrollbar,#bopeSportsPage .bs-filter-strip::-webkit-scrollbar{display:none}
+#bopeSportsPage .bs-sport-strip button,#bopeSportsPage .bs-date-strip button,#bopeSportsPage .bs-filter-strip button{white-space:nowrap;border:1px solid #294c35;background:#102319;color:#c4d8c9;border-radius:9px;padding:8px 11px;font-size:10px}
+#bopeSportsPage .bs-sport-strip button.selected,#bopeSportsPage .bs-date-strip button.selected,#bopeSportsPage .bs-filter-strip button.selected{background:#c5f36b;color:#102015;border-color:#c5f36b;font-weight:800}
+#bopeSportsPage .bs-date-strip{border-top:1px solid #203c2a;border-bottom:1px solid #203c2a;margin-top:4px;padding:9px 0}
+#bopeSportsPage .bs-filter-strip{padding-top:10px}
+#bopeSportsPage .bs-fixtures-empty{margin-top:4px;background:#0d1d14}
+#bopeSportsPage .bs-fixtures-empty small{display:block;color:#9fbea7;font-size:10px;margin-top:8px}
 #bopeSportsPage .bs-section-title{display:flex;align-items:end;justify-content:space-between;gap:8px;margin:22px 2px 11px}
 #bopeSportsPage .bs-section-title h2{font-size:16px;margin:0}
 #bopeSportsPage .bs-section-title small{color:#9fbea7;font-size:10px}
@@ -653,9 +665,16 @@
 <header class="bs-header"><button class="bs-back" type="button" onclick="closeBopeSports()">← BOPE IA</button><div class="bs-brand"><span class="bs-logo">⚽</span><div><strong>BOPE <em>SPORTS</em></strong><small>Le sport nous rassemble • Made in Kikwit 🇨🇩</small></div></div></header>
 <main>
 <section id="bsHomePanel" class="bs-tab-panel active">
-<div class="bs-hero"><span class="bs-hero-mark">🏆</span><div><span class="bs-kicker">🇨🇩 BOPE SPORTS • MADE IN KIKWIT</span><h1>Le sport, <span>en un seul espace.</span></h1><p>Matchs, résultats et actualités sportives.</p></div></div><div class="bs-status">🛠️ Les scores en direct seront disponibles après connexion d’une source sportive fiable.</div>
-<div class="bs-section-title"><h2>Explorer les sports</h2><small>Première version</small></div><div class="bs-shortcuts"><button class="bs-shortcut" onclick="bopeSportsTab('football')"><span>⚽</span><strong>Football</strong></button><button class="bs-shortcut" onclick="bopeSportsTab('basket')"><span>🏀</span><strong>Basketball</strong></button><button class="bs-shortcut" onclick="bopeSportsTab('autres')"><span>🏐</span><strong>Autres sports</strong></button></div>
-<div class="bs-section-title"><h2>À suivre sur BOPE</h2><small>Fonctionnalités prévues</small></div><div class="bs-panel"><strong>🔴 Matchs en direct</strong><p>Scores, chronomètre, buts, cartons et statistiques lorsque la source de données sera connectée.</p></div><div class="bs-panel"><strong>🏆 Classements</strong><p>Championnats, équipes et performances des clubs.</p></div><div class="bs-panel"><strong>🎯 Pronostics gratuits</strong><p>Prédictions avec points et classements communautaires, sans mise d'argent.</p></div><div class="bs-panel"><strong>📺 Regarder les matchs</strong><p>Vidéo intégrée uniquement avec les droits nécessaires, ou liens vers les diffuseurs officiels.</p></div>
+<div class="bs-topline"><div><strong>BOPE SPORTS</strong><small>🇨🇩 Made in Kikwit</small></div><span class="bs-live-badge">● SPORTS</span></div>
+<div class="bs-sport-strip"><button class="selected" onclick="bopeSportsTab('football')">⚽ Football</button><button onclick="bopeSportsTab('basket')">🏀 Basket</button><button onclick="bopeSportsTab('autres')">🎾 Tennis</button><button onclick="bopeSportsTab('autres')">🏐 Volley</button><button onclick="bopeSportsTab('autres')">＋ Sports</button></div>
+<div class="bs-date-strip"><button>Hier</button><button class="selected">Aujourd’hui</button><button>Demain</button><button>Calendrier ›</button></div>
+<div class="bs-filter-strip"><button class="selected">Tous</button><button>🔴 En direct</button><button>À venir</button><button>Terminés</button></div>
+<div class="bs-section-title"><h2>Matchs du jour</h2><small>Scores fiables uniquement</small></div>
+<div class="bs-empty bs-fixtures-empty"><b>⚽</b>Les rencontres et les scores apparaîtront ici dès que la source sportive sera connectée.<small>Aucun match ni score fictif n’est affiché.</small></div>
+<div class="bs-section-title"><h2>Explorer les compétitions</h2><small>Bientôt disponible</small></div>
+<div class="bs-panel"><strong>🏆 Compétitions et classements</strong><p>Retrouve les championnats, les équipes et leurs positions.</p></div>
+<div class="bs-panel"><strong>🎯 Pronostics gratuits</strong><p>Prédictions avec points et classements communautaires, sans mise d'argent.</p></div>
+<div class="bs-panel"><strong>📺 Regarder les matchs</strong><p>Vidéo intégrée avec les droits nécessaires ou liens vers les diffuseurs officiels.</p></div>
 </section>
 <section id="bsFootballPanel" class="bs-tab-panel"><div class="bs-section-title"><h2>⚽ Football</h2><small>Compétitions</small></div><div class="bs-empty"><b>⚽</b>Les calendriers et résultats de football seront affichés ici après connexion d'une source sportive fiable.<br><br>Aucun score fictif n'est affiché.</div></section>
 <section id="bsBasketPanel" class="bs-tab-panel"><div class="bs-section-title"><h2>🏀 Basketball</h2><small>Compétitions</small></div><div class="bs-empty"><b>🏀</b>Les matchs, scores et classements de basketball seront ajoutés progressivement.</div></section>
