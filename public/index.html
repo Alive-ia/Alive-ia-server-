@@ -687,7 +687,16 @@
 <div class="bs-panel"><strong>🎯 Pronostics gratuits</strong><p>Prédictions avec points et classements communautaires, sans mise d'argent.</p></div>
 <div class="bs-panel"><strong>📺 Regarder les matchs</strong><p>Vidéo intégrée avec les droits nécessaires ou liens vers les diffuseurs officiels.</p></div>
 </section>
-<section id="bsFootballPanel" class="bs-tab-panel"><div class="bs-section-title"><h2>⚽ Football</h2><small>Compétitions</small></div><div id="bsFootballMatches" class="bs-match-list"><div class="bs-empty"><b>⚽</b>Chargement des matchs de football…</div></div></section>
+<section id="bsFootballPanel" class="bs-tab-panel">
+ <div class="bs-football-hero"><div><span class="bs-kicker">LE MONDE DU FOOTBALL</span><h1>Les championnats<br><em>en un seul endroit.</em></h1><p>De la Vodacom Ligue 1 aux grandes scènes européennes.</p></div><div class="bs-football-mark">🏆</div></div>
+ <div class="bs-section-title"><h2>Explorer les compétitions</h2><small id="bsCompetitionCount">Chargement…</small></div>
+ <div class="bs-competition-grid" id="bsCompetitionGrid"><div class="bs-empty">Chargement des compétitions…</div></div>
+ <div class="bs-competition-tools"><label class="bs-competition-search">⌕ <input id="bsCompetitionSearch" type="search" placeholder="Rechercher un championnat…" oninput="bsApplyCompetitionFilters()"></label>
+ <div class="bs-region-filters" role="group" aria-label="Filtrer les compétitions">
+ <button class="active" data-region="all" onclick="bsSetRegion('all',this)">🌍 Tous</button><button data-region="rdc" onclick="bsSetRegion('rdc',this)">🇨🇩 RDC</button><button data-region="africa" onclick="bsSetRegion('africa',this)">🌍 Afrique</button><button data-region="europe" onclick="bsSetRegion('europe',this)">🏆 Europe</button><button data-region="world" onclick="bsSetRegion('world',this)">🌐 Monde</button></div></div>
+ <div class="bs-section-title"><h2 id="bsSelectedCompetitionTitle">Tous les matchs</h2><small id="bsSelectedCompetitionMeta">Rencontres disponibles aujourd’hui</small></div>
+ <div id="bsFootballMatches" class="bs-match-list"><div class="bs-empty"><b>⚽</b>Chargement des matchs de football…</div></div>
+</section>
 <section id="bsBasketPanel" class="bs-tab-panel"><div class="bs-section-title"><h2>🏀 Basketball</h2><small>Compétitions</small></div><div class="bs-empty"><b>🏀</b>Les matchs, scores et classements de basketball seront ajoutés progressivement.</div></section>
 <section id="bsOtherPanel" class="bs-tab-panel"><div class="bs-section-title"><h2>🏐 Autres sports</h2><small>Multisports</small></div><div class="bs-shortcuts"><div class="bs-shortcut"><span>🎾</span><strong>Tennis</strong></div><div class="bs-shortcut"><span>🏐</span><strong>Volleyball</strong></div><div class="bs-shortcut"><span>🥊</span><strong>Boxe</strong></div></div><div class="bs-panel"><p>D'autres disciplines seront intégrées selon la disponibilité des données sportives.</p></div></section>
 <section id="bsLivePanel" class="bs-tab-panel"><div class="bs-section-title"><h2>🔴 En direct</h2><small>Scores live</small></div><div id="bsLiveMatches" class="bs-match-list"><div class="bs-empty"><b>📡</b>Recherche des matchs en direct…</div></div></section>
@@ -1271,29 +1280,89 @@ function bsSetMessage(target,title,detail){
  if(detail){const small=document.createElement('small');small.textContent=detail;box.appendChild(small);}
  target.replaceChildren(box);
 }
+let bsSportsMatches=[];
+let bsActiveRegion='all';
+let bsActiveCompetition='';
+const bsFeaturedCompetitions=['DR Congo Vodacom Ligue 1','CAF Champions League','CAF Confederation Cup','Premier League','LaLiga','Serie A','Bundesliga','French Ligue 1','UEFA Champions League'];
+function bsCompetitionRegion(name){
+ const n=String(name||'').toLowerCase();
+ if(n.includes('dr congo')||n.includes('vodacom')||n.includes('linafoot'))return 'rdc';
+ if(n.includes('caf')||n.includes('africa')||n.includes('ethiopia')||n.includes('kenya')||n.includes('senegal')||n.includes('morocco')||n.includes('egypt')||n.includes('south africa')||n.includes('liberia')||n.includes('zimbabwe')||n.includes('nigeria')||n.includes('ghana')||n.includes('tanzania')||n.includes('uganda'))return 'africa';
+ if(n.includes('uefa')||n.includes('premier league')||n.includes('la liga')||n.includes('serie a')||n.includes('bundesliga')||n.includes('ligue 1')||n.includes('cup')||n.includes('liga')||n.includes('superliga')||n.includes('championship'))return 'europe';
+ return 'world';
+}
+function bsRegionLabel(region){return ({rdc:'🇨🇩 RDC',africa:'🌍 Afrique',europe:'🏆 Europe',world:'🌐 Monde'})[region]||'🌍 Monde';}
+function bsIsPlaceholderTeam(name){return /^team\s+[a-z0-9_-]{5,}$/i.test(String(name||'').trim());}
+function bsSafeTeamName(name){return bsIsPlaceholderTeam(name)?'Équipe à identifier':(name||'Équipe à confirmer');}
+function bsMatchStatus(m){const s=String(m.status||'').toLowerCase(),t=String(m.status_text||'').toLowerCase();if(s==='live'||t.includes('live')||t.includes('half')||t.includes('penalty'))return 'live';if(s==='finished'||t.includes('finished'))return 'finished';if(s==='postponed'||t.includes('postponed')||t.includes('delayed'))return 'delayed';return 'upcoming';}
+function bsMatchPriority(m){const comp=String(m.competition||'');const region=bsCompetitionRegion(comp);return bsMatchStatus(m)==='live'?-100:region==='rdc'?-80:region==='africa'?-60:bsFeaturedCompetitions.some(x=>comp.toLowerCase().includes(x.toLowerCase()))?-40:region==='europe'?-20:0;}
+function bsSortMatches(list){return [...list].sort((a,b)=>bsMatchPriority(a)-bsMatchPriority(b));}
+function bsRenderMatchCard(match){
+ const card=document.createElement('article');card.className='bs-match-card';
+ const comp=document.createElement('div');comp.className='bs-match-comp';
+ const compName=match.competition||match.league||match.tournament||'Football';
+ const compLabel=document.createElement('strong');compLabel.textContent=compName;comp.appendChild(compLabel);
+ const status=bsMatchStatus(match),statusEl=document.createElement('span');statusEl.className='bs-status-'+status;
+ statusEl.textContent=status==='live'?'● EN DIRECT':status==='finished'?'TERMINÉ':status==='delayed'?'REPORTÉ':(match.status_text||'À VENIR');comp.appendChild(statusEl);card.appendChild(comp);
+ const teams=document.createElement('div');teams.className='bs-match-teams';
+ const home=document.createElement('div');home.className='bs-match-team';home.textContent=bsSafeTeamName(match.home||match.home_team||match.home_name);
+ const score=document.createElement('div');score.className='bs-match-score';
+ const hs=match.home_score??match.score_home??match.homeScore,as=match.away_score??match.score_away??match.awayScore;
+ score.textContent=(hs===null||hs===undefined||hs===''?'–':hs)+' : '+(as===null||as===undefined||as===''?'–':as);
+ const away=document.createElement('div');away.className='bs-match-team';away.textContent=bsSafeTeamName(match.away||match.away_team||match.away_name);
+ teams.append(home,score,away);card.appendChild(teams);
+ const meta=document.createElement('div');meta.className='bs-match-meta';
+ const raw=match.time||match.start_time||match.date||'';
+ let display='Horaire à confirmer';if(raw){const d=new Date(raw);if(!Number.isNaN(d.getTime()))display=d.toLocaleString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',timeZone:'Africa/Kinshasa'});}
+ const time=document.createElement('span');time.textContent=display;const source=document.createElement('span');source.textContent=match.round||'';meta.append(time,source);card.appendChild(meta);
+ return card;
+}
 function bsRenderMatches(matches,target){
  target.replaceChildren();
- if(!Array.isArray(matches)||!matches.length){bsSetMessage(target,'Aucun match trouvé pour cette date.','Les rencontres seront affichées dès que la source en fournit.');return;}
- matches.forEach(match=>{
-  const card=document.createElement('article');card.className='bs-match-card';
-  const comp=document.createElement('div');comp.className='bs-match-comp';
-  comp.textContent=match.competition||match.league||match.tournament||'Football';
-  const status=match.status_text||match.status||'';
-  const statusEl=document.createElement('span');statusEl.textContent=status;comp.appendChild(statusEl);card.appendChild(comp);
-  const teams=document.createElement('div');teams.className='bs-match-teams';
-  const home=document.createElement('div');home.className='bs-match-team';home.textContent=match.home||match.home_team||match.home_name||'Équipe domicile';
-  const score=document.createElement('div');score.className='bs-match-score';
-  const hs=match.home_score??match.score_home??match.homeScore,as=match.away_score??match.score_away??match.awayScore;
-  score.textContent=(hs===null||hs===undefined||hs===''?'–':hs)+' : '+(as===null||as===undefined||as===''?'–':as);
-  const away=document.createElement('div');away.className='bs-match-team';away.textContent=match.away||match.away_team||match.away_name||'Équipe visiteuse';
-  teams.append(home,score,away);card.appendChild(teams);
-  const meta=document.createElement('div');meta.className='bs-match-meta';
-  const time=match.time||match.start_time||match.date||'Horaire à confirmer';
-  let displayTime=time;
-  if(time&&time!=='Horaire à confirmer'){const parsed=new Date(time);if(!Number.isNaN(parsed.getTime()))displayTime=parsed.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',timeZone:'Africa/Kinshasa'});}
-  const dateEl=document.createElement('span');dateEl.textContent=displayTime;
-  const sourceStatus=document.createElement('span');sourceStatus.textContent=String(match.status||'').toLowerCase()==='live'?'EN DIRECT':(String(match.status||'').toLowerCase()==='finished'?'TERMINÉ':'');
-  meta.append(dateEl,sourceStatus);card.appendChild(meta);target.appendChild(card);
+ if(!Array.isArray(matches)||!matches.length){bsSetMessage(target,'Aucun match trouvé.','Essaie un autre championnat ou une autre zone.');return;}
+ bsSortMatches(matches).forEach(m=>target.appendChild(bsRenderMatchCard(m)));
+}
+function bsRenderCompetitionExplorer(){
+ const grid=document.getElementById('bsCompetitionGrid');if(!grid)return;
+ const counts=new Map();bsSportsMatches.forEach(m=>{const name=m.competition||m.league||m.tournament||'Autres compétitions';counts.set(name,(counts.get(name)||0)+1);});
+ const entries=[...counts.entries()].sort((a,b)=>{
+  const ra=bsCompetitionRegion(a[0]),rb=bsCompetitionRegion(b[0]);
+  const rank={rdc:0,africa:1,europe:2,world:3};return (rank[ra]-rank[rb])||a[0].localeCompare(b[0]);
+ });
+ document.getElementById('bsCompetitionCount').textContent=entries.length+' compétitions disponibles';
+ grid.replaceChildren();
+ if(!entries.length){bsSetMessage(grid,'Aucune compétition disponible','Les compétitions apparaîtront dès réception des données.');return;}
+ entries.slice(0,18).forEach(([name,count])=>{
+  const region=bsCompetitionRegion(name),button=document.createElement('button');button.type='button';button.className='bs-competition-card'+(bsActiveCompetition===name?' active':'');
+  button.onclick=()=>{bsActiveCompetition=bsActiveCompetition===name?'':name;bsApplyCompetitionFilters();bsRenderCompetitionExplorer();};
+  const icon=document.createElement('span');icon.textContent=region==='rdc'?'🇨🇩':region==='africa'?'🌍':region==='europe'?'🏆':'🌐';
+  const title=document.createElement('strong');title.textContent=name;const meta=document.createElement('small');meta.textContent=count+' match'+(count>1?'s':'')+' · '+bsRegionLabel(region);
+  button.append(icon,title,meta);grid.appendChild(button);
+ });
+}
+function bsSetRegion(region,button){
+ bsActiveRegion=region;bsActiveCompetition='';
+ document.querySelectorAll('#bopeSportsPage .bs-region-filters button').forEach(b=>b.classList.toggle('active',b===button));
+ bsRenderCompetitionExplorer();bsApplyCompetitionFilters();
+}
+function bsApplyCompetitionFilters(){
+ const input=document.getElementById('bsCompetitionSearch'),query=(input?.value||'').trim().toLowerCase();
+ let list=bsSportsMatches.filter(m=>{
+  const comp=m.competition||m.league||m.tournament||'Autres compétitions';
+  return (bsActiveRegion==='all'||bsCompetitionRegion(comp)===bsActiveRegion)&&(!bsActiveCompetition||comp===bsActiveCompetition)&&(!query||comp.toLowerCase().includes(query)||(m.home||'').toLowerCase().includes(query)||(m.away||'').toLowerCase().includes(query));
+ });
+ const title=document.getElementById('bsSelectedCompetitionTitle'),meta=document.getElementById('bsSelectedCompetitionMeta');
+ if(title)title.textContent=bsActiveCompetition|| (bsActiveRegion==='all'?'Tous les matchs':bsRegionLabel(bsActiveRegion));
+ if(meta)meta.textContent=list.length+' rencontre(s) trouvée(s)';
+ const target=document.getElementById('bsFootballMatches');if(!target)return;target.replaceChildren();
+ if(!list.length){bsSetMessage(target,'Aucun résultat','Modifie ta recherche ou sélectionne une autre région.');return;}
+ const groups=new Map();bsSortMatches(list).forEach(m=>{const name=m.competition||m.league||m.tournament||'Autres compétitions';if(!groups.has(name))groups.set(name,[]);groups.get(name).push(m);});
+ groups.forEach((items,name)=>{
+  const section=document.createElement('section');section.className='bs-league-group';
+  const head=document.createElement('div');head.className='bs-league-heading';
+  const title=document.createElement('strong');title.textContent=(bsCompetitionRegion(name)==='rdc'?'🇨🇩 ':bsCompetitionRegion(name)==='africa'?'🌍 ':'🏆 ')+name;
+  const count=document.createElement('span');count.textContent=items.length+' match'+(items.length>1?'s':'');head.append(title,count);section.appendChild(head);
+  items.forEach(m=>section.appendChild(bsRenderMatchCard(m)));target.appendChild(section);
  });
 }
 async function bsLoadFixtures(){
@@ -1302,16 +1371,12 @@ async function bsLoadFixtures(){
  [home,football,live].filter(Boolean).forEach(el=>bsSetMessage(el,'Chargement des rencontres…','Connexion à la source sportive.'));
  try{
   const response=await fetch('/api/sports/fixtures?date='+encodeURIComponent(date)+'&status=all',{headers:{Accept:'application/json'}});
-  const payload=await response.json();
-  if(!response.ok)throw new Error(payload.error||'Service sportif indisponible');
-  const matches=Array.isArray(payload.matches)?payload.matches:[];
-  if(home)bsRenderMatches(matches.slice(0,12),home);
-  if(football)bsRenderMatches(matches,football);
-  const liveMatches=matches.filter(m=>String(m.status||'').toLowerCase()==='live'||String(m.status_text||'').toLowerCase().includes('live'));
-  if(live)bsRenderMatches(liveMatches,live);
- }catch(error){
-  [home,football,live].filter(Boolean).forEach(el=>bsSetMessage(el,'Impossible de charger les matchs.','Vérifie la connexion puis réessaie.'));
- }
+  const payload=await response.json();if(!response.ok)throw new Error(payload.error||'Service sportif indisponible');
+  bsSportsMatches=Array.isArray(payload.matches)?payload.matches:[];
+  const featured=bsSortMatches(bsSportsMatches).slice(0,12);if(home)bsRenderMatches(featured,home);
+  bsRenderCompetitionExplorer();bsApplyCompetitionFilters();
+  const liveMatches=bsSportsMatches.filter(m=>bsMatchStatus(m)==='live');if(live)bsRenderMatches(bsSortMatches(liveMatches),live);
+ }catch(error){[home,football,live].filter(Boolean).forEach(el=>bsSetMessage(el,'Impossible de charger les matchs.','Vérifie la connexion puis réessaie.'));}
 }
 function bopeSportsTab(tab,button){
  const ids={accueil:'bsHomePanel',football:'bsFootballPanel',basket:'bsBasketPanel',autres:'bsOtherPanel',direct:'bsLivePanel',actus:'bsNewsPanel'};if(!ids[tab])tab='accueil';
@@ -5753,7 +5818,39 @@ document.addEventListener('DOMContentLoaded',bmRenderPlaylists);
 #bopeMusicPage.bm-tab-populaire #bmPopularSection.bm-hidden{display:block!important;}
 @media(max-width:360px){#bopeMusicPage .bm-nav button{font-size:10px}#bopeMusicPage .bm-nav button span{font-size:22px}}
 </style>
-</body></html>
+</body><style id="bope-sports-competition-design">
+#bopeSportsPage .bs-football-hero{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:19px 16px;margin:4px 0 18px;border:1px solid #477b4b;border-radius:20px;background:linear-gradient(120deg,#153d28,#10251c 62%,#193b2b);box-shadow:0 12px 30px #0005;overflow:hidden}
+#bopeSportsPage .bs-football-hero h1{font-size:23px;line-height:1.08;margin:4px 0 7px;letter-spacing:-.5px}
+#bopeSportsPage .bs-football-hero h1 em{font-style:normal;color:#c5f36b}
+#bopeSportsPage .bs-football-hero p{margin:0;color:#b9d4c0;font-size:11px;line-height:1.45}
+#bopeSportsPage .bs-football-mark{width:62px;height:62px;flex:0 0 62px;border-radius:20px;display:grid;place-items:center;font-size:34px;background:linear-gradient(145deg,#b9ed55,#26854b);box-shadow:0 7px 20px #0005}
+#bopeSportsPage .bs-competition-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:0 0 17px}
+#bopeSportsPage .bs-competition-card{min-width:0;min-height:90px;text-align:left;padding:11px;border-radius:15px;border:1px solid #315a3d;background:linear-gradient(145deg,#142b1d,#0d1d14);color:#fff;display:grid;grid-template-columns:28px minmax(0,1fr);grid-template-rows:auto auto;gap:3px 7px;align-content:center}
+#bopeSportsPage .bs-competition-card>span{grid-row:1/3;font-size:22px;align-self:center}
+#bopeSportsPage .bs-competition-card strong{font-size:11px;line-height:1.25;overflow-wrap:anywhere}
+#bopeSportsPage .bs-competition-card small{font-size:9px;color:#9fbea7}
+#bopeSportsPage .bs-competition-card.active{border-color:#c5f36b;background:#1c3b25;box-shadow:0 0 0 1px #c5f36b55}
+#bopeSportsPage .bs-competition-tools{position:sticky;top:0;z-index:4;padding:9px 0 7px;background:#0b1c13}
+#bopeSportsPage .bs-competition-search{height:43px;display:flex;align-items:center;gap:9px;padding:0 13px;border:1px solid #355b40;border-radius:13px;background:#102319;color:#c5f36b;font-size:22px}
+#bopeSportsPage .bs-competition-search input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:#fff;font-size:12px}
+#bopeSportsPage .bs-region-filters{display:flex;gap:7px;overflow-x:auto;padding:9px 0 3px;scrollbar-width:none}
+#bopeSportsPage .bs-region-filters button{white-space:nowrap;border:1px solid #31563a;background:#102319;color:#c3d8c8;border-radius:20px;padding:8px 12px;font-size:10px}
+#bopeSportsPage .bs-region-filters button.active{background:#c5f36b;color:#102015;border-color:#c5f36b;font-weight:900}
+#bopeSportsPage .bs-league-group{margin:0 0 15px}
+#bopeSportsPage .bs-league-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px 3px 8px;border-bottom:1px solid #294c35;margin-bottom:8px}
+#bopeSportsPage .bs-league-heading strong{font-size:12px}
+#bopeSportsPage .bs-league-heading span{font-size:9px;color:#9fbea7}
+#bopeSportsPage .bs-match-card{border-radius:15px;background:linear-gradient(145deg,#13291c,#0b1911);box-shadow:0 5px 14px #0003}
+#bopeSportsPage .bs-match-comp{align-items:center}
+#bopeSportsPage .bs-match-comp strong{font-size:10px;color:#c2d9c8}
+#bopeSportsPage .bs-match-comp span{font-size:8px;letter-spacing:.4px;font-weight:900}
+#bopeSportsPage .bs-status-live{color:#ff7777}
+#bopeSportsPage .bs-status-finished{color:#9eb6a4}
+#bopeSportsPage .bs-status-delayed{color:#f5c86a}
+#bopeSportsPage .bs-status-upcoming{color:#c5f36b}
+#bopeSportsPage .bs-match-team{line-height:1.35}
+@media(max-width:360px){#bopeSportsPage .bs-football-hero h1{font-size:20px}#bopeSportsPage .bs-competition-card{padding:9px;min-height:84px}}
+</style></html>
 <style id="bope-music-rankings">
 #bopeMusicPage .bm-ranking-row{align-items:center;gap:8px}
 #bopeMusicPage .bm-ranking-position{flex:0 0 28px;color:#f0cf72;font-weight:900;text-align:center;font-size:15px}
