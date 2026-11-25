@@ -204,7 +204,7 @@ app.get('/api/supabase-config', (req, res) => {
  app.get('/api/sports/fixtures', async (req, res) => {
    const date = String(req.query.date || '');
    const status = String(req.query.status || 'all').toLowerCase();
-   if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) return res.status(400).json({ error: 'Date invalide. Format attendu : AAAA-MM-JJ.' });
+   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ error: 'Date invalide. Format attendu : AAAA-MM-JJ.' });
    if (!['all', 'live', 'upcoming', 'finished'].includes(status)) return res.status(400).json({ error: 'Statut de match invalide.' });
    const cacheKey = date + ':' + status;
    const cached = bopeSportsCache.get(cacheKey);
