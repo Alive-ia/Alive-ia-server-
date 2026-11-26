@@ -534,6 +534,7 @@
 #bopeSportsPage{display:none;position:fixed;inset:0;z-index:10000;overflow-y:auto;background:#07110d;color:#f5fff8;font-family:Arial,sans-serif}
 #bopeSportsPage *{box-sizing:border-box}
 
+
 #bopeSportsPage .bs-wrap{background:#0b0b0f!important;color:#f7f7fa!important;padding-top:calc(14px + env(safe-area-inset-top))}
 #bopeSportsPage .bs-header{padding-bottom:18px}
 #bopeSportsPage .bs-back{background:#19191f;border-color:#34343e}
@@ -739,7 +740,7 @@
 <section id="bsLivePanel" class="bs-tab-panel"><div class="bs-section-title"><h2>🔴 En direct</h2><small>Scores live</small></div><div id="bsLiveMatches" class="bs-match-list"><div class="bs-empty"><b>📡</b>Recherche des matchs en direct…</div></div></section>
 <section id="bsNewsPanel" class="bs-tab-panel"><div class="bs-section-title"><h2>📰 Actualités</h2><small>Sport</small></div><div class="bs-empty"><b>📰</b>Les actualités sportives vérifiées seront ajoutées dans cette rubrique.</div></section>
 </main><footer class="bs-attribution">Données sportives : <a href="https://sportscore.com/" target="_blank" rel="dofollow noopener">Powered by SportScore</a></footer></div>
-<nav class="bs-nav" aria-label="Navigation BOPE SPORTS"><button class="active" onclick="bopeSportsTab('accueil',this)"><span>⌂</span>Accueil</button><button onclick="bopeSportsTab('direct',this)"><span>▤</span>Direct</button><button onclick="bopeSportsTab('football',this)"><span>♡</span>Favoris</button><button onclick="bopeSportsTab('basket',this)"><span>▥</span>Classements</button><button onclick="bopeSportsTab('actus',this)"><span>⌕</span>Recherche</button></nav></section>
+<nav class="bs-nav" aria-label="Navigation BOPE SPORTS"><button class="active" onclick="bopeSportsTab('accueil',this)"><span>⌂</span>Accueil</button><button onclick="bopeSportsTab('football',this)"><span>⚽</span>Football</button><button onclick="bopeSportsTab('basket',this)"><span>🏀</span>Basket</button><button onclick="bopeSportsTab('direct',this)"><span>●</span>Direct</button><button onclick="bopeSportsTab('actus',this)"><span>▤</span>Actus</button></nav></section>
 
 <section id="bopeMusicPage" class="bope-music-screen" aria-label="BOPE MUSIQUE">
  <div class="bm-wrap">
@@ -1421,13 +1422,13 @@ function bsRenderMatchCard(match){
  comp.appendChild(statusWrap);card.appendChild(comp);
  const teams=document.createElement('div');teams.className='bs-match-teams';
  const home=document.createElement('div');home.className='bs-match-team';
- const homeLogo=document.createElement('img');homeLogo.className='bs-team-logo';homeLogo.alt='';homeLogo.loading='lazy';homeLogo.src=match.home_logo||match.homeTeam?.logo||'';if(!homeLogo.src)homeLogo.style.display='none';homeLogo.onerror=()=>{homeLogo.style.display='none';};
+ const homeLogo=document.createElement('img');homeLogo.className='bs-team-logo';homeLogo.alt='';homeLogo.loading='lazy';const homeLogoUrl=match.home_logo||match.homeTeam?.logo||'';if(homeLogoUrl)homeLogo.src=homeLogoUrl;else homeLogo.style.display='none';homeLogo.onerror=()=>{homeLogo.style.display='none';};
  const homeName=document.createElement('strong');homeName.textContent=bsSafeTeamName(match.home||match.home_team||match.home_name);home.append(homeLogo,homeName);
  const score=document.createElement('div');score.className='bs-match-score';
  const hs=match.home_score??match.score_home??match.homeScore,as=match.away_score??match.score_away??match.awayScore;
  score.textContent=(hs===null||hs===undefined||hs===''?'–':hs)+' - '+(as===null||as===undefined||as===''?'–':as);
  const away=document.createElement('div');away.className='bs-match-team';
- const awayLogo=document.createElement('img');awayLogo.className='bs-team-logo';awayLogo.alt='';awayLogo.loading='lazy';awayLogo.src=match.away_logo||match.awayTeam?.logo||'';if(!awayLogo.src)awayLogo.style.display='none';awayLogo.onerror=()=>{awayLogo.style.display='none';};
+ const awayLogo=document.createElement('img');awayLogo.className='bs-team-logo';awayLogo.alt='';awayLogo.loading='lazy';const awayLogoUrl=match.away_logo||match.awayTeam?.logo||'';if(awayLogoUrl)awayLogo.src=awayLogoUrl;else awayLogo.style.display='none';awayLogo.onerror=()=>{awayLogo.style.display='none';};
  const awayName=document.createElement('strong');awayName.textContent=bsSafeTeamName(match.away||match.away_team||match.away_name);away.append(awayLogo,awayName);
  teams.append(home,score,away);card.appendChild(teams);
  const meta=document.createElement('div');meta.className='bs-match-meta';
