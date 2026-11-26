@@ -724,7 +724,7 @@
 </section>
 <section id="bsFootballPanel" class="bs-tab-panel">
  <div class="bs-football-heading"><div><span>BOPE SPORTS <i>• FOOTBALL</i></span><h1>Les rencontres</h1><small>Le terrain est à vous. Made in Kikwit 🇨🇩</small></div><div class="bs-heading-mark">⚽</div></div>
- <button type="button" class="bs-explorer-toggle" id="bsExplorerToggle" aria-label="Explorer les championnats" title="Explorer les championnats" aria-expanded="false" onclick="bsToggleCompetitionExplorer()">🏆</button>
+ <button type="button" class="bs-explorer-toggle" id="bsExplorerToggle" aria-label="Choisir les championnats" title="Choisir les championnats" aria-expanded="false" onclick="bsToggleCompetitionExplorer()">🏆 <span>Choisir les championnats</span></button>
  <div id="bsCompetitionExplorer" class="bs-competition-explorer">
   <div class="bs-competition-title"><strong>CATÉGORIES</strong><small>Choisis une région</small></div>
   <div class="bs-category-rail" id="bsCategoryGrid" aria-label="Catégories de championnats"></div>
@@ -5957,8 +5957,9 @@ document.addEventListener('DOMContentLoaded',bmRenderPlaylists);
 @media(max-width:360px){#bopeMusicPage .bm-nav button{font-size:10px}#bopeMusicPage .bm-nav button span{font-size:22px}}
 </style>
 <style id="bope-sports-simple-football">
-#bopeSportsPage .bs-explorer-toggle{width:42px;height:42px;display:flex;align-items:center;justify-content:center;margin:3px 0 10px  auto;padding:0;border:1px solid #00c853;border-radius:50%;background:linear-gradient(145deg,#153b25,#081b10);color:#00e676;font-size:19px;font-weight:800;box-shadow:0 3px 12px rgba(0,200,83,.18)}
-#bopeSportsPage .bs-explorer-toggle:active{transform:scale(.94)}
+#bopeSportsPage .bs-explorer-toggle{min-height:40px;display:inline-flex;align-items:center;justify-content:center;gap:8px;margin:3px 0 10px;padding:8px 13px;border:1px solid #00c853;border-radius:24px;background:linear-gradient(145deg,#153b25,#081b10);color:#00e676;font-size:18px;font-weight:800;box-shadow:0 3px 12px rgba(0,200,83,.18)}
+#bopeSportsPage .bs-explorer-toggle span{color:#e8f5ec;font-size:12px;font-weight:700}
+#bopeSportsPage .bs-explorer-toggle:active{transform:scale(.97)}
 #bopeSportsPage .bs-competition-explorer{display:none;padding:4px 0 8px}
 #bopeSportsPage .bs-competition-explorer.is-open{display:block}
 #bopeSportsPage .bs-date-strip{margin-top:5px}
