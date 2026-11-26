@@ -533,6 +533,45 @@
 
 #bopeSportsPage{display:none;position:fixed;inset:0;z-index:10000;overflow-y:auto;background:#07110d;color:#f5fff8;font-family:Arial,sans-serif}
 #bopeSportsPage *{box-sizing:border-box}
+
+#bopeSportsPage .bs-wrap{background:#0b0b0f!important;color:#f7f7fa!important;padding-top:calc(14px + env(safe-area-inset-top))}
+#bopeSportsPage .bs-header{padding-bottom:18px}
+#bopeSportsPage .bs-back{background:#19191f;border-color:#34343e}
+#bopeSportsPage .bs-logo{width:43px;height:46px;border-radius:12px 12px 17px 17px;clip-path:polygon(50% 0,95% 15%,90% 70%,50% 100%,10% 70%,5% 15%);background:#00d95f;color:#fff}
+#bopeSportsPage .bs-brand strong{font-size:25px;font-style:italic;letter-spacing:-.8px}
+#bopeSportsPage .bs-brand em{color:#00e66b}
+#bopeSportsPage .bs-brand small{display:none}
+#bopeSportsPage .bs-home-sport-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:15px 0 18px}
+#bopeSportsPage .bs-home-sport-tabs button{border:0;border-radius:10px;background:#303038;color:#fff;padding:13px 5px;font-size:13px;font-weight:800}
+#bopeSportsPage .bs-home-sport-tabs button.active{background:#15151b;color:#00e66b;border-bottom:4px solid #00e66b;border-radius:9px 9px 3px 3px}
+#bopeSportsPage .bs-home-livebar{display:flex;align-items:center;gap:8px;overflow:hidden;white-space:nowrap;margin:0 2px 17px;color:#85858f;font-size:10px}
+#bopeSportsPage .bs-home-livebar button{border:0;background:transparent;color:#aaaab3;font-size:10px;padding:5px 0}
+#bopeSportsPage .bs-home-livebar button.active{color:#fff;font-weight:900}
+#bopeSportsPage .bs-home-livebar button i{display:inline-block;width:7px;height:7px;background:#ff334b;border-radius:50%;margin-right:4px;box-shadow:0 0 7px #ff334b}
+#bopeSportsPage .bs-home-country{margin-left:auto;font-size:9px;color:#b5b5be}
+#bopeSportsPage .bs-home-match-title{margin:15px 2px 12px}
+#bopeSportsPage .bs-home-match-title h2{font-size:16px}
+#bopeSportsPage .bs-home-match-title button{border:0;background:transparent;color:#00e66b;font-size:10px;font-weight:800}
+#bopeSportsPage .bs-match-list{gap:13px}
+#bopeSportsPage .bs-match-card{padding:14px 13px;border:1px solid #292932;border-radius:20px;background:#19191f;box-shadow:0 7px 18px #0004}
+#bopeSportsPage .bs-match-comp{align-items:center;color:#e8e8ee;font-size:11px;margin-bottom:13px}
+#bopeSportsPage .bs-match-comp strong:before{content:'⚽ ';font-size:12px}
+#bopeSportsPage .bs-match-teams{grid-template-columns:minmax(0,1fr) 92px minmax(0,1fr);gap:5px}
+#bopeSportsPage .bs-match-team{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center!important;min-width:0}
+#bopeSportsPage .bs-match-team strong{font-size:12px;line-height:1.25}
+#bopeSportsPage .bs-team-logo{width:43px;height:43px;object-fit:contain;display:block}
+#bopeSportsPage .bs-match-score{background:#00d95f;color:#fff;border-radius:28px;padding:8px 7px;font-size:20px;line-height:1.2;text-align:center;min-width:88px;box-sizing:border-box}
+#bopeSportsPage .bs-match-meta{margin-top:10px;color:#a3a3ad;font-size:10px}
+#bopeSportsPage .bs-rdc-mini{margin:17px 0;padding:13px;border:1px solid #254e34;border-radius:14px;background:#101a14}
+#bopeSportsPage .bs-rdc-mini span{display:block;color:#00e66b;font-size:9px;font-weight:900;letter-spacing:1px;margin-bottom:6px}
+#bopeSportsPage .bs-rdc-mini strong{display:block;font-size:13px}
+#bopeSportsPage .bs-rdc-mini button{margin-top:9px;border:0;background:transparent;color:#00e66b;font-size:10px;font-weight:800;padding:0}
+#bopeSportsPage .bs-nav{background:#17171d;border-top:1px solid #303039}
+#bopeSportsPage .bs-nav button{color:#a0a0aa;font-size:10px}
+#bopeSportsPage .bs-nav button span{font-size:23px}
+#bopeSportsPage .bs-nav button.active{color:#00e66b}
+@media(max-width:370px){#bopeSportsPage .bs-match-teams{grid-template-columns:minmax(0,1fr) 78px minmax(0,1fr)}#bopeSportsPage .bs-match-score{min-width:76px;font-size:18px}#bopeSportsPage .bs-team-logo{width:37px;height:37px}}
+
 #bopeSportsPage .bs-wrap{max-width:760px;margin:auto;min-height:100%;padding:14px 14px 90px;background:radial-gradient(ellipse at 50% 0%,#17472d 0%,#0b1c13 42%,#07110d 100%)}
 #bopeSportsPage .bs-header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 0 16px}
 #bopeSportsPage .bs-back{border:1px solid #315b42;background:#10251a;color:#fff;border-radius:22px;padding:9px 13px;font-weight:700}
@@ -676,12 +715,11 @@
 <header class="bs-header"><button class="bs-back" type="button" onclick="closeBopeSports()">← BOPE IA</button><div class="bs-brand"><span class="bs-logo">⚽</span><div><strong>BOPE <em>SPORTS</em></strong><small>Le sport nous rassemble • Made in Kikwit 🇨🇩</small></div></div></header>
 <main>
 <section id="bsHomePanel" class="bs-tab-panel active">
-<div class="bs-home-intro"><span class="bs-home-eyebrow">🇨🇩 UNE AUTRE FAÇON DE VIVRE LE SPORT</span><h2>Le sport mondial.<br><em>Le Congo au cœur.</em></h2><p>Des terrains de Kikwit aux grands stades du monde, suis les équipes et les compétitions qui te passionnent.</p><div class="bs-home-actions"><button type="button" onclick="bopeSportsTab('football')">Suivre les matchs <span>→</span></button><button type="button" class="bs-home-secondary" onclick="bopeSportsTab('football')">Explorer les championnats</button></div><div class="bs-home-signature"><span>RDC</span><span>AFRIQUE</span><span>MONDE</span></div></div>
-<section class="bs-rdc-spotlight"><div class="bs-rdc-top"><span>🇨🇩 LE CONGO EN VEDETTE</span><b>NOTRE TERRAIN</b></div><h3>Le football congolais<br><em>mérite sa lumière.</em></h3><p>Retrouve les clubs et les compétitions de la RDC au même endroit.</p><div class="bs-rdc-clubs"><span>TP Mazembe</span><span>AS Vita Club</span><span>Saint-Éloi Lupopo</span><span>Maniema Union</span></div><button type="button" onclick="bsOpenRdcFootball()">Voir les compétitions de la RDC <b>→</b></button></section>
-<div class="bs-sport-strip"><button class="selected" onclick="bopeSportsTab('football')">⚽ Football</button><button onclick="bopeSportsTab('basket')">🏀 Basket</button><button onclick="bopeSportsTab('autres')">🎾 Tennis</button><button onclick="bopeSportsTab('autres')">🏐 Volley</button><button onclick="bopeSportsTab('autres')">＋ Sports</button></div>
-<div class="bs-section-title"><h2>Les matchs à suivre</h2><small>Rencontres disponibles</small></div>
+<div class="bs-home-sport-tabs"><button class="active" onclick="bopeSportsTab('football')">Football</button><button onclick="bopeSportsTab('basket')">Basketball</button><button onclick="bopeSportsTab('autres')">Tennis</button></div>
+<div class="bs-home-livebar"><button class="active" onclick="bopeSportsTab('direct')"><i></i> EN DIRECT</button><span>•</span><button onclick="bopeSportsTab('football')">Tous les matchs</button><span class="bs-home-country">🇨🇩 RDC · 🌍 MONDE</span></div>
+<div class="bs-section-title bs-home-match-title"><h2>Matchs à suivre</h2><button type="button" onclick="bopeSportsTab('football')">Voir tout →</button></div>
 <div id="bsHomeMatches" class="bs-match-list"><div class="bs-empty bs-fixtures-empty"><b>⚽</b>Chargement des rencontres…<small>Aucun score fictif ne sera affiché.</small></div></div>
-<div class="bs-home-identity"><div><span>🇨🇩 NOTRE IDENTITÉ</span><strong>Le Congo mérite sa place sur la scène sportive.</strong><p>Retrouve les compétitions congolaises aux côtés des grands rendez-vous internationaux.</p></div><button type="button" onclick="bopeSportsTab('football')">Voir le football <b>→</b></button></div>
+<section class="bs-rdc-mini"><span>🇨🇩 LE CONGO EN VEDETTE</span><strong>Le football congolais mérite sa lumière.</strong><button type="button" onclick="bsOpenRdcFootball()">Explorer les compétitions de la RDC →</button></section>
 </section>
 <section id="bsFootballPanel" class="bs-tab-panel">
  <div class="bs-football-heading"><div><span>BOPE SPORTS <i>• FOOTBALL</i></span><h1>Les rencontres</h1><small>Le terrain est à vous. Made in Kikwit 🇨🇩</small></div><div class="bs-heading-mark">⚽</div></div>
@@ -701,7 +739,7 @@
 <section id="bsLivePanel" class="bs-tab-panel"><div class="bs-section-title"><h2>🔴 En direct</h2><small>Scores live</small></div><div id="bsLiveMatches" class="bs-match-list"><div class="bs-empty"><b>📡</b>Recherche des matchs en direct…</div></div></section>
 <section id="bsNewsPanel" class="bs-tab-panel"><div class="bs-section-title"><h2>📰 Actualités</h2><small>Sport</small></div><div class="bs-empty"><b>📰</b>Les actualités sportives vérifiées seront ajoutées dans cette rubrique.</div></section>
 </main><footer class="bs-attribution">Données sportives : <a href="https://sportscore.com/" target="_blank" rel="dofollow noopener">Powered by SportScore</a></footer></div>
-<nav class="bs-nav" aria-label="Navigation BOPE SPORTS"><button class="active" onclick="bopeSportsTab('accueil',this)"><span>🏠</span>Accueil</button><button onclick="bopeSportsTab('football',this)"><span>⚽</span>Football</button><button onclick="bopeSportsTab('basket',this)"><span>🏀</span>Basket</button><button onclick="bopeSportsTab('direct',this)"><span>🔴</span>Direct</button><button onclick="bopeSportsTab('actus',this)"><span>📰</span>Actus</button></nav></section>
+<nav class="bs-nav" aria-label="Navigation BOPE SPORTS"><button class="active" onclick="bopeSportsTab('accueil',this)"><span>⌂</span>Accueil</button><button onclick="bopeSportsTab('direct',this)"><span>▤</span>Direct</button><button onclick="bopeSportsTab('football',this)"><span>♡</span>Favoris</button><button onclick="bopeSportsTab('basket',this)"><span>▥</span>Classements</button><button onclick="bopeSportsTab('actus',this)"><span>⌕</span>Recherche</button></nav></section>
 
 <section id="bopeMusicPage" class="bope-music-screen" aria-label="BOPE MUSIQUE">
  <div class="bm-wrap">
@@ -1382,11 +1420,15 @@ function bsRenderMatchCard(match){
  }else statusWrap.textContent=status==='finished'?'TERMINÉ':status==='delayed'?'REPORTÉ':(match.status_text||'À VENIR');
  comp.appendChild(statusWrap);card.appendChild(comp);
  const teams=document.createElement('div');teams.className='bs-match-teams';
- const home=document.createElement('div');home.className='bs-match-team';home.textContent=bsSafeTeamName(match.home||match.home_team||match.home_name);
+ const home=document.createElement('div');home.className='bs-match-team';
+ const homeLogo=document.createElement('img');homeLogo.className='bs-team-logo';homeLogo.alt='';homeLogo.loading='lazy';homeLogo.src=match.home_logo||match.homeTeam?.logo||'';if(!homeLogo.src)homeLogo.style.display='none';homeLogo.onerror=()=>{homeLogo.style.display='none';};
+ const homeName=document.createElement('strong');homeName.textContent=bsSafeTeamName(match.home||match.home_team||match.home_name);home.append(homeLogo,homeName);
  const score=document.createElement('div');score.className='bs-match-score';
  const hs=match.home_score??match.score_home??match.homeScore,as=match.away_score??match.score_away??match.awayScore;
  score.textContent=(hs===null||hs===undefined||hs===''?'–':hs)+' - '+(as===null||as===undefined||as===''?'–':as);
- const away=document.createElement('div');away.className='bs-match-team';away.textContent=bsSafeTeamName(match.away||match.away_team||match.away_name);
+ const away=document.createElement('div');away.className='bs-match-team';
+ const awayLogo=document.createElement('img');awayLogo.className='bs-team-logo';awayLogo.alt='';awayLogo.loading='lazy';awayLogo.src=match.away_logo||match.awayTeam?.logo||'';if(!awayLogo.src)awayLogo.style.display='none';awayLogo.onerror=()=>{awayLogo.style.display='none';};
+ const awayName=document.createElement('strong');awayName.textContent=bsSafeTeamName(match.away||match.away_team||match.away_name);away.append(awayLogo,awayName);
  teams.append(home,score,away);card.appendChild(teams);
  const meta=document.createElement('div');meta.className='bs-match-meta';
  const venue=[match.stadium||match.venue,match.city||match.location].filter(Boolean).join(' • ');
