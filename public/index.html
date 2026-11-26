@@ -724,10 +724,13 @@
 </section>
 <section id="bsFootballPanel" class="bs-tab-panel">
  <div class="bs-football-heading"><div><span>BOPE SPORTS <i>• FOOTBALL</i></span><h1>Les rencontres</h1><small>Le terrain est à vous. Made in Kikwit 🇨🇩</small></div><div class="bs-heading-mark">⚽</div></div>
- <div class="bs-competition-title"><strong>EXPLORER LES COMPÉTITIONS</strong><small>Classement par popularité et région</small></div>
- <div class="bs-category-rail" id="bsCategoryGrid" aria-label="Catégories de championnats"></div>
- <div class="bs-competition-title"><strong>CHAMPIONNATS DISPONIBLES</strong><small id="bsCompetitionCount">Chargement…</small></div>
- <div class="bs-competition-rail" id="bsCompetitionGrid" aria-label="Choisir un championnat"><div class="bs-empty">Chargement…</div></div>
+ <button type="button" class="bs-explorer-toggle" id="bsExplorerToggle" aria-expanded="false" onclick="bsToggleCompetitionExplorer()">🏆 Explorer les championnats <span>＋</span></button>
+ <div id="bsCompetitionExplorer" class="bs-competition-explorer">
+  <div class="bs-competition-title"><strong>CATÉGORIES</strong><small>Choisis une région</small></div>
+  <div class="bs-category-rail" id="bsCategoryGrid" aria-label="Catégories de championnats"></div>
+  <div class="bs-competition-title"><strong>CHAMPIONNATS</strong><small id="bsCompetitionCount">Chargement…</small></div>
+  <div class="bs-competition-rail" id="bsCompetitionGrid" aria-label="Choisir un championnat"><div class="bs-empty">Chargement…</div></div>
+ </div>
  <div class="bs-date-strip" id="bsDateFilters" aria-label="Choisir une date">
  <button data-day="-1" onclick="bsSetDay(-1,this)">Hier</button><button class="selected" data-day="0" onclick="bsSetDay(0,this)">Aujourd'hui</button><button data-day="1" onclick="bsSetDay(1,this)">Demain</button></div>
  <div class="bs-filter-strip" id="bsStatusFilters" aria-label="Filtrer les matchs">
@@ -1462,6 +1465,14 @@ function bsRenderCompetitionExplorer(){
   button.onclick=()=>{bsActiveCompetition=bsActiveCompetition===name?'':name;bsApplyCompetitionFilters();bsRenderCompetitionExplorer();};
   const icon=document.createElement('span');icon.textContent=bsCompetitionIcon(name);const label=document.createElement('small');label.textContent=bsShortCompetition(name);button.append(icon,label);rail.appendChild(button);
  });
+}
+function bsToggleCompetitionExplorer(){
+ const panel=document.getElementById('bsCompetitionExplorer');
+ const button=document.getElementById('bsExplorerToggle');
+ if(!panel||!button)return;
+ const open=panel.classList.toggle('is-open');
+ button.setAttribute('aria-expanded',String(open));
+ const icon=button.querySelector('span');if(icon)icon.textContent=open?'－':'＋';
 }
 function bsSetDay(day,button){
  bsSelectedDay=day;document.querySelectorAll('#bsDateFilters button').forEach(b=>b.classList.toggle('selected',b===button));bsLoadFixtures();
@@ -5945,7 +5956,13 @@ document.addEventListener('DOMContentLoaded',bmRenderPlaylists);
 #bopeMusicPage.bm-tab-populaire #bmPopularSection.bm-hidden{display:block!important;}
 @media(max-width:360px){#bopeMusicPage .bm-nav button{font-size:10px}#bopeMusicPage .bm-nav button span{font-size:22px}}
 </style>
-</body><style id="bope-sports-competition-design">
+<style id="bope-sports-simple-football">
+#bopeSportsPage .bs-explorer-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;margin:3px 0 10px;padding:12px 13px;border:1px solid #28643d;border-radius:12px;background:#101d14;color:#e8f5ec;font-size:12px;font-weight:800;text-align:left}
+#bopeSportsPage .bs-explorer-toggle span{color:#00e676;font-size:18px}
+#bopeSportsPage .bs-competition-explorer{display:none;padding:4px 0 8px}
+#bopeSportsPage .bs-competition-explorer.is-open{display:block}
+#bopeSportsPage .bs-date-strip{margin-top:5px}
+</style></body><style id="bope-sports-competition-design">
 #bopeSportsPage{background:#0a2e1a;color:#fff}
 #bopeSportsPage .bs-wrap{background:radial-gradient(ellipse at 50% -12%,#145b32 0%,#0a2e1a 48%,#061d11 100%);padding-top:12px}
 #bopeSportsPage .bs-header{position:sticky;top:0;z-index:10;margin:0 -14px 13px;padding:10px 14px;background:rgba(7,35,19,.94);backdrop-filter:blur(16px);border-bottom:1px solid rgba(0,200,83,.22)}
