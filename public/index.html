@@ -705,12 +705,56 @@
       <button class="bope-hub-btn voice" onclick="bopeFeatureNotice('BOPE VOICE')"><span class="hub-icon">🎙️</span><span class="hub-name">BOPE VOICE</span><small>ASSISTANT VOCAL</small></button>
       <button class="bope-hub-btn business" onclick="bopeFeatureNotice('BOPE BUSINESS')"><span class="hub-icon">📈</span><span class="hub-name">BOPE BUSINESS</span><small>OUTILS POUR COMMERÇANTS</small></button>
       <button class="bope-hub-btn sports" onclick="openBopeSports()"><span class="hub-icon">⚽</span><span class="hub-name">BOPE SPORTS</span><small>SCORES & ACTUALITÉS SPORTIVES</small></button>
-      <button class="bope-hub-btn jobs" onclick="bopeFeatureNotice('BOPE JOBS')"><span class="hub-icon">💼</span><span class="hub-name">BOPE JOBS</span><small>EMPLOIS & STAGES</small></button>
+      <button class="bope-hub-btn jobs" onclick="openBopeJobs()"><span class="hub-icon">💼</span><span class="hub-name">BOPE JOBS</span><small>EMPLOIS & STAGES</small></button>
       <button class="bope-hub-btn music" onclick="openBopeMusic()"><span class="hub-icon">🎵</span><span class="hub-name">BOPE MUSIQUE</span><small>ÉCOUTE & DÉCOUVERTE</small></button>
     </div>
     <div class="bope-hub-note">Ces espaces sont présentés en avant-première. Leurs fonctionnalités seront activées progressivement.</div>
   </section>
 
+
+
+<section id="bopeJobsPage" aria-label="BOPE JOBS">
+ <div class="bj-wrap">
+  <header class="bj-header">
+   <button type="button" class="bj-back" onclick="closeBopeJobs()">← BOPE IA</button>
+   <div class="bj-brand"><span>💼</span><div><strong>BOPE <em>JOBS</em></strong><small>Les compétences créent des opportunités • RDC 🇨🇩</small></div></div>
+  </header>
+  <main class="bj-main">
+   <section class="bj-intro"><span>EMPLOI · COMPÉTENCES · OPPORTUNITÉS</span><h1>Ton prochain<br><i>départ commence ici.</i></h1><p>Découvre des opportunités professionnelles et valorise tes compétences.</p></section>
+   <div class="bj-options">
+    <button type="button" onclick="bopeJobsNotice('Trouver un emploi')"><span>🔎</span><strong>Trouver un emploi</strong><small>Consulter les offres disponibles</small><b>→</b></button>
+    <button type="button" onclick="bopeJobsNotice('Trouver un stage rémunéré')"><span>🎓</span><strong>Trouver un stage rémunéré</strong><small>Découvrir des stages avec indemnité</small><b>→</b></button>
+    <button type="button" onclick="bopeJobsNotice('Publier une offre')"><span>📢</span><strong>Publier une offre</strong><small>Recruter et présenter un poste</small><b>→</b></button>
+    <button type="button" onclick="bopeJobsNotice('Proposer mes compétences')"><span>🧰</span><strong>Proposer mes compétences</strong><small>Présenter ton savoir-faire</small><b>→</b></button>
+   </div>
+   <p class="bj-fairness">🤝 BOPE JOBS privilégie les opportunités rémunérées. Toute offre doit préciser le salaire ou l'indemnité.</p>
+  </main>
+ </div>
+</section>
+<style id="bope-jobs-style">
+#bopeJobsPage{display:none;position:fixed;inset:0;z-index:10001;overflow-y:auto;background:#07111b;color:#f5f8ff;font-family:Arial,sans-serif}
+#bopeJobsPage *{box-sizing:border-box}
+#bopeJobsPage .bj-wrap{max-width:760px;min-height:100%;margin:auto;padding:calc(15px + env(safe-area-inset-top)) 16px 35px;background:radial-gradient(ellipse at 50% 0%,#12345a 0,#07111b 54%)}
+#bopeJobsPage .bj-header{display:flex;align-items:center;gap:13px}
+#bopeJobsPage .bj-back{border:1px solid #29415b;border-radius:10px;background:#101e2d;color:#fff;padding:10px;font-size:12px}
+#bopeJobsPage .bj-brand{display:flex;align-items:center;gap:9px}
+#bopeJobsPage .bj-brand>span{display:grid;place-items:center;width:39px;height:39px;border-radius:12px;background:#123c69;font-size:22px}
+#bopeJobsPage .bj-brand strong{font-size:20px;letter-spacing:-.4px}
+#bopeJobsPage .bj-brand em,#bopeJobsPage .bj-intro i{color:#43c5ee;font-style:normal}
+#bopeJobsPage .bj-brand small{display:block;color:#9fb1c5;font-size:9px;margin-top:3px}
+#bopeJobsPage .bj-main{padding-top:30px}
+#bopeJobsPage .bj-intro>span{color:#52c9ef;font-size:9px;font-weight:800;letter-spacing:1.4px}
+#bopeJobsPage .bj-intro h1{font-size:30px;line-height:1.12;margin:10px 0;color:#fff}
+#bopeJobsPage .bj-intro p{font-size:13px;line-height:1.55;color:#aebdce;max-width:420px}
+#bopeJobsPage .bj-options{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:25px}
+#bopeJobsPage .bj-options button{position:relative;min-height:135px;text-align:left;padding:15px 12px;border:1px solid #24415d;border-radius:15px;background:linear-gradient(145deg,#142a40,#0d1a29);color:#fff;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+#bopeJobsPage .bj-options button>span{font-size:23px}
+#bopeJobsPage .bj-options strong{font-size:13px;line-height:1.25}
+#bopeJobsPage .bj-options small{font-size:10px;line-height:1.35;color:#a9bbcd}
+#bopeJobsPage .bj-options b{position:absolute;right:12px;bottom:12px;color:#52c9ef;font-size:18px}
+#bopeJobsPage .bj-fairness{margin:19px 2px 0;padding:12px;border:1px solid #24506a;border-radius:12px;background:#0d2232;color:#c5d8e8;font-size:11px;line-height:1.5}
+@media(max-width:360px){#bopeJobsPage .bj-options{grid-template-columns:1fr}#bopeJobsPage .bj-options button{min-height:105px}}
+</style>
 
 <section id="bopeSportsPage" aria-label="BOPE SPORTS"><div class="bs-wrap">
 <header class="bs-header"><button class="bs-back" type="button" onclick="closeBopeSports()">← BOPE IA</button><div class="bs-brand"><span class="bs-logo">⚽</span><div><strong>BOPE <em>SPORTS</em></strong><small>Le sport nous rassemble • Made in Kikwit 🇨🇩</small></div></div></header>
@@ -1297,6 +1341,21 @@
    function closeCampus(){document.getElementById('campusPage').classList.remove('show');}
    function bopeFeatureNotice(name){alert(name+' : cet espace est en préparation. BOPE l’activera progressivement. 🇨🇩');}
   
+
+function openBopeJobs(){
+ const page=document.getElementById('bopeJobsPage');if(!page)return;page.style.display='block';
+ ['welcome','chat'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+ const composer=document.querySelector('.box'),games=document.getElementById('gamesLaunch'),hub=document.querySelector('.bope-hub');
+ if(composer)composer.style.display='none';if(games)games.style.display='none';if(hub)hub.style.display='none';
+ window.scrollTo(0,0);
+}
+function closeBopeJobs(){
+ const page=document.getElementById('bopeJobsPage');if(page)page.style.display='none';
+ const hub=document.querySelector('.bope-hub'),welcome=document.getElementById('welcome'),chat=document.getElementById('chat'),composer=document.querySelector('.box'),games=document.getElementById('gamesLaunch');
+ if(hub)hub.style.display='';if(welcome)welcome.style.display='flex';if(chat)chat.style.display='flex';if(composer)composer.style.display='flex';if(games)games.style.display='block';
+}
+function bopeJobsNotice(section){alert(section+' : cette rubrique sera activée progressivement. 🇨🇩');}
+
 function openBopeSports(){
  const page=document.getElementById('bopeSportsPage');if(!page)return;page.style.display='block';
  ['welcome','chat'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
