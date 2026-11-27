@@ -725,7 +725,7 @@
     <span>⌕</span><input type="search" aria-label="Rechercher un emploi ou un stage" placeholder="Rechercher emploi, stage...">
    </form>
    <div class="bj-options">
-    <button type="button" class="bj-job" onclick="bopeJobsNotice('Trouver un emploi')"><span class="bj-tile-icon">⌕</span><strong>Trouver un emploi</strong><small>Consulter les offres disponibles</small></button>
+    <button type="button" class="bj-job" onclick="openBopeJobSearch()"><span class="bj-tile-icon">⌕</span><strong>Trouver un emploi</strong><small>Consulter les offres disponibles</small></button>
     <button type="button" class="bj-stage" onclick="bopeJobsNotice('Trouver un stage rémunéré')"><span class="bj-tile-icon">🎓</span><strong>Trouver un stage rémunéré</strong><small>Stages avec indemnité</small></button>
     <button type="button" class="bj-publish" onclick="bopeJobsNotice('Publier une offre')"><span class="bj-tile-icon">📢</span><strong>Publier une offre</strong><small>Recrute rapidement</small></button>
     <button type="button" class="bj-skills" onclick="bopeJobsNotice('Proposer mes compétences')"><span class="bj-tile-icon">💼</span><strong>Proposer mes compétences</strong><small>Freelance & missions rémunérées</small></button>
@@ -748,6 +748,37 @@
    <button type="button" onclick="bopeJobsNav('Profil')"><span>♟</span>Profil</button>
   </nav>
  </div>
+</section>
+<section id="bopeJobSearchPage" aria-label="Trouver un emploi">
+ <header class="bjs-header">
+  <button type="button" onclick="closeBopeJobSearch()" aria-label="Retour">‹</button>
+  <div><strong>EMPLOIS</strong><small>Les opportunités professionnelles</small></div>
+  <span>💼</span>
+ </header>
+ <main class="bjs-main">
+  <h1>Trouve ton prochain emploi</h1>
+  <p class="bjs-subtitle">Explore les offres et découvre les postes qui correspondent à tes compétences.</p>
+  <form class="bjs-search" onsubmit="event.preventDefault();bopeJobSearchApply()">
+   <span>⌕</span><input id="bjsKeyword" type="search" placeholder="Métier, poste ou entreprise..." aria-label="Rechercher par métier ou entreprise">
+   <button type="submit">Rechercher</button>
+  </form>
+  <div class="bjs-filter-title">Filtrer les offres</div>
+  <div class="bjs-filters">
+   <label>Ville
+    <select id="bjsCity"><option value="">Toutes les villes</option><option>Kinshasa</option><option>Kikwit</option><option>Matadi</option><option>Lubumbashi</option><option>Goma</option><option>Kananga</option><option>Mbuji-Mayi</option><option>Autre</option></select>
+   </label>
+   <label>Type de contrat
+    <select id="bjsContract"><option value="">Tous les contrats</option><option>CDI</option><option>CDD</option><option>Temps partiel</option><option>Mission rémunérée</option></select>
+   </label>
+  </div>
+  <div class="bjs-results-head"><strong>Offres d'emploi</strong><span id="bjsResultCount">0 offre</span></div>
+  <div id="bjsOffersList" class="bjs-offers-empty">
+   <div class="bjs-empty-icon">💼</div>
+   <strong>Les offres arrivent bientôt</strong>
+   <p>Les offres vérifiées apparaîtront ici avec leur ville, leur contrat et leur rémunération clairement indiquée.</p>
+  </div>
+  <div class="bjs-trust">🛡️ BOPE JOBS privilégie les offres réelles et rémunérées. Aucune offre sans salaire ou indemnité précisée ne sera acceptée.</div>
+ </main>
 </section>
 <style id="bope-jobs-style">
 #bopeJobsPage{display:none;position:fixed;inset:0;z-index:10001;overflow-y:auto;background:#f1f3f7;color:#101b36;font-family:Arial,sans-serif}
@@ -790,6 +821,34 @@
 #bopeJobsPage .bj-nav button.active{color:#e87f32;font-weight:800}
 #bopeJobsPage .bj-nav button.bj-add span{width:56px;height:40px;border-radius:12px;background:#f18b42;color:#fff;display:grid;place-items:center;font-size:29px}
 @media(max-width:360px){#bopeJobsPage .bj-options button{min-height:158px}#bopeJobsPage .bj-options strong{font-size:14px}#bopeJobsPage .bj-important strong{font-size:13px}#bopeJobsPage .bj-important small{font-size:10px}}
+#bopeJobSearchPage{display:none;position:fixed;inset:0;z-index:10002;overflow-y:auto;background:#f3f5f9;color:#111d38;font-family:Arial,sans-serif}
+#bopeJobSearchPage *{box-sizing:border-box}
+#bopeJobSearchPage .bjs-header{height:82px;padding:12px 17px;background:linear-gradient(110deg,#1760c9,#3478df);color:white;display:flex;align-items:center;gap:13px;box-shadow:0 3px 12px #173b7922}
+#bopeJobSearchPage .bjs-header>button{width:38px;height:38px;border:0;border-radius:50%;background:#ffffff22;color:white;font-size:31px;line-height:1}
+#bopeJobSearchPage .bjs-header div{flex:1;display:flex;flex-direction:column;gap:3px}
+#bopeJobSearchPage .bjs-header strong{font-size:19px;letter-spacing:.4px}
+#bopeJobSearchPage .bjs-header small{font-size:11px;color:#e5efff}
+#bopeJobSearchPage .bjs-header>span{font-size:24px}
+#bopeJobSearchPage .bjs-main{max-width:620px;margin:auto;padding:23px 16px 35px}
+#bopeJobSearchPage .bjs-main h1{margin:0 0 7px;font-size:23px;line-height:1.2}
+#bopeJobSearchPage .bjs-subtitle{margin:0 0 19px;color:#59657b;font-size:13px;line-height:1.5}
+#bopeJobSearchPage .bjs-search{display:flex;align-items:center;gap:8px;background:white;border-radius:13px;padding:7px 8px 7px 13px;box-shadow:0 3px 13px #172b4814}
+#bopeJobSearchPage .bjs-search>span{font-size:25px;color:#e58b43}
+#bopeJobSearchPage .bjs-search input{flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:13px;color:#17213b}
+#bopeJobSearchPage .bjs-search button{border:0;border-radius:9px;padding:11px 12px;background:#286bd0;color:white;font-size:12px;font-weight:700}
+#bopeJobSearchPage .bjs-filter-title{margin:23px 0 9px;font-size:14px;font-weight:800}
+#bopeJobSearchPage .bjs-filters{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#bopeJobSearchPage .bjs-filters label{display:flex;flex-direction:column;gap:7px;font-size:11px;font-weight:700;color:#58647a}
+#bopeJobSearchPage .bjs-filters select{width:100%;min-width:0;height:43px;padding:0 9px;border:1px solid #e0e5ee;border-radius:10px;background:white;color:#1b2945;font-size:12px}
+#bopeJobSearchPage .bjs-results-head{display:flex;align-items:center;justify-content:space-between;margin:25px 0 12px}
+#bopeJobSearchPage .bjs-results-head strong{font-size:17px}
+#bopeJobSearchPage .bjs-results-head span{font-size:11px;color:#68748a}
+#bopeJobSearchPage .bjs-offers-empty{min-height:215px;padding:25px 20px;border:1px dashed #cbd5e3;border-radius:15px;background:white;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+#bopeJobSearchPage .bjs-empty-icon{width:58px;height:58px;border-radius:17px;background:#e7f0ff;display:grid;place-items:center;font-size:28px;margin-bottom:12px}
+#bopeJobSearchPage .bjs-offers-empty strong{font-size:15px}
+#bopeJobSearchPage .bjs-offers-empty p{max-width:310px;margin:8px 0 0;color:#657188;font-size:12px;line-height:1.55}
+#bopeJobSearchPage .bjs-trust{margin-top:17px;padding:13px;border-radius:11px;background:#fff4e9;color:#8a5428;font-size:11px;line-height:1.5}
+@media(max-width:360px){#bopeJobSearchPage .bjs-main{padding:19px 12px}#bopeJobSearchPage .bjs-search button{padding:10px 8px;font-size:11px}}
 </style>
 
 <section id="bopeSportsPage" aria-label="BOPE SPORTS"><div class="bs-wrap">
@@ -1392,6 +1451,22 @@ function closeBopeJobs(){
 }
 function bopeJobsNotice(section){alert(section+' : cette rubrique sera activée progressivement. 🇨🇩');}
 function bopeJobsNav(section){if(section==='Accueil')return;bopeJobsNotice(section);}
+function openBopeJobSearch(){
+ const page=document.getElementById('bopeJobSearchPage'),home=document.getElementById('bopeJobsPage');
+ if(page)page.style.display='block';if(home)home.style.display='none';window.scrollTo(0,0);
+}
+function closeBopeJobSearch(){
+ const page=document.getElementById('bopeJobSearchPage'),home=document.getElementById('bopeJobsPage');
+ if(page)page.style.display='none';if(home)home.style.display='block';window.scrollTo(0,0);
+}
+function bopeJobSearchApply(){
+ const keyword=(document.getElementById('bjsKeyword')?.value||'').trim();
+ const city=document.getElementById('bjsCity')?.value||'';
+ const contract=document.getElementById('bjsContract')?.value||'';
+ const box=document.getElementById('bjsOffersList');
+ if(box){box.innerHTML='';const icon=document.createElement('div');icon.className='bjs-empty-icon';icon.textContent='🔎';const title=document.createElement('strong');title.textContent='Aucune offre publiée pour le moment';const detail=document.createElement('p');detail.textContent='Ta recherche est prête. Les résultats apparaîtront dès que les premières offres vérifiées seront publiées.';box.append(icon,title,detail);}
+ const count=document.getElementById('bjsResultCount');if(count)count.textContent='0 offre';
+}
 
 function openBopeSports(){
  const page=document.getElementById('bopeSportsPage');if(!page)return;page.style.display='block';
