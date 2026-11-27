@@ -716,44 +716,80 @@
 <section id="bopeJobsPage" aria-label="BOPE JOBS">
  <div class="bj-wrap">
   <header class="bj-header">
-   <button type="button" class="bj-back" onclick="closeBopeJobs()">← BOPE IA</button>
-   <div class="bj-brand"><span>💼</span><div><strong>BOPE <em>JOBS</em></strong><small>Les compétences créent des opportunités • RDC 🇨🇩</small></div></div>
+   <div class="bj-brand"><strong>BOPE JOBS</strong></div>
+   <button type="button" class="bj-location" onclick="bopeJobsNotice('Choix de la ville')">📍</button>
   </header>
   <main class="bj-main">
-   <section class="bj-intro"><span>EMPLOI · COMPÉTENCES · OPPORTUNITÉS</span><h1>Ton prochain<br><i>départ commence ici.</i></h1><p>Découvre des opportunités professionnelles et valorise tes compétences.</p></section>
+   <section class="bj-intro"><h1>Bonjour, bienvenue !</h1><p>Découvre les opportunités professionnelles et les compétences près de toi.</p></section>
+   <form class="bj-search" onsubmit="event.preventDefault();bopeJobsNotice('Recherche d’offres')">
+    <span>⌕</span><input type="search" aria-label="Rechercher un emploi ou un stage" placeholder="Rechercher emploi, stage...">
+   </form>
    <div class="bj-options">
-    <button type="button" onclick="bopeJobsNotice('Trouver un emploi')"><span>🔎</span><strong>Trouver un emploi</strong><small>Consulter les offres disponibles</small><b>→</b></button>
-    <button type="button" onclick="bopeJobsNotice('Trouver un stage rémunéré')"><span>🎓</span><strong>Trouver un stage rémunéré</strong><small>Découvrir des stages avec indemnité</small><b>→</b></button>
-    <button type="button" onclick="bopeJobsNotice('Publier une offre')"><span>📢</span><strong>Publier une offre</strong><small>Recruter et présenter un poste</small><b>→</b></button>
-    <button type="button" onclick="bopeJobsNotice('Proposer mes compétences')"><span>🧰</span><strong>Proposer mes compétences</strong><small>Présenter ton savoir-faire</small><b>→</b></button>
+    <button type="button" class="bj-job" onclick="bopeJobsNotice('Trouver un emploi')"><span class="bj-tile-icon">⌕</span><strong>Trouver un emploi</strong><small>Consulter les offres disponibles</small></button>
+    <button type="button" class="bj-stage" onclick="bopeJobsNotice('Trouver un stage rémunéré')"><span class="bj-tile-icon">🎓</span><strong>Trouver un stage rémunéré</strong><small>Stages avec indemnité</small></button>
+    <button type="button" class="bj-publish" onclick="bopeJobsNotice('Publier une offre')"><span class="bj-tile-icon">📢</span><strong>Publier une offre</strong><small>Recrute rapidement</small></button>
+    <button type="button" class="bj-skills" onclick="bopeJobsNotice('Proposer mes compétences')"><span class="bj-tile-icon">💼</span><strong>Proposer mes compétences</strong><small>Freelance & missions rémunérées</small></button>
    </div>
-   <p class="bj-fairness">🤝 BOPE JOBS privilégie les opportunités rémunérées. Toute offre doit préciser le salaire ou l'indemnité.</p>
+   <section class="bj-important">
+    <h2>Important</h2>
+    <button type="button" onclick="bopeJobsNotice('Mon profil professionnel')"><span class="bj-row-icon bj-cv">▤</span><span><strong>Mon profil professionnel</strong><small>Présente ton parcours et tes compétences</small></span><b>›</b></button>
+    <button type="button" onclick="bopeJobsNotice('Notifications')"><span class="bj-row-icon bj-notif">♟</span><span><strong>Notifications</strong><small>Retrouve les nouveautés de BOPE JOBS</small></span><b>›</b></button>
+    <button type="button" onclick="bopeJobsNotice('Opportunités récentes')"><span class="bj-row-icon bj-urgent">ϟ</span><span><strong>Opportunités récentes</strong><small>Découvre les offres nouvellement publiées</small></span><b>›</b></button>
+    <button type="button" onclick="bopeJobsNotice('Entreprises qui recrutent')"><span class="bj-row-icon bj-company">▦</span><span><strong>Entreprises qui recrutent</strong><small>Explore les employeurs présents sur BOPE</small></span><b>›</b></button>
+    <button type="button" onclick="bopeJobsNotice('Aide et contact')"><span class="bj-row-icon bj-help">?</span><span><strong>Aide et contact</strong><small>Besoin d’assistance ?</small></span><b>›</b></button>
+   </section>
+   <p class="bj-fairness">🤝 Toute offre publiée sur BOPE JOBS doit préciser une rémunération ou une indemnité. Aucune mission bénévole non rémunérée.</p>
   </main>
+  <nav class="bj-nav" aria-label="Navigation BOPE JOBS">
+   <button class="active" type="button" onclick="bopeJobsNav('Accueil')"><span>⌂</span>Accueil</button>
+   <button type="button" onclick="bopeJobsNav('Emplois')"><span>▣</span>Emplois</button>
+   <button class="bj-add" type="button" onclick="bopeJobsNav('Publier')"><span>＋</span>Publier</button>
+   <button type="button" onclick="bopeJobsNav('Messages')"><span>●</span>Messages</button>
+   <button type="button" onclick="bopeJobsNav('Profil')"><span>♟</span>Profil</button>
+  </nav>
  </div>
 </section>
 <style id="bope-jobs-style">
-#bopeJobsPage{display:none;position:fixed;inset:0;z-index:10001;overflow-y:auto;background:#07111b;color:#f5f8ff;font-family:Arial,sans-serif}
+#bopeJobsPage{display:none;position:fixed;inset:0;z-index:10001;overflow-y:auto;background:#f1f3f7;color:#101b36;font-family:Arial,sans-serif}
 #bopeJobsPage *{box-sizing:border-box}
-#bopeJobsPage .bj-wrap{max-width:760px;min-height:100%;margin:auto;padding:calc(15px + env(safe-area-inset-top)) 16px 35px;background:radial-gradient(ellipse at 50% 0%,#12345a 0,#07111b 54%)}
-#bopeJobsPage .bj-header{display:flex;align-items:center;gap:13px}
-#bopeJobsPage .bj-back{border:1px solid #29415b;border-radius:10px;background:#101e2d;color:#fff;padding:10px;font-size:12px}
-#bopeJobsPage .bj-brand{display:flex;align-items:center;gap:9px}
-#bopeJobsPage .bj-brand>span{display:grid;place-items:center;width:39px;height:39px;border-radius:12px;background:#123c69;font-size:22px}
-#bopeJobsPage .bj-brand strong{font-size:20px;letter-spacing:-.4px}
-#bopeJobsPage .bj-brand em,#bopeJobsPage .bj-intro i{color:#43c5ee;font-style:normal}
-#bopeJobsPage .bj-brand small{display:block;color:#9fb1c5;font-size:9px;margin-top:3px}
-#bopeJobsPage .bj-main{padding-top:30px}
-#bopeJobsPage .bj-intro>span{color:#52c9ef;font-size:9px;font-weight:800;letter-spacing:1.4px}
-#bopeJobsPage .bj-intro h1{font-size:30px;line-height:1.12;margin:10px 0;color:#fff}
-#bopeJobsPage .bj-intro p{font-size:13px;line-height:1.55;color:#aebdce;max-width:420px}
-#bopeJobsPage .bj-options{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:25px}
-#bopeJobsPage .bj-options button{position:relative;min-height:135px;text-align:left;padding:15px 12px;border:1px solid #24415d;border-radius:15px;background:linear-gradient(145deg,#142a40,#0d1a29);color:#fff;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
-#bopeJobsPage .bj-options button>span{font-size:23px}
-#bopeJobsPage .bj-options strong{font-size:13px;line-height:1.25}
-#bopeJobsPage .bj-options small{font-size:10px;line-height:1.35;color:#a9bbcd}
-#bopeJobsPage .bj-options b{position:absolute;right:12px;bottom:12px;color:#52c9ef;font-size:18px}
-#bopeJobsPage .bj-fairness{margin:19px 2px 0;padding:12px;border:1px solid #24506a;border-radius:12px;background:#0d2232;color:#c5d8e8;font-size:11px;line-height:1.5}
-@media(max-width:360px){#bopeJobsPage .bj-options{grid-template-columns:1fr}#bopeJobsPage .bj-options button{min-height:105px}}
+#bopeJobsPage .bj-wrap{position:relative;max-width:620px;min-height:100%;margin:auto;padding:calc(0px + env(safe-area-inset-top)) 15px 94px;background:#f1f3f7}
+#bopeJobsPage .bj-header{height:88px;margin:0 -15px;padding:12px 20px;background:linear-gradient(110deg,#1760c9,#3478df);color:#fff;display:flex;align-items:center;justify-content:space-between;box-shadow:0 3px 12px #173b7922}
+#bopeJobsPage .bj-brand strong{font-size:29px;letter-spacing:-.7px}
+#bopeJobsPage .bj-location{width:42px;height:42px;border:0;background:transparent;color:#fff;font-size:25px}
+#bopeJobsPage .bj-main{padding-top:20px}
+#bopeJobsPage .bj-intro h1{font-size:23px;line-height:1.2;margin:0 0 4px;color:#101b36}
+#bopeJobsPage .bj-intro p{font-size:14px;line-height:1.4;color:#46516a;margin:0 0 18px}
+#bopeJobsPage .bj-search{height:54px;margin:0 0 20px;padding:0 15px;display:flex;align-items:center;gap:12px;border-radius:14px;background:#fff;box-shadow:0 4px 14px #1c315018}
+#bopeJobsPage .bj-search span{font-size:29px;color:#e58b43;line-height:1}
+#bopeJobsPage .bj-search input{width:100%;border:0;outline:0;background:transparent;color:#17213b;font-size:15px}
+#bopeJobsPage .bj-options{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+#bopeJobsPage .bj-options button{min-width:0;min-height:174px;border:0;border-radius:15px;padding:17px 12px 13px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:8px;text-align:center;color:#102047;box-shadow:0 5px 13px #182d4a20}
+#bopeJobsPage .bj-options .bj-job,#bopeJobsPage .bj-options .bj-skills{background:linear-gradient(145deg,#5794eb,#3474d4)}
+#bopeJobsPage .bj-options .bj-stage,#bopeJobsPage .bj-options .bj-publish{background:linear-gradient(145deg,#ffb15f,#f58a39)}
+#bopeJobsPage .bj-tile-icon{width:65px;height:65px;border-radius:15px;background:#1558b8;color:#fff;display:grid;place-items:center;font-size:35px;box-shadow:0 4px 10px #17294b25}
+#bopeJobsPage .bj-stage .bj-tile-icon,#bopeJobsPage .bj-publish .bj-tile-icon{background:#e97823}
+#bopeJobsPage .bj-options strong{font-size:16px;line-height:1.18}
+#bopeJobsPage .bj-options small{font-size:11px;line-height:1.3;color:#fff}
+#bopeJobsPage .bj-important{margin-top:22px}
+#bopeJobsPage .bj-important h2{font-size:22px;margin:0 0 10px;color:#101b36}
+#bopeJobsPage .bj-important>button{width:100%;min-height:72px;padding:9px 11px;border:0;border-bottom:1px solid #e5e7eb;background:#fff;display:flex;align-items:center;gap:12px;text-align:left;color:#111b34}
+#bopeJobsPage .bj-important>button:first-of-type{border-radius:14px 14px 0 0}
+#bopeJobsPage .bj-important>button:last-of-type{border-radius:0 0 14px 14px;border-bottom:0}
+#bopeJobsPage .bj-row-icon{width:48px;height:48px;flex:0 0 48px;border-radius:11px;display:grid;place-items:center;font-size:25px}
+#bopeJobsPage .bj-cv,#bopeJobsPage .bj-urgent{background:#ffead8;color:#e57b32}
+#bopeJobsPage .bj-notif,#bopeJobsPage .bj-company{background:#dceaff;color:#2868c5}
+#bopeJobsPage .bj-help{background:#ddf4e2;color:#238849}
+#bopeJobsPage .bj-important button>span:nth-child(2){flex:1;min-width:0}
+#bopeJobsPage .bj-important strong{display:block;font-size:14px;line-height:1.25}
+#bopeJobsPage .bj-important small{display:block;margin-top:3px;font-size:11px;color:#4d5668;line-height:1.3}
+#bopeJobsPage .bj-important b{font-size:27px;font-weight:400;color:#8b9099}
+#bopeJobsPage .bj-fairness{margin:14px 1px 0;padding:10px 12px;border-radius:10px;background:#fff;color:#47536b;font-size:10px;line-height:1.45}
+#bopeJobsPage .bj-nav{position:fixed;z-index:2;left:0;right:0;bottom:0;max-width:620px;margin:auto;padding:8px 5px calc(7px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(5,1fr);background:#fff;border-top:1px solid #e5e7eb;box-shadow:0 -4px 16px #14213a12}
+#bopeJobsPage .bj-nav button{min-width:0;border:0;background:transparent;color:#737780;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px}
+#bopeJobsPage .bj-nav button span{font-size:23px;line-height:1.1}
+#bopeJobsPage .bj-nav button.active{color:#e87f32;font-weight:800}
+#bopeJobsPage .bj-nav button.bj-add span{width:56px;height:40px;border-radius:12px;background:#f18b42;color:#fff;display:grid;place-items:center;font-size:29px}
+@media(max-width:360px){#bopeJobsPage .bj-options button{min-height:158px}#bopeJobsPage .bj-options strong{font-size:14px}#bopeJobsPage .bj-important strong{font-size:13px}#bopeJobsPage .bj-important small{font-size:10px}}
 </style>
 
 <section id="bopeSportsPage" aria-label="BOPE SPORTS"><div class="bs-wrap">
