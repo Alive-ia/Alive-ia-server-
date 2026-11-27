@@ -727,7 +727,7 @@
    <div class="bj-options">
     <button type="button" class="bj-job" onclick="openBopeJobSearch()"><span class="bj-tile-icon">⌕</span><strong>Trouver un emploi</strong><small>Consulter les offres disponibles</small></button>
     <button type="button" class="bj-stage" onclick="bopeJobsNotice('Trouver un stage rémunéré')"><span class="bj-tile-icon">🎓</span><strong>Trouver un stage rémunéré</strong><small>Stages avec indemnité</small></button>
-    <button type="button" class="bj-publish" onclick="bopeJobsNotice('Publier une offre')"><span class="bj-tile-icon">📢</span><strong>Publier une offre</strong><small>Recrute rapidement</small></button>
+    <button type="button" class="bj-publish" onclick="openBopeJobPublish()"><span class="bj-tile-icon">📢</span><strong>Publier une offre</strong><small>Recrute rapidement</small></button>
     <button type="button" class="bj-skills" onclick="bopeJobsNotice('Proposer mes compétences')"><span class="bj-tile-icon">💼</span><strong>Proposer mes compétences</strong><small>Freelance & missions rémunérées</small></button>
    </div>
    <section class="bj-important">
@@ -743,7 +743,7 @@
   <nav class="bj-nav" aria-label="Navigation BOPE JOBS">
    <button class="active" type="button" onclick="bopeJobsNav('Accueil')"><span>⌂</span>Accueil</button>
    <button type="button" onclick="bopeJobsNav('Emplois')"><span>▣</span>Emplois</button>
-   <button class="bj-add" type="button" onclick="bopeJobsNav('Publier')"><span>＋</span>Publier</button>
+   <button class="bj-add" type="button" onclick="openBopeJobPublish()"><span>＋</span>Publier</button>
    <button type="button" onclick="bopeJobsNav('Messages')"><span>●</span>Messages</button>
    <button type="button" onclick="bopeJobsNav('Profil')"><span>♟</span>Profil</button>
   </nav>
@@ -821,6 +821,30 @@
 #bopeJobsPage .bj-nav button.active{color:#e87f32;font-weight:800}
 #bopeJobsPage .bj-nav button.bj-add span{width:56px;height:40px;border-radius:12px;background:#f18b42;color:#fff;display:grid;place-items:center;font-size:29px}
 @media(max-width:360px){#bopeJobsPage .bj-options button{min-height:158px}#bopeJobsPage .bj-options strong{font-size:14px}#bopeJobsPage .bj-important strong{font-size:13px}#bopeJobsPage .bj-important small{font-size:10px}}
+
+#bopeJobPublishPage{display:none;position:fixed;inset:0;z-index:10003;overflow-y:auto;background:#f3f5f9;color:#14213d;font-family:Arial,sans-serif}
+#bopeJobPublishPage *{box-sizing:border-box}
+#bopeJobPublishPage .bjp-header{height:76px;padding:12px 16px;background:linear-gradient(110deg,#1760c9,#3478df);color:#fff;display:flex;align-items:center;gap:12px}
+#bopeJobPublishPage .bjp-header button{width:38px;height:38px;border:0;border-radius:50%;background:#ffffff22;color:#fff;font-size:28px}
+#bopeJobPublishPage .bjp-header div{display:flex;flex-direction:column;gap:3px;flex:1}
+#bopeJobPublishPage .bjp-header strong{font-size:18px}
+#bopeJobPublishPage .bjp-header small{font-size:11px;color:#e5efff}
+#bopeJobPublishPage .bjp-main{max-width:620px;margin:auto;padding:22px 16px 40px}
+#bopeJobPublishPage h1{font-size:23px;margin:0 0 7px}
+#bopeJobPublishPage .bjp-intro{font-size:13px;line-height:1.5;color:#5c687d;margin:0 0 18px}
+#bopeJobPublishPage .bjp-form{background:#fff;border-radius:16px;padding:16px;box-shadow:0 4px 18px #14213d12}
+#bopeJobPublishPage .bjp-form label{display:flex;flex-direction:column;gap:7px;margin:0 0 14px;font-size:12px;font-weight:700;color:#46536a}
+#bopeJobPublishPage .bjp-form input,#bopeJobPublishPage .bjp-form select,#bopeJobPublishPage .bjp-form textarea{width:100%;border:1px solid #dce3ef;border-radius:10px;padding:12px;background:#fff;color:#14213d;font:14px Arial,sans-serif;outline:none}
+#bopeJobPublishPage .bjp-form textarea{min-height:105px;resize:vertical;line-height:1.45}
+#bopeJobPublishPage .bjp-grid,#bopeJobPublishPage .bjp-pay-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#bopeJobPublishPage .bjp-note{padding:12px;border-radius:11px;background:#eef5ff;color:#31517e;font-size:12px;line-height:1.5;margin:4px 0 15px}
+#bopeJobPublishPage .bjp-submit{width:100%;border:0;border-radius:11px;padding:14px;background:#2169d2;color:#fff;font-weight:800;font-size:14px}
+#bopeJobPublishPage .bjp-submit:disabled{opacity:.65}
+#bopeJobPublishPage .bjp-status{display:none;margin:12px 0 0;padding:11px;border-radius:10px;font-size:12px;line-height:1.5;background:#eef8f0;color:#23633a}
+#bopeJobPublishPage .bjp-status.show{display:block}
+#bopeJobPublishPage .bjp-status.error{background:#fff0f0;color:#a12626}
+@media(max-width:390px){#bopeJobPublishPage .bjp-grid,#bopeJobPublishPage .bjp-pay-grid{grid-template-columns:1fr}}
+
 #bopeJobSearchPage{display:none;position:fixed;inset:0;z-index:10002;overflow-y:auto;background:#f3f5f9;color:#111d38;font-family:Arial,sans-serif}
 #bopeJobSearchPage *{box-sizing:border-box}
 #bopeJobSearchPage .bjs-header{height:82px;padding:12px 17px;background:linear-gradient(110deg,#1760c9,#3478df);color:white;display:flex;align-items:center;gap:13px;box-shadow:0 3px 12px #173b7922}
@@ -1466,6 +1490,49 @@ function bopeJobSearchApply(){
  const box=document.getElementById('bjsOffersList');
  if(box){box.innerHTML='';const icon=document.createElement('div');icon.className='bjs-empty-icon';icon.textContent='🔎';const title=document.createElement('strong');title.textContent='Aucune offre publiée pour le moment';const detail=document.createElement('p');detail.textContent='Ta recherche est prête. Les résultats apparaîtront dès que les premières offres vérifiées seront publiées.';box.append(icon,title,detail);}
  const count=document.getElementById('bjsResultCount');if(count)count.textContent='0 offre';
+}
+
+
+function openBopeJobPublish(){
+ const page=document.getElementById('bopeJobPublishPage'),home=document.getElementById('bopeJobsPage'),search=document.getElementById('bopeJobSearchPage');
+ if(page)page.style.display='block';if(home)home.style.display='none';if(search)search.style.display='none';window.scrollTo(0,0);
+}
+function closeBopeJobPublish(){
+ const page=document.getElementById('bopeJobPublishPage'),home=document.getElementById('bopeJobsPage');
+ if(page)page.style.display='none';if(home)home.style.display='block';window.scrollTo(0,0);
+}
+function bjpSetStatus(message,isError=false){
+ const el=document.getElementById('bjpStatus');if(!el)return;
+ el.textContent=message;el.className='bjp-status show'+(isError?' error':'');
+}
+async function bopeJobPublishSubmit(event){
+ event.preventDefault();
+ const form=document.getElementById('bjpOfferForm'),button=document.getElementById('bjpSubmitBtn');
+ const min=Number(document.getElementById('bjpCompMin').value),maxRaw=document.getElementById('bjpCompMax').value;
+ const max=maxRaw===''?null:Number(maxRaw);
+ if(!(min>0)||(max!==null&&(!(max>0)||max<min))){bjpSetStatus('Vérifie les montants : le minimum doit être positif et le maximum ne peut pas être inférieur au minimum.',true);return;}
+ const deadline=document.getElementById('bjpDeadline').value;
+ if(deadline&&deadline<new Date().toISOString().slice(0,10)){bjpSetStatus('La date limite doit être aujourd’hui ou une date future.',true);return;}
+ const payload={
+  employer_name:document.getElementById('bjpEmployer').value.trim(),
+  job_title:document.getElementById('bjpTitle').value.trim(),
+  description:document.getElementById('bjpDescription').value.trim(),
+  city:document.getElementById('bjpCity').value.trim(),
+  contract_type:document.getElementById('bjpContract').value,
+  compensation_type:document.getElementById('bjpCompType').value,
+  compensation_min:min,compensation_max:max,currency:document.getElementById('bjpCurrency').value,
+  compensation_period:document.getElementById('bjpPeriod').value,
+  application_instructions:document.getElementById('bjpApply').value.trim(),application_deadline:deadline||null
+ };
+ button.disabled=true;button.textContent='Envoi en cours...';bjpSetStatus('Vérification de ta connexion BOPE...');
+ try{
+  if(typeof window.bcSubmitJobOffer!=='function')throw new Error('Le module de connexion BOPE n’est pas disponible. Recharge la page puis réessaie.');
+  const result=await window.bcSubmitJobOffer(payload);if(result.error)throw result.error;
+  form.reset();bjpSetStatus('✅ Offre reçue ! Elle est enregistrée en attente de vérification. Elle ne sera visible qu’après validation par BOPE.');
+ }catch(error){
+  const message=error&&error.message?error.message:String(error);
+  bjpSetStatus(message.includes('connecté')?'Connecte-toi d’abord avec ton compte BOPE CRÉATEUR, puis reviens publier ton offre.':'Impossible de soumettre cette offre : '+message,true);
+ }finally{button.disabled=false;button.textContent='Soumettre l’offre pour vérification';}
 }
 
 function openBopeSports(){
@@ -3045,6 +3112,40 @@ function applyDRoute(route){
    <div id="bcAccountMessage" class="bc-message show">Bienvenue dans ton espace BS.</div>
   </div>
  </div>
+
+</section>
+<section id="bopeJobPublishPage" aria-label="Publier une offre">
+ <header class="bjp-header">
+  <button type="button" onclick="closeBopeJobPublish()" aria-label="Retour">‹</button>
+  <div><strong>BOPE JOBS</strong><small>Publication d'une offre rémunérée</small></div><span>📢</span>
+ </header>
+ <main class="bjp-main">
+  <h1>Publier une offre</h1>
+  <p class="bjp-intro">Présente clairement le poste et les conditions. Chaque annonce est vérifiée avant sa publication.</p>
+  <form class="bjp-form" id="bjpOfferForm" onsubmit="bopeJobPublishSubmit(event)">
+   <label>Entreprise ou nom du recruteur<input id="bjpEmployer" maxlength="160" required placeholder="Ex. Hôpital général de Kikwit"></label>
+   <label>Intitulé du poste<input id="bjpTitle" maxlength="180" required placeholder="Ex. Médecin généraliste"></label>
+   <label>Description et responsabilités<textarea id="bjpDescription" maxlength="10000" minlength="30" required placeholder="Décris le travail, les qualifications et les responsabilités (30 caractères minimum)."></textarea></label>
+   <div class="bjp-grid">
+    <label>Ville<input id="bjpCity" maxlength="120" required placeholder="Ex. Kikwit"></label>
+    <label>Type de contrat<select id="bjpContract" required><option value="">Choisir</option><option>CDI</option><option>CDD</option><option>Temps partiel</option><option>Mission rémunérée</option><option>Stage rémunéré</option></select></label>
+   </div>
+   <div class="bjp-note">🛡️ BOPE JOBS n'accepte que les offres avec une rémunération réelle. Les stages doivent également préciser leur indemnité.</div>
+   <label>Nature de la rémunération<select id="bjpCompType" required><option value="">Choisir</option><option>Salaire</option><option>Indemnité</option></select></label>
+   <div class="bjp-pay-grid">
+    <label>Montant minimum<input id="bjpCompMin" type="number" min="0.01" step="0.01" required placeholder="Ex. 250"></label>
+    <label>Montant maximum (facultatif)<input id="bjpCompMax" type="number" min="0.01" step="0.01" placeholder="Ex. 400"></label>
+   </div>
+   <div class="bjp-grid">
+    <label>Devise<select id="bjpCurrency" required><option value="USD">USD – Dollar</option><option value="CDF">CDF – Franc congolais</option><option value="EUR">EUR – Euro</option></select></label>
+    <label>Périodicité<select id="bjpPeriod" required><option>Heure</option><option>Jour</option><option selected>Mois</option><option>Mission</option></select></label>
+   </div>
+   <label>Comment postuler ?<textarea id="bjpApply" minlength="5" maxlength="3000" required placeholder="Indique l'adresse, le numéro ou la procédure de candidature."></textarea></label>
+   <label>Date limite de candidature (facultatif)<input id="bjpDeadline" type="date"></label>
+   <button class="bjp-submit" id="bjpSubmitBtn" type="submit">Soumettre l'offre pour vérification</button>
+   <div class="bjp-status" id="bjpStatus" role="status" aria-live="polite"></div>
+  </form>
+ </main>
 </section>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -3117,6 +3218,16 @@ function applyDRoute(route){
    return true;
   }catch(e){bcMessage(e.message||'Impossible de préparer la connexion.',true);return false;}
  }
+
+ window.bcSubmitJobOffer=async function(payload){
+  if(!await bcInit())throw new Error('Connexion BOPE indisponible.');
+  const {data,error}=await bcClient.auth.getSession();if(error)throw error;
+  if(!data||!data.session||!data.session.user)throw new Error('Tu dois être connecté pour publier une offre.');
+  const allowed=['employer_name','job_title','description','city','contract_type','compensation_type','compensation_min','compensation_max','currency','compensation_period','application_instructions','application_deadline'];
+  const row={};for(const key of allowed)row[key]=payload[key];
+  row.employer_id=data.session.user.id;row.status='pending';
+  return await bcClient.from('bope_jobs_offers').insert(row).select('id').single();
+ };
  function bcShowAuth(){byId('bcAuthCard').style.display='block';byId('bcAccountCard').classList.remove('show');}
  async function bcShowAccount(user){
   bcCurrentUser=user;bcFeedNewestAt=null;bcFeedSeenIds=new Set();bcSetNewPostsBadge(0);byId('bcAuthCard').style.display='none';byId('bcAccountCard').classList.add('show');
