@@ -1391,6 +1391,7 @@ function closeBopeJobs(){
  if(hub)hub.style.display='';if(welcome)welcome.style.display='flex';if(chat)chat.style.display='flex';if(composer)composer.style.display='flex';if(games)games.style.display='block';
 }
 function bopeJobsNotice(section){alert(section+' : cette rubrique sera activée progressivement. 🇨🇩');}
+function bopeJobsNav(section){if(section==='Accueil')return;bopeJobsNotice(section);}
 
 function openBopeSports(){
  const page=document.getElementById('bopeSportsPage');if(!page)return;page.style.display='block';
